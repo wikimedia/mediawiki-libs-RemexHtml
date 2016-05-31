@@ -18,5 +18,8 @@
 		"psr-4": {
 			"Wikimedia\\RemexHtml\\": "src/"
 		}
+	},
+	"scripts": {
+		"test": "hhvm vendor/bin/phpunit --no-globals-backup tests/phpunit"
 	}
 }
