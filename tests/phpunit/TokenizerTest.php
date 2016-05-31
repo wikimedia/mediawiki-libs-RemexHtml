@@ -3,12 +3,19 @@
 namespace Wikimedia\RemexHtml;
 
 class TokenizerTest extends \PHPUnit_Framework_TestCase {
+	private static $skippedFiles = [
+		'pendingSpecChanges.test'
+	];
+
 	public function provider() {
 		$testDir = __DIR__ . '/../html5lib/tokenizer';
 		$failedTests = 0;
 		$tests = [];
 		foreach ( glob( "$testDir/*.test" ) as $fileName ) {
 			$lastPart = preg_replace( "/^.*\//s", '', $fileName );
+			if ( in_array( $lastPart, self::$skippedFiles ) ) {
+				continue;
+			}
 			$testData = json_decode( file_get_contents( $fileName ), true );
 			if ( !isset( $testData['tests'] ) ) {
 				continue;
@@ -24,6 +31,7 @@ class TokenizerTest extends \PHPUnit_Framework_TestCase {
 						str_replace( '\\\\', '\\', json_encode( $output ) ),
 						true );
 				}
+				$output = $this->normalizeErrors( $output );
 				foreach ( $states as $state ) {
 					if ( count( $states ) > 1 ) {
 						$description = "$lastPart: {$test['description']} ({$state})";
@@ -57,11 +65,38 @@ class TokenizerTest extends \PHPUnit_Framework_TestCase {
 		}
 	}
 
+	private function normalizeErrors( $tokens ) {
+		$hasError = false;
+		$output = [];
+		$lastToken = false;
+		foreach ( $tokens as $token ) {
+			if ( $token === 'ParseError' ) {
+				$hasError = true;
+				continue;
+			}
+			if ( $lastToken[0] === 'Character' && $token[0] === 'Character' ) {
+				$output[ count( $output ) - 1 ][1] .= $token[1];
+			} else {
+				$output[] = $token;
+			}
+			$lastToken = $token;
+		}
+		if ( $hasError ) {
+			array_unshift( $output, 'ParseError' );
+		}
+		return $output;
+	}
+
+
 	/** @dataProvider provider */
 	public function testExecute( $state, $appropriateEndTag, $input, $expected ) {
 		$handler = new TestTokenHandler();
 		$tokenizer = new Tokenizer( $handler, $input, [] );
 		$tokenizer->execute( $this->convertState( $state ), $appropriateEndTag );
-		$this->assertEquals( $expected, $handler->getTokens() );
+		$output = $this->normalizeErrors( $handler->getTokens() );
+		$jsonOptions =  JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
+		$this->assertEquals(
+			json_encode( $expected, $jsonOptions ),
+			json_encode( $output, $jsonOptions ) );
 	}
 }
