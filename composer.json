@@ -1,0 +1,22 @@
+{
+	"name": "wikimedia/remex-html",
+	"description": "Fast HTML 5 parser",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Tim Starling",
+			"email": "tstarling@wikimedia.org"
+		}
+	],
+	"require": {
+		"wikimedia/utfnormal": "1.*"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "4.*"
+	},
+	"autoload": {
+		"psr-4": {
+			"Wikimedia\\RemexHtml\\": "src/"
+		}
+	}
+}
