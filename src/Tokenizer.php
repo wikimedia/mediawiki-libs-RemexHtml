@@ -116,7 +116,10 @@ class Tokenizer {
 				'\x{FFFFE}\x{FFFFF}' .
 				'\x{10FFFE}\x{10FFFF}]/u';
 			while ( $pos < $this->length ) {
-				if ( !preg_match( $re, $this->text, $m, PREG_OFFSET_CAPTURE, $pos ) ) {
+				$count = preg_match( $re, $this->text, $m, PREG_OFFSET_CAPTURE, $pos );
+				if ( $count === false ) {
+					$this->fatal( "Invalid UTF-8 sequence given to Tokenizer" );
+				} elseif ( !$count ) {
 					break;
 				}
 				$pos = $m[0][1];
@@ -572,9 +575,9 @@ class Tokenizer {
 		// Although this doesn't translate any error cases, running this
 		// function in !$ignoreError mode would cause the string offsets to
 		// be wrong when we come to the preg_match_all.
-		// Note that the table was missing about 500 named character entites
-		// in HHVM 3.12 compared to HTML 5 as published on 28 October 2014.
-		if ( $this->ignoreErrors ) {
+		//
+		// In HHVM this is way too broken to be usable. (@todo bug/PR)
+		if ( !defined( 'HHVM_VERSION' ) && $this->ignoreErrors ) {
 			$text = html_entity_decode( $text, ENT_HTML5 | ENT_QUOTES );
 		}
 
@@ -1118,6 +1121,11 @@ REGEX;
 	}
 
 	protected function throwPregError() {
+		if ( defined( 'PREG_JIT_STACKLIMIT_ERROR' ) ) {
+			$PREG_JIT_STACKLIMIT_ERROR = PREG_JIT_STACKLIMIT_ERROR;
+		} else {
+			$PREG_JIT_STACKLIMIT_ERROR = 'undefined error';
+		}
 		switch ( preg_last_error() ) {
 		case PREG_NO_ERROR:
 			$msg = "PCRE returned false but gave PREG_NO_ERROR";
@@ -1131,7 +1139,7 @@ REGEX;
 		case PREG_RECURSION_LIMIT_ERROR:
 			$msg = "pcre.recursion_limit exhausted";
 			break;
-		case PREG_JIT_STACKLIMIT_ERROR:
+		case $PREG_JIT_STACKLIMIT_ERROR:
 			$msg = "PCRE JIT stack space exhausted";
 			break;
 		case PREG_BAD_UTF8_ERROR:
