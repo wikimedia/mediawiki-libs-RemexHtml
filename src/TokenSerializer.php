@@ -56,6 +56,9 @@ class TokenSerializer implements TokenHandler {
 			$this->output .= " SYSTEM \"$system\"";
 		}
 		$this->output .= '>';
+		if ( $quirks ) {
+			$this->output .= '<!--quirks-->';
+		}
 	}
 
 	function comment( $text, $sourceStart, $sourceLength ) {

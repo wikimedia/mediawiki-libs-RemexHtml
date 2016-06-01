@@ -15,23 +15,24 @@ class Tokenizer {
 	const MD_END_TAG_OPEN = 1;
 	const MD_TAG_NAME = 2;
 	const MD_COMMENT = 3;
-	const MD_COMMENT_END = 4;
-	const MD_DOCTYPE = 5;
-	const MD_DT_NAME_WS = 6;
-	const MD_DT_NAME = 7;
-	const MD_DT_PUBLIC_WS = 8;
-	const MD_DT_PUBLIC_DQ = 9;
-	const MD_DT_PUBLIC_SQ = 10;
-	const MD_DT_PUBSYS_WS = 11;
-	const MD_DT_PUBSYS_DQ = 12;
-	const MD_DT_PUBSYS_SQ = 13;
-	const MD_DT_SYSTEM_WS = 14;
-	const MD_DT_SYSTEM_DQ = 15;
-	const MD_DT_SYSTEM_SQ = 16;
-	const MD_DT_BOGUS = 17;
-	const MD_DT_END = 18;
-	const MD_CDATA = 19;
-	const MD_BOGUS_COMMENT = 20;
+	const MD_COMMENT_INNER = 4;
+	const MD_COMMENT_END = 5;
+	const MD_DOCTYPE = 6;
+	const MD_DT_NAME_WS = 7;
+	const MD_DT_NAME = 8;
+	const MD_DT_PUBLIC_WS = 9;
+	const MD_DT_PUBLIC_DQ = 10;
+	const MD_DT_PUBLIC_SQ = 11;
+	const MD_DT_PUBSYS_WS = 12;
+	const MD_DT_PUBSYS_DQ = 13;
+	const MD_DT_PUBSYS_SQ = 14;
+	const MD_DT_SYSTEM_WS = 15;
+	const MD_DT_SYSTEM_DQ = 16;
+	const MD_DT_SYSTEM_SQ = 17;
+	const MD_DT_BOGUS = 18;
+	const MD_DT_END = 19;
+	const MD_CDATA = 20;
+	const MD_BOGUS_COMMENT = 21;
 
 	// Match indices for the character reference regex
 	const MC_PREFIX = 1;
@@ -197,24 +198,28 @@ class Tokenizer {
 
 				# Comment
 				!--
-				(?:
-					-> | # Invalid short close
-					(                         # 3. Comment contents
-						-> | 
+				(                             # 3. Comment match detector
+					> | -> | # Invalid short close
+					(                         # 4. Comment contents
 						(?:
 							(?! --> )
 							(?! --!> )
-							[^>]
+							(?! --! \z )
+							(?! -- \z )
+							(?! - \z ) 
+							.
 						)*+
 					)
-					(                         # 4. Comment close
+					(                         # 5. Comment close
 						--> |   # Normal close
 						--!> |  # Comment end bang
-						> |     # Other invalid close
-						        # EOF
+						--! |   # EOF in comment end bang state
+						-- |    # EOF in comment end state
+						-  |    # EOF in comment end dash state
+						        # EOF in comment state
 					)
 				) |
-				( (?i)                        # 5. Doctype
+				( (?i)                        # 6. Doctype
 					! DOCTYPE
 
 					# There must be at least one whitespace character to suppress
@@ -223,51 +228,51 @@ class Tokenizer {
 					# as a character node, the DOCTYPE subexpression must always
 					# wholly match if we matched up to this point.
 
-					( [\t\n\f ]*+ )           # 6. Required whitespace
-					( [^\t\n\f >]*+ )         # 7. DOCTYPE name
+					( [\t\n\f ]*+ )           # 7. Required whitespace
+					( [^\t\n\f >]*+ )         # 8. DOCTYPE name
 					[\t\n\f ]*+
 					(?:
 						# After DOCTYPE name state
 						PUBLIC
-						( [\t\n\f ]* )            # 8. Required whitespace
+						( [\t\n\f ]* )            # 9. Required whitespace
 						(?:
-							\" ( [^\">]* ) \"? |  # 9. Double-quoted identifier
-							' ( [^'>]* ) '? |     # 10. Single-quoted identifier
+							\" ( [^\">]* ) \"? |  # 10. Double-quoted identifier
+							' ( [^'>]* ) '? |     # 11. Single-quoted identifier
 							# Non-match: bogus
 						)
 						(?:
 							# After DOCTYPE public identifier state
 							# Assert quoted identifier before here
 							(?<= \" | ' )
-							( [\t\n\f ]* )            # 11. Required whitespace
+							( [\t\n\f ]* )            # 12. Required whitespace
 							(?:
-								\" ( [^\">]* ) \"? |  # 12. Double-quoted identifier
-								' ( [^'>]* ) '? |     # 13. Single-quoted identifier
+								\" ( [^\">]* ) \"? |  # 13. Double-quoted identifier
+								' ( [^'>]* ) '? |     # 14. Single-quoted identifier
 								# Non-match: no system ID
 							)
 						)?
 						|
 						SYSTEM
-						( [\t\n\f ]* )            # 14. Required whitespace
+						( [\t\n\f ]* )            # 15. Required whitespace
 						(?:
-							\" ( [^\">]* ) \"? |  # 15. Double-quoted identifier
-							' ( [^'>]* ) '? |     # 16. Single-quoted identifier
+							\" ( [^\">]* ) \"? |  # 16. Double-quoted identifier
+							' ( [^'>]* ) '? |     # 17. Single-quoted identifier
 							# Non-match: bogus
 						)
 						|  # No keyword is OK
 					)
 					[\t\n\f ]*
-					( [^>]*+ )                # 17. Bogus DOCTYPE
-					( >? )                    # 18. End of DOCTYPE
+					( [^>]*+ )                # 18. Bogus DOCTYPE
+					( >? )                    # 19. End of DOCTYPE
 				) |
-				( ! \[CDATA\[ ) |             # 19. CDATA section
-				( [!?/] [^>]*+ ) >?           # 20. Bogus comment
+				( ! \[CDATA\[ ) |             # 20. CDATA section
+				( [!?/] [^>]*+ ) >?           # 21. Bogus comment
 
 				# Anything else: parse error and emit literal less-than sign.
 				# We will let the match fail at this position and later check
 				# for less-than signs in the resulting text node.
 			)
-			~x";
+			~xs";
 
 		$nextState = self::STATE_DATA;
 		do {
@@ -307,10 +312,7 @@ class Tokenizer {
 
 				// Respect any state switch imposed by the parser
 				$nextState = $this->state;
-			} elseif ( $m[0][0] === '<!--->' ) {
-				$this->error( 'not enough dashes in empty comment', $startPos );
-				$this->listener->comment( '', $startPos, $nextPos - $startPos );
-			} elseif ( isset( $m[self::MD_COMMENT_END] ) && $m[self::MD_COMMENT_END][1] >= 0 ) {
+			} elseif ( isset( $m[self::MD_COMMENT] ) && $m[self::MD_COMMENT][1] >= 0 ) {
 				// Comment
 				$this->interpretCommentMatches( $m );
 			} elseif ( isset( $m[self::MD_DOCTYPE] ) && $m[self::MD_DOCTYPE][1] >= 0 ) {
@@ -367,19 +369,27 @@ class Tokenizer {
 		$outerStart = $m[0][1];
 		$outerLength = strlen( $m[0][0] );
 		$innerStart = $outerStart + strlen( '<!--' );
-		$innerLength = isset( $m[self::MD_COMMENT] ) ? strlen( $m[self::MD_COMMENT][0] ) : 0;
-		$contents = $innerLength ? $m[self::MD_COMMENT][0] : '';
+		$innerLength = isset( $m[self::MD_COMMENT_INNER] ) ? strlen( $m[self::MD_COMMENT_INNER][0] ) : 0;
+		$contents = $innerLength ? $m[self::MD_COMMENT_INNER][0] : '';
+
+		if ( $m[0][0] === '<!-->' || $m[0][0] === '<!--->' ) {
+			// These are special cases in the comment start state
+			$this->error( 'not enough dashes in empty comment', $outerStart );
+			$this->listener->comment( '', $outerStart, $outerLength );
+			return;
+		}
+
 		if ( !$this->ignoreNulls ) {
 			$contents = $this->handleNulls( $contents, $innerStart );
 		}
+		$close = $m[self::MD_COMMENT_END][0];
+		$closePos = $m[self::MD_COMMENT_END][1];
 
 		if ( !$this->ignoreErrors ) {
-			$close = $m[4][0];
-			$closePos = $m[4][1];
 			if ( $close === '--!>' ) {
 				$this->error( 'invalid comment end bang', $closePos );
-			} elseif ( $close === '>' ) {
-				$this->error( 'comment ended without dashes', $closePos );
+			} elseif ( $close === '-' || $close === '--' || $close === '--!' ) {
+				$this->error( 'EOF part way through comment close', $closePos );
 			} elseif ( $close === '' ) {
 				$this->error( 'EOF in comment', $closePos );
 			}
@@ -410,21 +420,28 @@ class Tokenizer {
 		$public = null;
 		$system = null;
 		$quirks = false;
-		$eof = false;
 
-		if ( !strlen( $m[self::MD_DT_END][0] ) ) {
-			// Missing ">" can only be caused by EOF
-			if ( !$igerr ) {
-				$this->error( 'unterminated DOCTYPE' );
-			}
-			$quirks = true;
-			$eof = true;
-		}
+		// Missing ">" can only be caused by EOF
+		$eof = !strlen( $m[self::MD_DT_END][0] );
 
 		if ( strlen( $m[self::MD_DT_BOGUS][0] ) ) {
 			// Bogus DOCTYPE state
 			if ( !$igerr ) {
-				$this->error( 'invalid DOCTYPE contents', $m[12][0] );
+				$this->error( 'invalid DOCTYPE contents', $m[self::MD_DT_BOGUS][1] );
+			}
+			// Set quirks mode unless there was a properly quoted SYSTEM identifier
+			$haveDq = isset( $m[self::MD_DT_SYSTEM_DQ] ) && $m[self::MD_DT_SYSTEM_DQ][1] >= 0;
+			$haveSq = isset( $m[self::MD_DT_SYSTEM_SQ] ) && $m[self::MD_DT_SYSTEM_SQ][1] >= 0;
+			if ( !$haveDq && !$haveSq ) {
+				$quirks = true;
+			}
+			// EOF in the bogus state does not set quirks mode (but it is a parse error)
+			if ( $eof && !$igerr ) {
+				$this->error( 'unterminated DOCTYPE' );
+			}
+		} elseif ( $eof ) {
+			if ( !$igerr ) {
+				$this->error( 'unterminated DOCTYPE' );
 			}
 			$quirks = true;
 		}
@@ -435,7 +452,7 @@ class Tokenizer {
 
 		if ( strlen( $m[self::MD_DT_NAME][0] ) ) {
 			// DOCTYPE name
-			$name = strtolower( $m[self::MD_DT_NAME][0] );
+			$name = $this->handleNulls( strtolower( $m[self::MD_DT_NAME][0] ), $m[self::MD_DT_NAME][1] );
 		} else {
 			if ( !$eof && !$igerr ) {
 				$this->error( 'missing DOCTYPE name',
@@ -451,8 +468,11 @@ class Tokenizer {
 			}
 			$public = $this->interpretDoctypeQuoted( $m,
 				self::MD_DT_PUBLIC_DQ, self::MD_DT_PUBLIC_SQ, $quirks );
-			if ( $public === null && !$eof && !$igerr ) {
-				$this->error( 'missing public identifier', $m[self::MD_DT_PUBLIC_WS][1] );
+			if ( $public === null ) {
+				$quirks = true;
+				if ( !$eof && !$igerr ) {
+					$this->error( 'missing public identifier', $m[self::MD_DT_PUBLIC_WS][1] );
+				}
 			}
 
 			// Check for a system ID after the public ID
@@ -472,6 +492,11 @@ class Tokenizer {
 			}
 			$system = $this->interpretDoctypeQuoted( $m,
 				self::MD_DT_SYSTEM_DQ, self::MD_DT_SYSTEM_SQ, $quirks );
+			if ( $system === null ) {
+				$quirks = true;
+				$this->error( 'missing system identifier', $m[self::MD_DT_SYSTEM_WS][1] );
+			}
+
 		}
 		$this->listener->doctype( $name, $public, $system, $quirks, $m[0][1], strlen( $m[0][0] ) );
 	}
@@ -479,17 +504,22 @@ class Tokenizer {
 	protected function interpretDoctypeQuoted( $m, $dq, $sq, &$quirks ) {
 		if ( isset( $m[$dq] ) && $m[$dq][1] >= 0 ) {
 			$value = $m[$dq][0];
-			$endPos = $m[$dq][1] + strlen( $value );
+			$startPos = $m[$dq][1];
 		} elseif ( isset( $m[$sq] ) && $m[$sq][1] >= 0 ) {
 			$value = $m[$sq][0];
-			$endPos = $m[$sq][1] + strlen( $value );
+			$startPos = $m[$sq][1];
 		} else {
 			return null;
 		}
-		if ( !$this->ignoreErrors && $this->text[$endPos] === '>' ) {
+		$endPos = $startPos + strlen( $value );
+		if ( $endPos >= $this->length ) {
+			// This is a parse error, but we already emitted a generic EOF error
+			$quirks = true;
+		} elseif ( $this->text[$endPos] === '>' ) {
 			$this->error( 'DOCTYPE identifier terminated by ">"', $endPos );
 			$quirks = true;
 		}
+		$value = $this->handleNulls( $value, $startPos );
 		return $value;
 	}
 
@@ -557,7 +587,7 @@ class Tokenizer {
 				(?:
 					\# (?:
 						0*(\d+)           |  # 2. decimal
-						x0*([0-9A-Fa-f]+)    # 3. hexadecimal
+						[xX]0*([0-9A-Fa-f]+) # 3. hexadecimal
 					)
 					( ; ) ?                  # 4. semicolon
 					|
@@ -836,6 +866,9 @@ class Tokenizer {
 				# could fail here is due to EOF.
 
 				( [^\t\n\f />] [^\t\n\f =/>]*+ )  # 2. Attribute name
+
+				# After attribute name state
+				[\t\n\f ]*
 
 				(?:
 					=
