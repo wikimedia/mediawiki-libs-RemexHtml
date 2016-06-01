@@ -917,29 +917,35 @@ class Tokenizer {
 				$this->error( 'unexpected bare slash', $m[self::MA_SLASH][1] );
 				continue;
 			}
-			if ( $this->ignoreNulls ) {
-				$name = $m[self::MA_NAME][0];
-			} else {
+			$name = $m[self::MA_NAME][0];
+			if ( !$this->ignoreErrors ) {
+				$this->handleAsciiErrors( "\"'<=", $name, 0, strlen( $name ), $m[self::MA_NAME][1] );
+			}
+			if ( !$this->ignoreNulls ) {
 				$name = $this->handleNulls( $m[self::MA_NAME][0], $m[self::MA_NAME][1] );
 			}
 			$name = strtolower( $name );
 			$additionalAllowedChar = '';
-			if ( isset( $m[self::MA_DQUOTED] ) && strlen( $m[self::MA_DQUOTED][0] ) ) {
+			if ( isset( $m[self::MA_DQUOTED] ) && $m[self::MA_DQUOTED][1] >= 0 ) {
 				// Double-quoted attribute value
 				$additionalAllowedChar = '"';
 				$value = $m[self::MA_DQUOTED][0];
 				$pos = $m[self::MA_DQUOTED][1];
-			} elseif ( isset( $m[self::MA_SQUOTED] ) && strlen( $m[self::MA_SQUOTED][0] ) ) {
+			} elseif ( isset( $m[self::MA_SQUOTED] ) && $m[self::MA_SQUOTED][1] >= 0 ) {
 				// Single-quoted attribute value
 				$additionalAllowedChar = "'";
 				$value = $m[self::MA_SQUOTED][0];
 				$pos = $m[self::MA_SQUOTED][1];
-			} elseif ( isset( $m[self::MA_UNQUOTED] ) && strlen ( $m[self::MA_UNQUOTED][0] ) ) {
+			} elseif ( isset( $m[self::MA_UNQUOTED] ) && $m[self::MA_UNQUOTED][1] >= 0 ) {
 				// Unquoted attribute value
 				$value = $m[self::MA_UNQUOTED][0];
 				$pos = $m[self::MA_UNQUOTED][1];
 				// Search for parse errors
 				if ( !$this->ignoreErrors ) {
+					if ( $value === '' ) {
+						// ">" in the before attribute value state is a parse error
+						$this->error( 'empty unquoted attribute', $pos );
+					}
 					$this->handleAsciiErrors( "\"'<=`", $value, 0, strlen( $value ), $pos );
 				}
 			} else {
