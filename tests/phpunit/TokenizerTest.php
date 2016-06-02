@@ -1,6 +1,6 @@
 <?php
 
-namespace Wikimedia\RemexHtml;
+namespace Wikimedia\RemexHtml\Tokenizer;
 
 class TokenizerTest extends \PHPUnit_Framework_TestCase {
 	private static $skippedFiles = [
@@ -13,11 +13,18 @@ class TokenizerTest extends \PHPUnit_Framework_TestCase {
 		'unicodeCharsProblematic.test'
 	];
 
+	private static $testDirs = [
+		'html5lib/tokenizer'
+	];
+
 	public function provider() {
-		$testDir = __DIR__ . '/../html5lib/tokenizer';
 		$failedTests = 0;
 		$tests = [];
-		foreach ( glob( "$testDir/*.test" ) as $fileName ) {
+		$testFiles = [];
+		foreach ( self::$testDirs as $testDir ) {
+			$testFiles = array_merge( $testFiles, glob( __DIR__ . "/../$testDir/*.test" ) );
+		}
+		foreach ( $testFiles as $fileName ) {
 			$lastPart = preg_replace( "/^.*\//s", '', $fileName );
 			if ( in_array( $lastPart, self::$skippedFiles ) ) {
 				continue;

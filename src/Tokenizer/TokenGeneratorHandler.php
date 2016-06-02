@@ -1,6 +1,6 @@
 <?php
 
-namespace Wikimedia\RemexHtml;
+namespace Wikimedia\RemexHtml\Tokenizer;
 
 /**
  * The handler which converts events to tokens arrays for TokenGenerator

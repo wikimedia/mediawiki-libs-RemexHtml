@@ -1,6 +1,6 @@
 <?php
 
-namespace Wikimedia\RemexHtml;
+namespace Wikimedia\RemexHtml\Tokenizer;
 
 /**
  * An Attributes implementation which defers interpretation of regex match

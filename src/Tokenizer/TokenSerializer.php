@@ -1,6 +1,6 @@
 <?php
 
-namespace Wikimedia\RemexHtml;
+namespace Wikimedia\RemexHtml\Tokenizer;
 
 /**
  * A simple serializer for the token stream, mostly meant for debugging.
