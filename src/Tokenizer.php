@@ -2,7 +2,14 @@
 
 namespace Wikimedia\RemexHtml;
 
+/**
+ * HTML 5 tokenizer
+ *
+ * Based on the W3C recommendation as published 28 October 2014:
+ * http://www.w3.org/TR/2014/REC-html5-20141028/
+ */
 class Tokenizer {
+	// States
 	const STATE_START = 1;
 	const STATE_DATA = 2;
 	const STATE_RCDATA = 3;
@@ -51,6 +58,7 @@ class Tokenizer {
 	const MA_SQUOTED = 4;
 	const MA_UNQUOTED = 5;
 
+	// Characters
 	const REPLACEMENT_CHAR = "\xef\xbf\xbd";
 	const BYTE_ORDER_MARK = "\xef\xbb\xbf";
 
@@ -61,6 +69,27 @@ class Tokenizer {
 	protected $state;
 	protected $preprocessed;
 
+	/**
+	 * Constructor
+	 *
+	 * @param TokenHandler $listener The object which receives token events
+	 * @param string $text The text to tokenize
+	 * @param array $options Associative array of options, including:
+	 *   - ignoreErrors: True to improve performance by ignoring errors. The
+	 *     token stream should still be the same, except that error() won't be
+	 *     called.
+	 *   - ignoreCharRefs: True to ignore character references. Character tokens
+	 *     will contain the unexpanded character references, and no errors
+	 *     related to invalid character references will be raised. Performance
+	 *     will be improved. This is not compliant behaviour.
+	 *   - ignoreNulls: True to ignore NULL bytes in the input stream, instead
+	 *     of raising errors and converting them to U+FFFD as is usually
+	 *     required by the spec.
+	 *   - skipPreprocess: True to skip the "preprocessing the input stream"
+	 *     stage, which normalizes line endings and raises errors on certain
+	 *     control characters. Advisable if the input stream is already
+	 *     appropriately normalized.
+	 */
 	public function __construct( TokenHandler $listener, $text, $options ) {
 		$this->listener = $listener;
 		$this->text = $text;
@@ -73,11 +102,68 @@ class Tokenizer {
 		$this->skipPreprocess = !empty( $options['skipPreprocess'] );
 	}
 
+	/**
+	 * Run the tokenizer on the whole input stream. This is the normal entry point.
+	 *
+	 * @param integer $state One of the STATE_* constants, a state in which to start.
+	 * @param string|null $appropriateEndTag The "appropriate end tag", which
+	 *   needs to be set if entering one of the raw text states.
+	 */
+	public function execute( $state = self::STATE_START, $appropriateEndTag = null ) {
+		$this->state = $state;
+		$this->appropriateEndTag = $appropriateEndTag;
+		$this->preprocess();
+		$this->executeInternal( true );
+	}
+
+	/**
+	 * Get the preprocessed input text. Source offsets in event parameters are
+	 * relative to this string. If skipPreprocess was specified, this will be
+	 * the same as the input string.
+	 */
 	public function getPreprocessedText() {
 		$this->preprocess();
 		return $this->text;
 	}
 
+	/**
+	 * Change the state of the tokenizer during parsing. This for use by the
+	 * tree builder to switch the tokenizer into one of the raw text states.
+	 *
+	 * @param integer $state One of the STATE_* constants
+	 * @param string $appropriateEndTag The appropriate end tag
+	 */
+	public function switchState( $state, $appropriateEndTag ) {
+		$this->state = $state;
+		$this->appropriateEndTag = $appropriateEndTag;
+	}
+
+	/**
+	 * Notify the tokenizer that the document will be tokenized by repeated step()
+	 * calls. This must be called once only, before the first call to step().
+	 */
+	public function beginStepping() {
+		$this->state = self::STATE_START;
+		$this->preprocess();
+	}
+
+	/**
+	 * Tokenize a minimum amount of text from the input stream, and emit the
+	 * resulting events.
+	 *
+	 * @return True if the input continues and step() should be called again,
+	 *   false on EOF
+	 */
+	public function step() {
+		if ( $this->state === null ) {
+			$this->fatal( "beginStepping() must be called before step()" );
+		}
+		return $this->executeInternal( false );
+	}
+
+	/**
+	 * Preprocess the input text, if it hasn't been done already.
+	 */
 	protected function preprocess() {
 		if ( $this->preprocessed || $this->skipPreprocess ) {
 			return;
@@ -129,25 +215,11 @@ class Tokenizer {
 		}
 	}
 
-	public function beginStepping() {
-		$this->state = self::STATE_START;
-		$this->preprocess();
-	}
-
-	public function step() {
-		if ( $this->state === null ) {
-			$this->fatal( "beginStepping() must be called before step()" );
-		}
-		return $this->executeInternal( false );
-	}
-
-	public function execute( $state = self::STATE_START, $appropriateEndTag = null ) {
-		$this->state = $state;
-		$this->appropriateEndTag = $appropriateEndTag;
-		$this->preprocess();
-		$this->executeInternal( true );
-	}
-
+	/**
+	 * The main state machine, the common implementation of step() and execute().
+	 * @param bool $loop Set to true to loop until finished, false to step once.
+	 * @return True if the input continues, false on EOF
+	 */
 	protected function executeInternal( $loop ) {
 		$eof = false;
 
@@ -184,6 +256,13 @@ class Tokenizer {
 		return !$eof;
 	}
 
+	/**
+	 * Consume input text starting from the "data state".
+	 *
+	 * @param bool $loop True to loop while still in the data state, false to
+	 *   process a single less-than sign.
+	 * @return The next state index
+	 */
 	protected function dataState( $loop ) {
 		$re = "~ <
 			(?:
@@ -209,7 +288,7 @@ class Tokenizer {
 							(?! --!> )
 							(?! --! \z )
 							(?! -- \z )
-							(?! - \z ) 
+							(?! - \z )
 							.
 						)*+
 					)
@@ -368,6 +447,12 @@ class Tokenizer {
 		return $nextState;
 	}
 
+	/**
+	 * Interpret the data state match results for a detected comment, and emit
+	 * events as appropriate.
+	 *
+	 * @param array $m The match array
+	 */
 	protected function interpretCommentMatches( $m ) {
 		$outerStart = $m[0][1];
 		$outerLength = strlen( $m[0][0] );
@@ -417,6 +502,12 @@ class Tokenizer {
 		$this->listener->comment( $contents, $outerStart, $outerLength );
 	}
 
+	/**
+	 * Interpret the data state match results for a detected DOCTYPE token,
+	 * and emit events as appropriate.
+	 *
+	 * @param array $m The match array
+	 */
 	protected function interpretDoctypeMatches( $m ) {
 		$igerr = $this->ignoreErrors;
 		$name = null;
@@ -485,7 +576,7 @@ class Tokenizer {
 				if ( !$igerr && !strlen( $m[self::MD_DT_PUBSYS_WS][0] ) ) {
 					$this->error( 'missing whitespace', $m[self::MD_DT_PUBSYS_WS][1] );
 				}
-				$system = $this->interpretDoctypeQuoted( $m, 
+				$system = $this->interpretDoctypeQuoted( $m,
 					self::MD_DT_PUBSYS_DQ, self::MD_DT_PUBSYS_SQ, $quirks );
 			}
 		} elseif ( isset( $m[self::MD_DT_SYSTEM_WS] ) && $m[self::MD_DT_SYSTEM_WS][1] >= 0 ) {
@@ -504,6 +595,10 @@ class Tokenizer {
 		$this->listener->doctype( $name, $public, $system, $quirks, $m[0][1], strlen( $m[0][0] ) );
 	}
 
+	/**
+	 * DOCTYPE helper which interprets a quoted string (or lack thereof)
+	 * @return string|null The quoted value, with nulls replaced.
+	 */
 	protected function interpretDoctypeQuoted( $m, $dq, $sq, &$quirks ) {
 		if ( isset( $m[$dq] ) && $m[$dq][1] >= 0 ) {
 			$value = $m[$dq][0];
@@ -526,6 +621,15 @@ class Tokenizer {
 		return $value;
 	}
 
+	/**
+	 * Generic helper for all those points in the spec where U+0000 needs to be
+	 * replaced with U+FFFD with a parse error issued.
+	 *
+	 * @param string $text The text to be converted
+	 * @param integer $sourcePos The input byte offset from which $text was
+	 *   extracted, for error position reporting.
+	 * @return The converted text
+	 */
 	protected function handleNulls( $text, $sourcePos ) {
 		if ( $this->ignoreNulls ) {
 			return $text;
@@ -547,6 +651,18 @@ class Tokenizer {
 		return str_replace( "\0", self::REPLACEMENT_CHAR, $text );
 	}
 
+	/**
+	 * Generic helper for points in the spec which say that an error should
+	 * be issued when certain ASCII characters are seen, with no other action
+	 * taken.
+	 *
+	 * @param string $mask Mask for strcspn
+	 * @param string $text The input text
+	 * @param integer $offset The start of the range within $text to search
+	 * @param integer $length The length of the range within $text to search
+	 * @param integer $sourcePos The offset within the input text corresponding
+	 *   to $text, for error position reporting.
+	 */
 	protected function handleAsciiErrors( $mask, $text, $offset, $length, $sourcePos ) {
 		while ( $length > 0 ) {
 			$validLength = strcspn( $text, $mask, $offset, $length );
@@ -567,6 +683,16 @@ class Tokenizer {
 		}
 	}
 
+	/**
+	 * Expand character references in some text, and emit errors as appropriate.
+	 * @param string $text The text to expand
+	 * @param integer $sourcePos The input position of $text
+	 * @param bool $inAttr True if the text is within an attribute value
+	 * @param string $additionalAllowedChar An unused string which the spec
+	 *   inexplicably spends a lot of space telling you how to derive. It
+	 *   suppresses errors in a place where no errors are emitted anyway.
+	 * @return The expanded text
+	 */
 	protected function handleCharRefs( $text, $sourcePos, $inAttr = false, $additionalAllowedChar = '' ) {
 		if ( $this->ignoreCharRefs ) {
 			return $text;
@@ -737,6 +863,13 @@ class Tokenizer {
 		return $out;
 	}
 
+	/**
+	 * Emit a range of the input text as a character token, and emit related
+	 * errors, with validity rules as per the data state.
+	 *
+	 * @param integer $pos Offset within the input text
+	 * @param integer $length The length of the range
+	 */
 	protected function emitDataRange( $pos, $length ) {
 		if ( $length === 0 ) {
 			return;
@@ -757,11 +890,30 @@ class Tokenizer {
 		}
 	}
 
+	/**
+	 * Emit a range of characters from the input text, with validity rules as
+	 * per the CDATA section state.
+	 *
+	 * @param $innerPos The position after the <![CDATA[
+	 * @param $innerLength The length of the string not including the terminating ]]>
+	 * @param $outerPos The position of the start of the <!CDATA[
+	 * @param $outerLength The length of the whole input region being emitted
+	 */
 	protected function emitCdataRange( $innerPos, $innerLength, $outerPos, $outerLength ) {
 		$this->listener->characters( $this->text, $innerPos, $innerLength,
 			$outerPos, $outerLength );
 	}
 
+	/**
+	 * Emit a range of characters from the input text, either from RCDATA,
+	 * RAWTEXT, script data or PLAINTEXT. The only difference between these
+	 * states is whether or not character references are expanded, so we take
+	 * that as a parameter.
+	 *
+	 * @param bool $ignoreCharRefs
+	 * @param integer $pos The input position
+	 * @param integer $length The length of the range to be emitted
+	 */
 	protected function emitRawTextRange( $ignoreCharRefs, $pos, $length ) {
 		if ( $length === 0 ) {
 			return;
@@ -779,11 +931,12 @@ class Tokenizer {
 		}
 	}
 
-	public function switchState( $state, $appropriateEndTag ) {
-		$this->state = $state;
-		$this->appropriateEndTag = $appropriateEndTag;
-	}
-
+	/**
+	 * The entry point for the RCDATA and RAWTEXT states.
+	 * @param bool $ignoreCharRefs True to ignore character references regardless
+	 *   of configuration, false to respect the configuration.
+	 * @return integer The next state index
+	 */
 	protected function textElementState( $ignoreCharRefs ) {
 		if ( $this->appropriateEndTag === null ) {
 			$this->emitRawTextRange( $ignoreCharRefs, $this->pos, $this->length - $this->pos );
@@ -850,6 +1003,20 @@ class Tokenizer {
 		}
 	}
 
+	/**
+	 * Advance $this->pos, consuming all tag attributes found at the current
+	 * position. The new position will be at the end of the tag or at the end
+	 * of the input string.
+	 *
+	 * To improve performance of consumers which don't need to read the
+	 * attribute array, interpretation of the PCRE match results is deferred.
+	 *
+	 * - @todo: Make deferral configurable.
+	 * - @todo: Measure performance improvement, assess whether the LazyAttributes
+	 *   feature is warranted.
+	 *
+	 * @return Attributes
+	 */
 	protected function consumeAttribs() {
 		$re = '~
 			[\t\n\f ]*+  # Ignored whitespace before attribute name
@@ -913,6 +1080,13 @@ class Tokenizer {
 		return $attribs;
 	}
 
+	/**
+	 * Interpret the results of the attribute preg_match_all(). Emit errors as
+	 * appropriate and return an associative array.
+	 *
+	 * @param array $matches
+	 * @return array
+	 */
 	protected function interpretAttribMatches( $matches ) {
 		$attributes = [];
 		foreach ( $matches as $m ) {
@@ -982,12 +1156,15 @@ class Tokenizer {
 		return $attributes;
 	}
 
-	protected function printContext( $pos ) {
-		$contextStart = max( $pos - 20, 0 );
-		print str_replace( "\n", "¶", substr( $this->text, $contextStart, 40 ) ) . "\n";
-		print str_repeat( ' ', $pos - $contextStart ) . "^\n";
-	}
-
+	/**
+	 * With $this->pos set to the closing bracket, as produced by consumeAttribs(),
+	 * advance the position to past the end of the tag, and emit the relevant tag.
+	 *
+	 * @param $tagName The normalized tag name
+	 * @param Attributes $attribs
+	 * @param bool $isEndTag True if this is an end tag, false if it is a start tag
+	 * @param integer $startPos The input position of the start of the current tag.
+	 */
 	protected function emitAndConsumeAfterAttribs( $tagName, $attribs, $isEndTag, $startPos ) {
 		$pos = $this->pos;
 		if ( $pos >= $this->length ) {
@@ -1019,11 +1196,19 @@ class Tokenizer {
 		return true;
 	}
 
+	/**
+	 * Process input text in the PLAINTEXT state
+	 * @return integer The next state index
+	 */
 	protected function plaintextState() {
 		$this->emitRawTextRange( true, $this->pos, $this->length - $this->pos );
 		return self::STATE_EOF;
 	}
 
+	/**
+	 * Process input text in the script data state
+	 * @return integer The next state index
+	 */
 	protected function scriptDataState() {
 		if ( $this->appropriateEndTag === null ) {
 			$this->pos = $this->length;
@@ -1107,6 +1292,11 @@ REGEX;
 		}
 	}
 
+	/**
+	 * Emit a parse error event.
+	 * @param string $text The error message
+	 * @param integer|null $pos The error position, or null to use the current position
+	 */
 	protected function error( $text, $pos = null ) {
 		if ( !$this->ignoreErrors ) {
 			if ( $pos === null ) {
@@ -1116,10 +1306,28 @@ REGEX;
 		}
 	}
 
+	/**
+	 * Throw an exception for a specified reason. This is used for API errors
+	 * and assertion-like sanity checks.
+	 * @param string $text The error message
+	 */
 	protected function fatal( $text ) {
-		throw new \Exception( __CLASS__ . ": " . $text );
+		throw new TokenizerError( __CLASS__ . ": " . $text );
 	}
 
+	/**
+	 * Interpret preg_last_error() and throw a suitable exception. This is
+	 * called when preg_match() or similar returns false.
+	 *
+	 * Notes for users:
+	 *
+	 * - PCRE internal error: may be due to JIT stack space exhaustion prior
+	 *   to PHP 7, due to excessive recursion. Increase stack space.
+	 *
+	 * - pcre.backtrack_limit exhausted: The backtrack limit should be at least
+	 *   double the input size, the defaults are way too small. Increase it in
+	 *   configuration.
+	 */
 	protected function throwPregError() {
 		if ( defined( 'PREG_JIT_STACKLIMIT_ERROR' ) ) {
 			$PREG_JIT_STACKLIMIT_ERROR = PREG_JIT_STACKLIMIT_ERROR;
@@ -1148,7 +1356,7 @@ REGEX;
 			$msg = "PCRE unexpected error";
 		}
 
-		throw new \Exception( __CLASS__.": $msg" );
+		throw new TokenizerError( __CLASS__.": $msg" );
 	}
 }
 

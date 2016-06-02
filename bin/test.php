@@ -1,6 +1,10 @@
 #!/usr/bin/env hhvm
 <?php
 
+if ( PHP_SAPI !== 'cli' ) {
+	exit;
+}
+
 require __DIR__ . '/../vendor/autoload.php';
 
 use Wikimedia\RemexHtml\Tokenizer;
@@ -13,7 +17,7 @@ class NullHandler implements Wikimedia\RemexHtml\TokenHandler {
 	function startTag( $name, Wikimedia\RemexHtml\Attributes $attrs, $selfClose,
 		$sourceStart, $sourceLength ) {}
 	function endTag( $name, $sourceStart, $sourceLength ) {}
-	function doctype( $name, $public, $system, $quirks ) {}
+	function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {}
 	function comment( $text, $sourceStart, $sourceLength ) {}
 }
 
@@ -89,9 +93,5 @@ $text = file_get_contents( '/tmp/test.html' );
 while ( ( $__line = readline( "> " ) ) !== false ) {
 	readline_add_history( $__line );
 	$__val = eval( $__line . ";" );
-}	
+}
 
-/*
-$tokenizer->execute();
-
- */

@@ -40,7 +40,7 @@ class TestTokenHandler implements TokenHandler {
 		$this->tokens[] = ['EndTag', $name];
 	}
 
-	public function doctype( $name, $public, $system, $quirks ) {
+	public function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
 		$this->tokens[] = ['DOCTYPE', $name, $public, $system, !$quirks];
 	}
 

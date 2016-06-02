@@ -2,12 +2,24 @@
 
 namespace Wikimedia\RemexHtml;
 
+/**
+ * Generate HTMLData.php. This can be executed e.g. with
+ *
+ * echo 'Wikimedia\RemexHtml\GenerateDataFiles::run()' | hhvm bin/test.php
+ */
 class GenerateDataFiles {
+	/**
+	 * The only public entry point
+	 */
 	public static function run() {
 		$instance = new self;
 		$instance->execute();
 	}
 
+	/**
+	 * This is the character entity mapping table copied from 
+	 * https://www.w3.org/TR/2014/REC-html5-20141028/syntax.html#tokenizing-character-references
+	 */
 	private static $legacyNumericEntityData = <<<EOT
 0x00 	U+FFFD 	REPLACEMENT CHARACTER
 0x80 	U+20AC 	EURO SIGN (€)
@@ -36,7 +48,7 @@ class GenerateDataFiles {
 0x9B 	U+203A 	SINGLE RIGHT-POINTING ANGLE QUOTATION MARK (›)
 0x9C 	U+0153 	LATIN SMALL LIGATURE OE (œ)
 0x9E 	U+017E 	LATIN SMALL LETTER Z WITH CARON (ž)
-0x9F 	U+0178 	LATIN CAPITAL LETTER Y WITH DIAERESIS (Ÿ) 
+0x9F 	U+0178 	LATIN CAPITAL LETTER Y WITH DIAERESIS (Ÿ)
 EOT;
 
 	private function execute() {
@@ -99,7 +111,6 @@ class HTMLData {
 }
 PHP;
 
-		//file_put_contents( __DIR__ . '/HTMLData.php', $fileContents );
-		file_put_contents( '/tmp/HTMLData.php', $fileContents );
+		file_put_contents( __DIR__ . '/HTMLData.php', $fileContents );
 	}
 }

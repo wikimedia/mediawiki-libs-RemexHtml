@@ -2,6 +2,9 @@
 
 namespace Wikimedia\RemexHtml;
 
+/**
+ * The handler which converts events to tokens arrays for TokenGenerator
+ */
 class TokenGeneratorHandler implements TokenHandler {
 	public $tokens = [];
 
@@ -14,6 +17,11 @@ class TokenGeneratorHandler implements TokenHandler {
 	}
 
 	public function error( $text, $pos ) {
+		$this->tokens[] = [
+			'type' => 'error',
+			'text' => $text,
+			'sourceStart' => $pos
+		];
 	}
 
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
@@ -44,7 +52,7 @@ class TokenGeneratorHandler implements TokenHandler {
 			'sourceLength' => $sourceLength ];
 	}
 
-	public function doctype( $name, $public, $system, $quirks ) {
+	public function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
 		$this->tokens[] = [
 			'type' => 'doctype',
 			'name' => $name,

@@ -2,6 +2,9 @@
 
 namespace Wikimedia\RemexHtml;
 
+/**
+ * A simple serializer for the token stream, mostly meant for debugging.
+ */
 class TokenSerializer implements TokenHandler {
 	private $output;
 	private $errors = [];
@@ -26,7 +29,7 @@ class TokenSerializer implements TokenHandler {
 	}
 
 	function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
-		$this->output .= substr( $text, $start, $length );
+		$this->output .= htmlspecialchars( substr( $text, $start, $length ) );
 	}
 
 	function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
@@ -45,7 +48,7 @@ class TokenSerializer implements TokenHandler {
 		$this->output .= "</$name>";
 	}
 
-	function doctype( $name, $public, $system, $quirks ) {
+	function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
 		$this->output .= "<!DOCTYPE $name";
 		if ( strlen( $public ) ) {
 			$this->output .= " PUBLIC \"$public\"";

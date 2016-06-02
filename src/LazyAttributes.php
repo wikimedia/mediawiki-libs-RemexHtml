@@ -2,6 +2,12 @@
 
 namespace Wikimedia\RemexHtml;
 
+/**
+ * An Attributes implementation which defers interpretation of regex match
+ * results until the caller requires them.
+ *
+ * This should not be directly instantiated outside of Tokenizer.
+ */
 class LazyAttributes implements Attributes {
 	private $tokenizer;
 	private $matches;
