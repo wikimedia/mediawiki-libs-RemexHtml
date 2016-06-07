@@ -64,7 +64,7 @@ class InHead extends InsertionMode {
 			break;
 		case 'template':
 			$this->balancer->insertAfeMarker();
-			$this->balancer->framesetNotOK();
+			$this->balancer->framesetOK = false;
 			$mode = Dispatcher::IN_TEMPLATE;
 			$this->balancer->pushTemplateMode( Balancer::IN_TEMPLATE );
 			break;
@@ -88,6 +88,8 @@ class InHead extends InsertionMode {
 		}
 		if ( $textMode !== null ) {
 			$this->dispatcher->switchMode( $textMode, Dispatcher::IN_HEAD );
+		} elseif ( $mode !== null ) {
+			$this->dispatcher->switchMode( $mode );
 		}
 	}
 

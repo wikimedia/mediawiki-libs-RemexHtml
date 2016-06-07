@@ -84,7 +84,8 @@ class Initial extends InsertionMode {
 		$name = $name === null ? '' : $name;
 		$public = $public === null ? '' : $public;
 		$system = $system === null ? '' : $system;
-		$this->balancer->doctype( $name, $public, $system, $quirks,
+		$this->balancer->quirks = $quirks;
+		$this->listener->doctype( $name, $public, $system, $quirks,
 			$sourceStart, $sourceLength );
 		$this->dispatcher->switchMode( Dispatcher::BEFORE_HTML );
 	}
