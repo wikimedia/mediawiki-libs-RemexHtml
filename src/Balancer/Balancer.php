@@ -8,6 +8,7 @@ class Balancer {
 	const LIMITED_QUIRKS = 1;
 	const QUIRKS = 2;
 
+	public $quirks = self::NO_QUIRKS;
 	public $isIframeSrcdoc;
 	public $scriptingFlag;
 	public $framesetOK = true;
@@ -16,7 +17,17 @@ class Balancer {
 	function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 	}
 
-	function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
+	function insert( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
+	}
+
+	function insertForeign( $ns, $name, Attributes $attrs, $selfClose,
+		$sourceStart, $sourceLength
+	) {
+		if ( $attrs->count() ) {
+			$balancerAttrs = new LazyAttributes( $attrs, function( $attrs ) {
+				return $this->adjustAttributes( $attrs );
+			} );
+		}
 	}
 
 	function endTag( $name, $sourceStart, $sourceLength ) {
@@ -65,5 +76,8 @@ class Balancer {
 		// Insert an HTML element for a "form" start tag token, and, if there
 		// is no template element on the stack of open elements, set the form
 		// element pointer to point to the element created.
+	}
+
+	function reconstructAFE( $sourceStart ) {
 	}
 }

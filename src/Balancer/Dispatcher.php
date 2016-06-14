@@ -27,6 +27,7 @@ class Dispatcher implements TokenHandler {
 	const AFTER_FRAMESET = 21;
 	const AFTER_AFTER_BODY = 22;
 	const AFTER_AFTER_FRAMESET = 23;
+	const IN_FOREIGN_CONTENT = 24;
 
 	protected static $handlerClasses = [
 		self::INITIAL => 'Initial',
@@ -52,6 +53,7 @@ class Dispatcher implements TokenHandler {
 		self::AFTER_FRAMESET => 'AfterFrameset',
 		self::AFTER_AFTER_BODY => 'AfterAfterBody',
 		self::AFTER_AFTER_FRAMESET => 'AfterAfterFrameset',
+		self::IN_FOREIGN_CONTENT = 'InForeignContent';
 	];
 
 	// Public shortcuts for "using the rules for" actions
@@ -60,6 +62,7 @@ class Dispatcher implements TokenHandler {
 	public $inTable;
 	public $inSelect;
 
+	protected $mode;
 	protected $originalMode;
 
 	public function __construct( Balancer $balancer ) {
@@ -76,10 +79,11 @@ class Dispatcher implements TokenHandler {
 		$this->inSelect = $this->dispatchTable[self::IN_SELECT];
 	}
 
-	public function switchMode( $mode, $originalMode = null ) {
-		if ( $originalMode !== null ) {
-			$this->originalMode = $originalMode;
+	public function switchMode( $mode, $save = false ) {
+		if ( $save ) {
+			$this->originalMode = $this->mode;
 		}
+		$this->mode = $mode;
 		return $this->handler = $this->dispatchTable[$mode];
 	}
 
@@ -92,10 +96,34 @@ class Dispatcher implements TokenHandler {
 		return $this->handler = $this->dispatchTable[$mode];
 	}
 
+	public function enterForeignContent() {
+		$this->handler = $this->dispatchTable[self::IN_FOREIGN_CONTENT];
+	}
+
+	public function leaveForeignContent() {
+		$this->handler = $this->dispatchTable[$mode];
+	}
+
+	/**
+	 * True if we are in a table mode, for the purposes of switching to
+	 * IN_SELECT_IN_TABLE as opposed to IN_SELECT.
+	 */
+	public function isInTableMode() {
+		static $tableModes = [
+			Dispatcher::IN_TABLE => true,
+			Dispatcher::IN_CAPTION => true,
+			Dispatcher::IN_TABLE_BODY => true,
+			Dispatcher::IN_ROW => true,
+			Dispatcher::IN_CELL => true ];
+		return isset( $tableModes[$this->mode] );
+	}
+
 	function startDocument() {
+		$this->balancer->startDocument();
 	}
 
 	function endDocument() {
+		$this->handler->endDocument();
 	}
 
 	function error( $text, $pos ) {

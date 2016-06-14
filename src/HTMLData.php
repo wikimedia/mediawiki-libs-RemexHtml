@@ -7,6 +7,13 @@
 namespace Wikimedia\RemexHtml;
 
 class HTMLData {
+	const NS_HTML = 'http://www.w3.org/1999/xhtml';
+	const NS_MATHML = 'http://www.w3.org/1998/Math/MathML';
+	const NS_SVG = 'http://www.w3.org/2000/svg';
+	const NS_XLINK = 'http://www.w3.org/1999/xlink';
+	const NS_XML = 'http://www.w3.org/XML/1998/namespace';
+	const NS_XMLNS = 'http://www.w3.org/2000/xmlns/';
+
 	static public $namedEntityRegex = '
 		CounterClockwiseContourIntegral;|
 		ClockwiseContourIntegral;|

@@ -10,18 +10,18 @@ namespace Wikimedia\RemexHtml\Tokenizer;
  */
 class LazyAttributes implements Attributes {
 	private $tokenizer;
-	private $matches;
+	private $data;
 	private $attributes;
 
-	public function __construct( $matches, callable $interpreter ) {
+	public function __construct( $data, callable $interpreter ) {
 		$this->interpreter = $interpreter;
-		$this->matches = $matches;
+		$this->data = $data;
 	}
 
 	private function init() {
 		if ( $this->attributes === null ) {
 			$func = $this->interpreter;
-			$this->attributes = $func( $this->matches );
+			$this->attributes = $func( $this->data );
 			$this->interpreter = null;
 		}
 	}
@@ -62,6 +62,6 @@ class LazyAttributes implements Attributes {
 	}
 
 	public function count() {
-		return count( $this->matches );
+		return is_object( $this->data ) ? $this->data->count() : count( $this->data );
 	}
 }

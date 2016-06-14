@@ -87,7 +87,7 @@ class InHead extends InsertionMode {
 			$this->balancer->tokenizer->switchState( $tokenizerState, $name );
 		}
 		if ( $textMode !== null ) {
-			$this->dispatcher->switchMode( $textMode, Dispatcher::IN_HEAD );
+			$this->dispatcher->switchMode( $textMode, true );
 		} elseif ( $mode !== null ) {
 			$this->dispatcher->switchMode( $mode );
 		}
