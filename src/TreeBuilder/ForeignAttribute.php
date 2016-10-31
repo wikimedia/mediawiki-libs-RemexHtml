@@ -1,6 +1,6 @@
 <?php
 
-namespace Wikimedia\RemexHtml\Balancer;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
 class ForeignAttribute {
 	public $name;

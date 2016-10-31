@@ -1,6 +1,6 @@
 <?php
 
-namespace Wikimedia\RemexHtml\Balancer;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 use Wikimedia\RemexHtml\Attributes;
 use Wikimedia\RemexHtml\PlainAttributes;
 
@@ -9,21 +9,21 @@ class InBody extends InsertionMode {
 		'h5' => true, 'h6' => true];
 
 	function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
-		if ( !$this->balancer->ignoreNulls ) {
+		if ( !$this->builder->ignoreNulls ) {
 			$this->stripNulls( $text, $start, $length, $sourceStart, $sourceLength );
 		} else {
 			if ( strcspn( $text, "\t\n\f\r ", $start, $length ) !== $length ) {
-				$this->balancer->framesetOK = false;
+				$this->builder->framesetOK = false;
 			}
-			$this->balancer->characters( $text, $start, $length, $sourceStart, $sourceLength );
+			$this->builder->characters( $text, $start, $length, $sourceStart, $sourceLength );
 		}
 	}
 
 	function charactersNonNull( $text, $start, $length, $sourceStart, $sourceLength ) {
 		if ( strcspn( $text, "\t\n\f\r ", $start, $length ) !== $length ) {
-			$this->balancer->framesetOK = false;
+			$this->builder->framesetOK = false;
 		}
-		$this->balancer->characters( $text, $start, $length, $sourceStart, $sourceLength );
+		$this->builder->characters( $text, $start, $length, $sourceStart, $sourceLength );
 	}
 
 	function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
@@ -31,17 +31,18 @@ class InBody extends InsertionMode {
 		$mode = null;
 		$tokenizerState = null;
 		$isNewAFE = false;
-		$balancer = $this->balancer;
+		$builder = $this->builder;
+		$stack = $builder->stack;
 
 		switch ( $name ) {
 		case 'html':
-			$balancer->error( 'unexpected html tag', $sourceStart );
-			if ( $balancer->stackHas( 'template' ) ) {
+			$builder->error( 'unexpected html tag', $sourceStart );
+			if ( $builder->stackHas( 'template' ) ) {
 				// Ignore the token
 				return;
 			}
 			if ( $attrs->count() ) {
-				$balancer->addHtmlAttrs( $attrs );
+				$builder->addHtmlAttrs( $attrs );
 			}
 			return;
 		case 'base':
@@ -58,17 +59,17 @@ class InBody extends InsertionMode {
 				$name, $attrs, $selfClose, $sourceStart, $sourceLength );
 			return;
 		case 'body':
-			$balancer->error( 'unexpected body tag', $sourceStart );
-			if ( $attrs->count() && $this->balancer->hasBody ) {
-				$balancer->addBodyAttrs( $attrs );
+			$builder->error( 'unexpected body tag', $sourceStart );
+			if ( $attrs->count() && $this->builder->hasBody ) {
+				$builder->addBodyAttrs( $attrs );
 			}
 			return;
 		case 'frameset':
-			$balancer->error( 'unexpected frameset tag', $sourceStart );
-			if ( !$balancer->framesetOK || !$balancer->hasBody ) {
+			$builder->error( 'unexpected frameset tag', $sourceStart );
+			if ( !$builder->framesetOK || !$builder->hasBody ) {
 				return;
 			}
-			$balancer->removeBody();
+			$builder->removeBody();
 			$mode = Dispatcher::IN_FRAMESET;
 			break;
 		case 'address':
@@ -94,7 +95,7 @@ class InBody extends InsertionMode {
 		case 'section':
 		case 'summary':
 		case 'ul':
-			$balancer->closePInButtonScope( $sourceStart );
+			$builder->closePInButtonScope( $sourceStart );
 			break;
 		case 'h1':
 		case 'h2':
@@ -102,33 +103,34 @@ class InBody extends InsertionMode {
 		case 'h4':
 		case 'h5':
 		case 'h6':
-			$balancer->closePInButtonScope( $sourceStart );
-			$bottomName = end( $balancer->tagNameStack );
-			if ( isset( self::$headingNames[$bottomName] ) ) {
-				$balancer->error( 'invalid nested heading', $sourceStart );
-				$balancer->endTag( $bottomName, $sourceStart, 0 );
+			$builder->closePInButtonScope( $sourceStart );
+			if ( $stack->current->namespace === HTMLData::NS_HTML
+				&& isset( self::$headingNames[$stack->current->name] )
+			) {
+				$builder->error( 'invalid nested heading', $sourceStart );
+				$builder->endTag( $bottomName, $sourceStart, 0 );
 			}
 			break;
 		case 'pre':
 		case 'listing':
-			$balancer->closePInButtonScope( $sourceStart );
-			$balancer->framesetOK = false;
+			$builder->closePInButtonScope( $sourceStart );
+			$builder->framesetOK = false;
 			break;
 		case 'form':
-			if ( $balancer->isFormIgnored() ) {
-				$balancer->error( 'invalid nested form', $sourceStart );
+			if ( $builder->isFormIgnored() ) {
+				$builder->error( 'invalid nested form', $sourceStart );
 				return;
 			}
-			$balancer->closePInButtonScope( $sourceStart );
-			$balancer->insertForm( $attrs, $sourceStart, $sourceLength );
+			$builder->closePInButtonScope( $sourceStart );
+			$builder->insertForm( $attrs, $sourceStart, $sourceLength );
 			return;
 		case 'li':
-			$balancer->framesetOK = false;
-			$stack =& $balancer->tagNameStack;
+			$builder->framesetOK = false;
+			$stack =& $builder->tagNameStack;
 			$node = end( $stack );
 			while ( true ) {
 				if ( $node === 'li' ) {
-					$balancer->generateImpliedEndTags( 'li' );
+					$builder->generateImpliedEndTags( 'li' );
 					$this->popAllDownTo( 'li', $stack );
 					break;
 				}
@@ -139,17 +141,17 @@ class InBody extends InsertionMode {
 				}
 				$node = prev( $stack );
 			}
-			$balancer->closePInButtonScope( $sourceStart );
+			$builder->closePInButtonScope( $sourceStart );
 			unset( $stack );
 			break;
 		case 'dd':
 		case 'dt':
-			$balancer->framesetOK = false;
-			$stack =& $balancer->tagNameStack;
+			$builder->framesetOK = false;
+			$stack =& $builder->tagNameStack;
 			$node = end( $stack );
 			while ( true ) {
 				if ( $node === 'dd' || $node === 'dt' ) {
-					$balancer->generateImpliedEndTags( $node );
+					$builder->generateImpliedEndTags( $node );
 					$this->popAllDownTo( $node, $stack );
 					break;
 				}
@@ -160,29 +162,29 @@ class InBody extends InsertionMode {
 				}
 				$node = prev( $stack );
 			}
-			$balancer->closePInButtonScope( $sourceStart );
+			$builder->closePInButtonScope( $sourceStart );
 			unset( $stack );
 			break;
 		case 'plaintext':
-			$balancer->closePInButtonScope( $sourceStart );
+			$builder->closePInButtonScope( $sourceStart );
 			$tokenizerState = Tokenizer::STATE_PLAINTEXT;
 			break;
 		case 'button':
-			if ( $balancer->isInScope( 'button' ) ) {
-				$balancer->error( 'invalid nested button tag', $sourceStart );
-				$balancer->generateImpliedEndTags();
-				$this->popAllDownTo( 'button', $balancer->stack );
+			if ( $builder->isInScope( 'button' ) ) {
+				$builder->error( 'invalid nested button tag', $sourceStart );
+				$builder->generateImpliedEndTags();
+				$this->popAllDownTo( 'button', $builder->stack );
 			}
-			$balancer->reconstructAFE( $sourceStart );
-			$balancer->framesetOK = false;
+			$builder->reconstructAFE( $sourceStart );
+			$builder->framesetOK = false;
 			break;
 		case 'a':
-			if ( $balancer->findAFEAfterMarker( 'a' ) !== false ) {
-				$balancer->error( 'invalid nested a tag', $sourceStart );
-				$balancer->adoptionAgency( 'a', $sourceStart, 0 );
-				$balancer->removeAFEAfterMarker( 'a' );
+			if ( $builder->findAFEAfterMarker( 'a' ) !== false ) {
+				$builder->error( 'invalid nested a tag', $sourceStart );
+				$this->adoptionAgency( 'a', $sourceStart, 0 );
+				$builder->removeAFEAfterMarker( 'a' );
 			}
-			$balancer->reconstructAFE( $sourceStart );
+			$builder->reconstructAFE( $sourceStart );
 			$isNewAFE = true;
 			break;
 		case 'b':
@@ -197,30 +199,30 @@ class InBody extends InsertionMode {
 		case 'strong':
 		case 'tt':
 		case 'u':
-			$balancer->reconstructAFE( $sourceStart );
+			$builder->reconstructAFE( $sourceStart );
 			$isNewAFE = true;
 			break;
 		case 'nobr':
-			$balancer->reconstructAFE( $sourceStart );
-			if ( $balancer->isInElementScope( 'nobr' ) ) {
-				$balancer->error( 'invalid nested nobr tag', $sourceStart );
-				$balancer->adoptionAgency( 'nobr', $sourceStart, 0 );
-				$balancer->reconstructAFE( $sourceStart );
+			$builder->reconstructAFE( $sourceStart );
+			if ( $builder->isInElementScope( 'nobr' ) ) {
+				$builder->error( 'invalid nested nobr tag', $sourceStart );
+				$this->adoptionAgency( 'nobr', $sourceStart, 0 );
+				$builder->reconstructAFE( $sourceStart );
 			}
 			$isNewAFE = true;
 			break;
 		case 'applet':
 		case 'marquee':
 		case 'object':
-			$balancer->reconstructAFE( $sourceStart );
-			$balancer->addAFEMarker();
-			$balancer->framesetOK = false;
+			$builder->reconstructAFE( $sourceStart );
+			$builder->addAFEMarker();
+			$builder->framesetOK = false;
 			break;
 		case 'table':
-			if ( $balancer->quirks !== Balancer::QUIRKS ) {
-				$balancer->closePInButtonScope( $sourceStart );
+			if ( $builder->quirks !== TreeBuilder::QUIRKS ) {
+				$builder->closePInButtonScope( $sourceStart );
 			}
-			$balancer->framesetOK = false;
+			$builder->framesetOK = false;
 			$mode = Dispatcher::IN_TABLE;
 			break;
 		case 'area':
@@ -229,15 +231,15 @@ class InBody extends InsertionMode {
 		case 'img':
 		case 'keygen':
 		case 'wbr':
-			$balancer->reconstructAFE( $sourceStart );
+			$builder->reconstructAFE( $sourceStart );
 			$ack = true;
-			$balancer->framesetOK = false;
+			$builder->framesetOK = false;
 			break;
 		case 'input':
-			$balancer->reconstructAFE( $sourceStart );
+			$builder->reconstructAFE( $sourceStart );
 			$ack = true;
 			if ( !isset( $attribs['type'] ) || strcasecmp( $attribs['type'], 'hidden' ) !== 0 ) {
-				$balancer->framesetOK = false;
+				$builder->framesetOK = false;
 			}
 			break;
 		case 'param':
@@ -246,34 +248,34 @@ class InBody extends InsertionMode {
 			$ack = true;
 			break;
 		case 'hr':
-			$balancer->closePInButtonScope( $sourceStart );
+			$builder->closePInButtonScope( $sourceStart );
 			$ack = true;
-			$balancer->framesetOK = false;
+			$builder->framesetOK = false;
 			break;
 		case 'image':
-			$balancer->error( 'invalid "image" tag, assuming "img"', $sourceStart );
+			$builder->error( 'invalid "image" tag, assuming "img"', $sourceStart );
 			$this->startTag( 'img', $attrs, $selfClose, $sourceStart, $sourceLength );
 			return;
 		case 'textarea':
 			$tokenizerState = Tokenizer::STATE_RCDATA;
 			$textMode = Dispatcher::TEXT;
-			$balancer->framesetOK = false;
+			$builder->framesetOK = false;
 			break;
 		case 'xmp':
-			$balancer->closePInButtonScope( $sourceStart );
-			$balancer->reconstructAFE( $sourceStart );
-			$balancer->framesetOK = false;
+			$builder->closePInButtonScope( $sourceStart );
+			$builder->reconstructAFE( $sourceStart );
+			$builder->framesetOK = false;
 			$tokenizerState = Tokenizer::STATE_RAWTEXT;
 			$textMode = Dispatcher::TEXT;
 			break;
 		case 'iframe':
-			$balancer->framesetOK = false;
+			$builder->framesetOK = false;
 			$tokenizerState = Tokenizer::STATE_RAWTEXT;
 			$textMode = Dispatcher::TEXT;
 			break;
 		case 'noscript':
-			if ( !$balancer->scriptingFlag ) {
-				$balancer->reconstructAFE( $sourceStart );
+			if ( !$builder->scriptingFlag ) {
+				$builder->reconstructAFE( $sourceStart );
 				break;
 			}
 			// fall through
@@ -282,8 +284,8 @@ class InBody extends InsertionMode {
 			$textMode = Dispatcher::TEXT;
 			break;
 		case 'select':
-			$balancer->reconstructAFE( $sourceStart );
-			$balancer->framesetOK = false;
+			$builder->reconstructAFE( $sourceStart );
+			$builder->framesetOK = false;
 			if ( $dispatcher->isInTableMode() ) {
 				$mode = Dispatcher::IN_SELECT_IN_TABLE;
 			} else {
@@ -292,26 +294,26 @@ class InBody extends InsertionMode {
 			break;
 		case 'optgroup':
 		case 'option':
-			if ( end( $balancer->tagNameStack ) === 'option' ) {
-				$balancer->endTag( 'option', $sourceStart, 0 );
+			if ( end( $builder->tagNameStack ) === 'option' ) {
+				$builder->endTag( 'option', $sourceStart, 0 );
 			}
-			$balancer->reconstructAFE( $sourceStart );
+			$builder->reconstructAFE( $sourceStart );
 			break;
 		case 'rb':
 		case 'rp':
 		case 'rtc':
-			if ( $balancer->isInScope( 'ruby' ) ) {
-				$balancer->generateImpliedEndTags();
-				if ( end( $balancer->tagNameStack ) !== 'ruby' ) {
-					$balancer->error( "<$name> is not a child of <ruby>", $sourceStart );
+			if ( $builder->isInScope( 'ruby' ) ) {
+				$builder->generateImpliedEndTags();
+				if ( end( $builder->tagNameStack ) !== 'ruby' ) {
+					$builder->error( "<$name> is not a child of <ruby>", $sourceStart );
 				}
 			}
 			break;
 		case 'rt':
-			if ( $balancer->isInScope( 'ruby' ) ) {
-				$balancer->generateImpliedEndTags( 'rtc' );
-				if ( !in_array( end( $balancer->tagNameStack ), [ 'ruby', 'rtc' ] ) ) {
-					$balancer->error( "<$name> is not a child of <ruby> or <rtc>", $sourceStart );
+			if ( $builder->isInScope( 'ruby' ) ) {
+				$builder->generateImpliedEndTags( 'rtc' );
+				if ( !in_array( end( $builder->tagNameStack ), [ 'ruby', 'rtc' ] ) ) {
+					$builder->error( "<$name> is not a child of <ruby> or <rtc>", $sourceStart );
 				}
 			}
 			break;
@@ -326,29 +328,29 @@ class InBody extends InsertionMode {
 		case 'th':
 		case 'thead':
 		case 'tr':
-			$balancer->error( "$name is invalid in body mode" );
+			$builder->error( "$name is invalid in body mode" );
 			return;
 		case 'math':
 		case 'svg':
 		case 'isindex':
 			// TODO
-			$balancer->error( "$name is unimplemented" );
+			$builder->error( "$name is unimplemented" );
 			// fall through
 		default:
-			$balancer->reconstructAFE( $sourceStart );
+			$builder->reconstructAFE( $sourceStart );
 		}
 
 		// Generic element insertion, for all cases that didn't return above
 		if ( !$ack && $selfClose ) {
-			$balancer->error( self::SELF_CLOSE_ERROR, $sourceStart );
+			$builder->error( self::SELF_CLOSE_ERROR, $sourceStart );
 		}
 		if ( $isNewAFE ) {
-			$balancer->startFormattingElement( $name, $attrs, $ack, $sourceStart, $sourceLength );
+			$builder->startFormattingElement( $name, $attrs, $ack, $sourceStart, $sourceLength );
 		} else {
-			$balancer->startTag( $name, $attrs, $ack, $sourceStart, $sourceLength );
+			$builder->startTag( $name, $attrs, $ack, $sourceStart, $sourceLength );
 		}
 		if ( $tokenizerState !== null ) {
-			$balancer->tokenizer->switchState( $tokenizerState, $name );
+			$builder->tokenizer->switchState( $tokenizerState, $name );
 		}
 		if ( $mode !== null ) {
 			$this->dispatcher->switchMode( $mode );
@@ -358,10 +360,10 @@ class InBody extends InsertionMode {
 	}
 
 	private function popAllDownTo( $terminator, &$stack ) {
-		$balancer = $this->balancer;
-		$balancer->generateImpliedEndTags( $terminator );
+		$builder = $this->builder;
+		$builder->generateImpliedEndTags( $terminator );
 		while ( false !== ( $node = end( $stack ) ) ) {
-			$balancer->endTag( $node, $sourceStart, 0 );
+			$builder->endTag( $node, $sourceStart, 0 );
 			if ( $node === $terminator ) {
 				break;
 			}

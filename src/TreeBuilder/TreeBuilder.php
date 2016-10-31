@@ -1,9 +1,9 @@
 <?php
 
-namespace Wikimedia\RemexHtml\Balancer;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
-class Balancer {
+class TreeBuilder {
 	const NO_QUIRKS = 0;
 	const LIMITED_QUIRKS = 1;
 	const QUIRKS = 2;
@@ -79,5 +79,9 @@ class Balancer {
 	}
 
 	function reconstructAFE( $sourceStart ) {
+	}
+
+	function adoptionAgency( $subject, $sourceStart, $sourceLength ) {
+		
 	}
 }

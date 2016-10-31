@@ -1,6 +1,6 @@
 <?php
 
-namespace Wikimedia\RemexHtml\Balancer;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 use Wikimedia\RemexHtml\Tokenizer\Attributes;
 use Wikimedia\RemexHtml\HTMLData;
 
@@ -22,7 +22,7 @@ class Initial extends InsertionMode {
 			return;
 		}
 		$start += $wsLength;
-		if ( !$this->ignoreErrors && !$this->balancer->isIframeSrcdoc ) {
+		if ( !$this->ignoreErrors && !$this->builder->isIframeSrcdoc ) {
 			$this->error( 'missing doctype', $sourceStart );
 		}
 		$this->dispatcher->switchMode( Dispatcher::BEFORE_HTML )
@@ -30,7 +30,7 @@ class Initial extends InsertionMode {
 	}
 
 	function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
-		if ( !$this->ignoreErrors && !$this->balancer->isIframeSrcdoc ) {
+		if ( !$this->ignoreErrors && !$this->builder->isIframeSrcdoc ) {
 			$this->error( 'missing doctype', $sourceStart );
 		}
 		$this->dispatcher->switchMode( Dispatcher::BEFORE_HTML )
@@ -38,7 +38,7 @@ class Initial extends InsertionMode {
 	}
 
 	function endTag( $name, $sourceStart, $sourceLength ) {
-		if ( !$this->ignoreErrors && !$this->balancer->isIframeSrcdoc ) {
+		if ( !$this->ignoreErrors && !$this->builder->isIframeSrcdoc ) {
 			$this->error( 'missing doctype', $sourceStart );
 		}
 		$this->dispatcher->switchMode( Dispatcher::BEFORE_HTML )
@@ -56,7 +56,7 @@ class Initial extends InsertionMode {
 			$this->error( 'invalid doctype', $sourceStart );
 		}
 
-		$quirks = $quirks ? Balancer::QUIRKS : Balancer::NO_QUIRKS;
+		$quirks = $quirks ? TreeBuilder::QUIRKS : TreeBuilder::NO_QUIRKS;
 
 		$quirksIfNoSystem = '~-//W3C//DTD HTML 4\.01 Frameset//|' . 
 			'-//W3C//DTD HTML 4\.01 Transitional//~Ai';
@@ -71,20 +71,20 @@ class Initial extends InsertionMode {
 			|| ( $system === null && preg_match( $quirksIfNoSystem, $public ) )
 			|| preg_match( HTMLData::$quirkyPrefixRegex, $public )
 		) {
-			$quirks = Balancer::QUIRKS;
-		} elseif ( !$this->balancer->isIframeSrcdoc
+			$quirks = TreeBuilder::QUIRKS;
+		} elseif ( !$this->builder->isIframeSrcdoc
 			&& ( 
 				preg_match( $limitedQuirks, $public )
 				|| ( $system !== null && preg_match( $quirksIfNoSystem, $public ) )
 			)
 		) {
-			$quirks = Balancer::LIMITED_QUIRKS;
+			$quirks = TreeBuilder::LIMITED_QUIRKS;
 		}
 
 		$name = $name === null ? '' : $name;
 		$public = $public === null ? '' : $public;
 		$system = $system === null ? '' : $system;
-		$this->balancer->quirks = $quirks;
+		$this->builder->quirks = $quirks;
 		$this->listener->doctype( $name, $public, $system, $quirks,
 			$sourceStart, $sourceLength );
 		$this->dispatcher->switchMode( Dispatcher::BEFORE_HTML );

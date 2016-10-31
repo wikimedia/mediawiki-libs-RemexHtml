@@ -1,6 +1,6 @@
 <?php
 
-namespace Wikimedia\RemexHtml\Balancer;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 use Wikimedia\RemexHtml\Tokenizer\Attributes;
 use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
 
@@ -8,7 +8,7 @@ class InHead extends InsertionMode {
 	function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		$wsLength = strspn( $text, "\t\n\f\r ", $start, $length );
 		if ( $wsLength ) {
-			$this->balancer->characters( $text, $start, $wsLength, $sourceStart,
+			$this->builder->characters( $text, $start, $wsLength, $sourceStart,
 				$sourceLength );
 		}
 		$length -= $wsLength;
@@ -17,7 +17,7 @@ class InHead extends InsertionMode {
 		}
 		$start += $wsLength;
 
-		$this->balancer->endTag( 'head', $sourceStart, 0 );
+		$this->builder->endTag( 'head', $sourceStart, 0 );
 		$this->dispatcher->switchMode( Dispatcher::AFTER_HEAD )
 			->characters( $text, $start, $length, $sourceStart, $sourceLength );
 	}
@@ -48,7 +48,7 @@ class InHead extends InsertionMode {
 			$textMode = Dispatcher::TEXT;
 			break;
 		case 'noscript':
-			if ( !$this->balancer->scriptingFlag ) {
+			if ( !$this->builder->scriptingFlag ) {
 				$mode = Dispatcher::HEAD_NOSCRIPT;
 				break;
 			}
@@ -63,16 +63,16 @@ class InHead extends InsertionMode {
 			$textMode = Dispatcher::TEXT;
 			break;
 		case 'template':
-			$this->balancer->insertAfeMarker();
-			$this->balancer->framesetOK = false;
+			$this->builder->insertAfeMarker();
+			$this->builder->framesetOK = false;
 			$mode = Dispatcher::IN_TEMPLATE;
-			$this->balancer->pushTemplateMode( Balancer::IN_TEMPLATE );
+			$this->builder->pushTemplateMode( TreeBuilder::IN_TEMPLATE );
 			break;
 		case 'head':
-			$this->balancer->error( 'unexpected head tag', $sourceStart );
+			$this->builder->error( 'unexpected head tag', $sourceStart );
 			return;
 		default:
-			$this->balancer->endTag( 'head', $sourceStart, 0 );
+			$this->builder->endTag( 'head', $sourceStart, 0 );
 			$this->dispatcher->switchMode( Dispatcher::AFTER_HEAD )
 				->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
 			return;
@@ -80,11 +80,11 @@ class InHead extends InsertionMode {
 
 		// Generic element insertion, for all cases that didn't return above
 		if ( !$ack && $selfClose ) {
-			$this->balancer->error( InsertionMode::SELF_CLOSE_ERROR, $sourceStart );
+			$this->builder->error( InsertionMode::SELF_CLOSE_ERROR, $sourceStart );
 		}
-		$this->balancer->startTag( $name, $attrs, $ack, $sourceStart, $sourceLength );
+		$this->builder->startTag( $name, $attrs, $ack, $sourceStart, $sourceLength );
 		if ( $tokenizerState !== null ) {
-			$this->balancer->tokenizer->switchState( $tokenizerState, $name );
+			$this->builder->tokenizer->switchState( $tokenizerState, $name );
 		}
 		if ( $textMode !== null ) {
 			$this->dispatcher->switchMode( $textMode, true );
@@ -96,21 +96,21 @@ class InHead extends InsertionMode {
 	function endTag( $name, $sourceStart, $sourceLength ) {
 		switch ( $name ) {
 		case 'head':
-			$this->balancer->endTag( $name, $sourceStart, $sourceLength );
+			$this->builder->endTag( $name, $sourceStart, $sourceLength );
 			$this->dispatcher->switchMode( Dispatcher::AFTER_HEAD );
 			break;
 		case 'body':
 		case 'html':
 		case 'br':
-			$this->balancer->endTag( 'head', $sourceStart, 0 );
+			$this->builder->endTag( 'head', $sourceStart, 0 );
 			$this->dispatcher->switchMode( Dispatcher::AFTER_HEAD )
 				->endTag( $name, $sourceStart, $sourceLength );
 			break;
 		case 'template':
-			$this->balancer->endTemplateTag( $sourceStart, $sourceLength );
+			$this->builder->endTemplateTag( $sourceStart, $sourceLength );
 			break;
 		default:
-			$this->balancer->error( 'ignoring unexpected end tag', $sourceStart );
+			$this->builder->error( 'ignoring unexpected end tag', $sourceStart );
 		}
 	}
 }

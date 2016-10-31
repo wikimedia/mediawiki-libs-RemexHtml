@@ -1,9 +1,9 @@
 <?php
 
-namespace Wikimedia\RemexHtml\Balancer;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
-class TestBalancerHandler implements BalancerHandler {
+class TestTreeBuilderHandler implements TreeBuilderHandler {
 	protected $root;
 	protected $doctype = '';
 	protected $errors = '';

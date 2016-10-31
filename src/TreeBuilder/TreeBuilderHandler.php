@@ -1,9 +1,9 @@
 <?php
 
-namespace Wikimedia\RemexHtml\Balancer;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
-interface BalancerHandler {
+interface TreeBuilderHandler {
 	function startDocument();
 
 	function endDocument();

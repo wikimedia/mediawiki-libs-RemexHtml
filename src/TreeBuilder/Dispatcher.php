@@ -1,6 +1,6 @@
 <?php
 
-namespace Wikimedia\RemexHtml\Balancer;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 use Wikimedia\RemexHtml\Tokenizer\TokenHandler;
 
 class Dispatcher implements TokenHandler {
@@ -65,12 +65,12 @@ class Dispatcher implements TokenHandler {
 	protected $mode;
 	protected $originalMode;
 
-	public function __construct( Balancer $balancer ) {
-		$this->balancer = $balancer;
+	public function __construct( TreeBuilder $builder ) {
+		$this->builder = $builder;
 
 		$this->dispatchTable = [];
 		foreach ( self::$handlerClasses as $mode => $class ) {
-			$this->dispatchTable[$mode] = new $class( $balancer, $this );
+			$this->dispatchTable[$mode] = new $class( $builder, $this );
 		}
 
 		$this->inHead = $this->dispatchTable[self::IN_HEAD];
@@ -119,7 +119,7 @@ class Dispatcher implements TokenHandler {
 	}
 
 	function startDocument() {
-		$this->balancer->startDocument();
+		$this->builder->startDocument();
 	}
 
 	function endDocument() {
@@ -127,7 +127,7 @@ class Dispatcher implements TokenHandler {
 	}
 
 	function error( $text, $pos ) {
-		$this->balancer->error( $text, $pos );
+		$this->builder->error( $text, $pos );
 	}
 
 	function characters( $text, $start, $length, $sourceStart, $sourceLength ) {

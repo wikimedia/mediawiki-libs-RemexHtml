@@ -1,27 +1,27 @@
 <?php
 
-namespace Wikimedia\RemexHtml\Balancer;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 use Wikimedia\RemexHtml\Attributes;
 use Wikimedia\RemexHtml\Tokenizer\TokenHandler;
 
 abstract class InsertionMode implements TokenHandler {
 	const SELF_CLOSE_ERROR = 'unacknowledged self closing tag';
 
-	function __construct( Balancer $balancer, Dispatcher $dispatcher ) {
-		$this->balancer = $balancer;
+	function __construct( TreeBuilder $builder, Dispatcher $dispatcher ) {
+		$this->builder = $builder;
 		$this->dispatcher = $dispatcher;
 	}
 
 	function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
-		$this->balancer->error( "unexpected doctype" );		
+		$this->builder->error( "unexpected doctype" );		
 	}
 
 	function comment( $text, $sourceStart, $sourceLength ) {
-		$this->balancer->comment( $text, $sourceStart, $sourceLength );
+		$this->builder->comment( $text, $sourceStart, $sourceLength );
 	}
 
 	function error( $text, $pos ) {
-		$this->balancer->error( $text, $pos );
+		$this->builder->error( $text, $pos );
 	}
 
 	function stripNulls( $text, $start, $length, $sourceStart, $sourceLength ) {

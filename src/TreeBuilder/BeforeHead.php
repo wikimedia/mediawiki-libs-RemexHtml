@@ -1,6 +1,6 @@
 <?php
 
-namespace Wikimedia\RemexHtml\Balancer;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 use Wikimedia\RemexHtml\Tokenizer\Attributes;
 use Wikimedia\RemexHtml\Tokenizer\PlainAttributes;
 
@@ -12,7 +12,7 @@ class BeforeHead extends InsertionMode {
 			return;
 		}
 		$start += $wsLength;
-		$this->balancer->startTag( 'head', new PlainAttributes, false, $sourceStart, 0 );
+		$this->builder->startTag( 'head', new PlainAttributes, false, $sourceStart, 0 );
 		$this->dispatcher->switchMode( Dispatcher::IN_HEAD )
 			->characters( $text, $start, $length, $sourceStart, $sourceLength );
 		// TODO set head element pointer
@@ -23,10 +23,10 @@ class BeforeHead extends InsertionMode {
 			$this->dispatcher->inBody->startTag( $name, $attrs, $selfClose,
 				$sourceStart, $sourceLength );
 		} elseif ( $name === 'head' ) {
-			$this->balancer->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
+			$this->builder->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
 			// TODO set head element pointer
 		} else {
-			$this->balancer->startTag( 'head', new PlainAttributes, false, $sourceStart, 0 );
+			$this->builder->startTag( 'head', new PlainAttributes, false, $sourceStart, 0 );
 			// TODO set head element pointer
 			$this->dispatcher->switchMode( Dispatcher::IN_HEAD )
 				->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
@@ -36,10 +36,10 @@ class BeforeHead extends InsertionMode {
 	function endTag( $name, $sourceStart, $sourceLength ) {
 		$allowed = [ "head" => true, "body" => true, "html" => true, "br" => true ];
 		if ( !isset( $allowed[$name] ) ) {
-			$this->balancer->error( 'end tag not allowed before head', $sourceStart );
+			$this->builder->error( 'end tag not allowed before head', $sourceStart );
 			return;
 		}
-		$this->balancer->startTag( 'head', new PlainAttributes, false, $sourceStart, 0 );
+		$this->builder->startTag( 'head', new PlainAttributes, false, $sourceStart, 0 );
 		// TODO set head element pointer
 		$this->dispatcher->switchMode( Dispatcher::IN_HEAD )
 			->endTag( $name, $sourceStart, $sourceLength );
