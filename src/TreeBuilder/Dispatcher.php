@@ -30,30 +30,30 @@ class Dispatcher implements TokenHandler {
 	const IN_FOREIGN_CONTENT = 24;
 
 	protected static $handlerClasses = [
-		self::INITIAL => 'Initial',
-		self::BEFORE_HTML => 'BeforeHtml',
-		self::BEFORE_HEAD => 'BeforeHead',
-		self::IN_HEAD => 'InHead',
-		self::IN_HEAD_NOSCRIPT => 'InHeadNoScript',
-		self::AFTER_HEAD => 'AfterHead',
-		self::IN_BODY => 'InBody',
-		self::TEXT => 'Text',
-		self::IN_TABLE => 'InTable',
-		self::IN_TABLE_TEXT => 'InTableText',
-		self::IN_CAPTION => 'InCaption',
-		self::IN_COLUMN_GROUP => 'InColumnGroup',
-		self::IN_TABLE_BODY => 'InTableBody',
-		self::IN_ROW => 'InRow',
-		self::IN_CELL => 'InCell',
-		self::IN_SELECT => 'InSelect',
-		self::IN_SELECT_IN_TABLE => 'InSelectInTable',
-		self::IN_TEMPLATE => 'InTemplate',
-		self::AFTER_BODY => 'AfterBody',
-		self::IN_FRAMESET => 'InFrameset',
-		self::AFTER_FRAMESET => 'AfterFrameset',
-		self::AFTER_AFTER_BODY => 'AfterAfterBody',
-		self::AFTER_AFTER_FRAMESET => 'AfterAfterFrameset',
-		self::IN_FOREIGN_CONTENT = 'InForeignContent';
+		self::INITIAL => Initial::class,
+		self::BEFORE_HTML => BeforeHtml::class,
+		self::BEFORE_HEAD => BeforeHead::class,
+		self::IN_HEAD => InHead::class,
+		self::IN_HEAD_NOSCRIPT => InHeadNoScript::class,
+		self::AFTER_HEAD => AfterHead::class,
+		self::IN_BODY => InBody::class,
+		self::TEXT => Text::class,
+		self::IN_TABLE => InTable::class,
+		self::IN_TABLE_TEXT => InTableText::class,
+		self::IN_CAPTION => InCaption::class,
+		self::IN_COLUMN_GROUP => InColumnGroup::class,
+		self::IN_TABLE_BODY => InTableBody::class,
+		self::IN_ROW => InRow::class,
+		self::IN_CELL => InCell::class,
+		self::IN_SELECT => InSelect::class,
+		self::IN_SELECT_IN_TABLE => InSelectInTable::class,
+		self::IN_TEMPLATE => InTemplate::class,
+		self::AFTER_BODY => AfterBody::class,
+		self::IN_FRAMESET => InFrameset::class,
+		self::AFTER_FRAMESET => AfterFrameset::class,
+		self::AFTER_AFTER_BODY => AfterAfterBody::class,
+		self::AFTER_AFTER_FRAMESET => AfterAfterFrameset::class,
+		self::IN_FOREIGN_CONTENT = InForeignContent::class
 	];
 
 	// Public shortcuts for "using the rules for" actions
@@ -61,12 +61,18 @@ class Dispatcher implements TokenHandler {
 	public $inBody;
 	public $inTable;
 	public $inSelect;
+	public $inTemplate;
+	public $inForeign;
 
 	protected $mode;
 	protected $originalMode;
 
+	public $ack;
+	public $templateModeStack;
+
 	public function __construct( TreeBuilder $builder ) {
 		$this->builder = $builder;
+		$this->templateModeStack = new TemplateModeStack;
 
 		$this->dispatchTable = [];
 		foreach ( self::$handlerClasses as $mode => $class ) {
@@ -77,6 +83,8 @@ class Dispatcher implements TokenHandler {
 		$this->inBody = $this->dispatchTable[self::IN_BODY];
 		$this->inTable = $this->dispatchTable[self::IN_TABLE];
 		$this->inSelect = $this->dispatchTable[self::IN_SELECT];
+		$this->inTemplate = $this->dispatchTable[self::IN_TEMPLATE];
+		$this->inForeign = $this->dispatchTable[self::IN_FOREIGN];
 	}
 
 	public function switchMode( $mode, $save = false ) {
@@ -96,34 +104,110 @@ class Dispatcher implements TokenHandler {
 		return $this->handler = $this->dispatchTable[$mode];
 	}
 
-	public function enterForeignContent() {
-		$this->handler = $this->dispatchTable[self::IN_FOREIGN_CONTENT];
-	}
-
-	public function leaveForeignContent() {
-		$this->handler = $this->dispatchTable[$mode];
-	}
-
 	/**
 	 * True if we are in a table mode, for the purposes of switching to
 	 * IN_SELECT_IN_TABLE as opposed to IN_SELECT.
 	 */
 	public function isInTableMode() {
 		static $tableModes = [
-			Dispatcher::IN_TABLE => true,
-			Dispatcher::IN_CAPTION => true,
-			Dispatcher::IN_TABLE_BODY => true,
-			Dispatcher::IN_ROW => true,
-			Dispatcher::IN_CELL => true ];
+			self::IN_TABLE => true,
+			self::IN_CAPTION => true,
+			self::IN_TABLE_BODY => true,
+			self::IN_ROW => true,
+			self::IN_CELL => true ];
 		return isset( $tableModes[$this->mode] );
+	}
+
+	/**
+	 * Reset the insertion mode appropriately
+	 */
+	public function reset() {
+		return $this->switchMode( $this->getAppropriateMode() );
+	}
+
+	private function getAppropriateMode() {
+		$builder = $this->builder;
+		$stack = $builder->stack;
+		$last = false;
+		$node = $stack->current;
+		for ( $idx = $stack->length() - 1; $idx >= 0; $idx-- ) {
+			$node = $stack->item( $idx );
+			if ( $idx === 0 ) {
+				$last = true;
+			}
+			switch ( $node->htmlName ) {
+			case 'select':
+				if ( $last ) {
+					return self::IN_SELECT;
+				}
+				for ( $ancestorIdx = $idx - 1; $ancestorIdx >= 1; $ancestorIdx-- ) {
+					$ancestor = $stack->item( $idx );
+					if ( $ancestor->htmlName === 'template' ) {
+						return self::IN_SELECT;
+					} elseif ( $ancestor->htmlName === 'table' ) {
+						return self::IN_SELECT_IN_TABLE;
+					}
+				}
+				return self::IN_SELECT;
+
+			case 'td':
+			case 'th':
+				if ( !$last ) {
+					return self::IN_CELL;
+				}
+				break;
+
+			case 'tr':
+				return self::IN_ROW;
+
+			case 'tbody':
+			case 'thead':
+			case 'tfoot':
+				return self::IN_TABLE_BODY;
+
+			case 'caption':
+				return self::IN_CAPTION;
+
+			case 'colgroup':
+				return self::IN_COLUMN_GROUP;
+
+			case 'table':
+				return self::IN_TABLE;
+
+			case 'template':
+				return $this->templateModeStack->current;
+
+			case 'head':
+				if ( $last ) {
+					return self::IN_BODY;
+				} else {
+					return self::IN_HEAD;
+				}
+
+			case 'body':
+				return self::IN_BODY;
+
+			case 'frameset':
+				return self::IN_FRAMESET;
+
+			case 'html':
+				if ( $builder->headElement ) {
+					return self::BEFORE_HEAD;
+				} else {
+					return self::AFTER_HEAD;
+				}
+			}
+		}
+
+		return self::IN_BODY;
 	}
 
 	function startDocument() {
 		$this->builder->startDocument();
 	}
 
-	function endDocument() {
-		$this->handler->endDocument();
+	function endDocument( $pos ) {
+		$this->handler->endDocument( $pos );
 	}
 
 	function error( $text, $pos ) {
@@ -131,22 +215,69 @@ class Dispatcher implements TokenHandler {
 	}
 
 	function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
-		$this->handler->characters( $text, $start, $length, $sourceStart, $sourceLength );
+		$current = $this->builder->stack->current;
+		if ( !$current
+			|| $current->namespace === HTMLData::NS_HTML
+			|| $current->isMathmlTextIntegration()
+			|| $current->isHtmlIntegration()
+		) {
+			$this->handler->characters( $text, $start, $length, $sourceStart, $sourceLength );
+		} else {
+			$this->inForeign->characters(
+				$text, $start, $length, $sourceStart, $sourceLength );
+		}
 	}
 
 	function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
-		$this->handler->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
+		$this->ack = false;
+		$current = $this->builder->stack->current;
+		if ( !$current
+			|| $current->namespace === HTMLData::NS_HTML
+			|| ( $current->isMathmlTextIntegration()
+				&& $name !== 'mglyph'
+				&& $name !== 'malignmark'
+			)
+			|| ( $name === 'svg'
+				&& $current->namespace === HTMLData::NS_MATHML
+				&& $current->name === 'annotation-xml'
+			)
+			|| $current->isHtmlIntegration()
+		) {
+			$this->handler->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
+		} else {
+			$this->inForeign->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
+		}
+		if ( $selfClose && !$this->ack ) {
+			$this->builder->error( self::SELF_CLOSE_ERROR, $sourceStart );
+		}
 	}
 
 	function endTag( $name, $sourceStart, $sourceLength ) {
-		$this->handler->endTag( $name, $sourceStart, $sourceLength );
+		$current = $this->builder->stack->current;
+		if ( !$current || $current->namespace === HTMLData::NS_HTML ) {
+			$this->handler->endTag( $name, $sourceStart, $sourceLength );
+		} else {
+			$this->inForeign->endTag( $name, $sourceStart, $sourceLength );
+		}
 	}
 
 	function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
-		$this->handler->doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength );
+		$current = $this->builder->stack->current;
+		if ( !$current || $current->namespace === HTMLData::NS_HTML ) {
+			$this->handler->doctype( $name, $public, $system, $quirks,
+				$sourceStart, $sourceLength );
+		} else {
+			$this->inForeign->doctype( $name, $public, $system, $quirks,
+				$sourceStart, $sourceLength );
+		}
 	}
 
 	function comment( $text, $sourceStart, $sourceLength ) {
-		$this->handler->comment( $text, $sourceStart, $sourceLength );
+		$current = $this->builder->stack->current;
+		if ( !$current || $current->namespace === HTMLData::NS_HTML ) {
+			$this->handler->comment( $text, $sourceStart, $sourceLength );
+		} else {
+			$this->inForeign->comment( $text, $sourceStart, $sourceLength );
+		}
 	}
 }

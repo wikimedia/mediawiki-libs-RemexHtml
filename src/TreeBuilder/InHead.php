@@ -17,16 +17,21 @@ class InHead extends InsertionMode {
 		}
 		$start += $wsLength;
 
-		$this->builder->endTag( 'head', $sourceStart, 0 );
+		$elt = $this->builder->pop( $sourceStart, 0 );
+		if ( $elt->htmlName !== 'head' ) {
+			throw new \Exception( 'In head mode but current element is not <head>' );
+		}
 		$this->dispatcher->switchMode( Dispatcher::AFTER_HEAD )
 			->characters( $text, $start, $length, $sourceStart, $sourceLength );
 	}
 
 	function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
-		$ack = false;
+		$void = false;
 		$tokenizerState = null;
 		$textMode = null;
 		$mode = null;
+		$builder = $this->builder;
+		$dispatcher = $this->dispatcher;
 
 		switch ( $name ) {
 		case 'html':
@@ -37,10 +42,12 @@ class InHead extends InsertionMode {
 		case 'basefont':
 		case 'bgsound':
 		case 'link':
-			$ack = true;
+			$void = true;
+			$dispatcher->ack = true;
 			break;
 		case 'meta':
-			$ack = true;
+			$void = true;
+			$dispatcher->ack = true;
 			// charset handling omitted
 			break;
 		case 'title':
@@ -63,26 +70,27 @@ class InHead extends InsertionMode {
 			$textMode = Dispatcher::TEXT;
 			break;
 		case 'template':
-			$this->builder->insertAfeMarker();
+			$this->builder->afe->insertMarker();
 			$this->builder->framesetOK = false;
 			$mode = Dispatcher::IN_TEMPLATE;
-			$this->builder->pushTemplateMode( TreeBuilder::IN_TEMPLATE );
+			$this->dispatcher->templateModeStack->push( Dispatcher::IN_TEMPLATE );
 			break;
 		case 'head':
 			$this->builder->error( 'unexpected head tag', $sourceStart );
 			return;
 		default:
-			$this->builder->endTag( 'head', $sourceStart, 0 );
+			$elt = $this->builder->pop( $sourceStart, 0 );
+			if ( $elt->htmlName !== 'head' ) {
+				throw new \Exception( "In head mode but current element is not <head>" );
+			}
 			$this->dispatcher->switchMode( Dispatcher::AFTER_HEAD )
 				->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
 			return;
 		}
 
 		// Generic element insertion, for all cases that didn't return above
-		if ( !$ack && $selfClose ) {
-			$this->builder->error( InsertionMode::SELF_CLOSE_ERROR, $sourceStart );
-		}
-		$this->builder->startTag( $name, $attrs, $ack, $sourceStart, $sourceLength );
+		$this->builder->insertElement( $name, $attrs, $void,
+			$sourceStart, $sourceLength );
 		if ( $tokenizerState !== null ) {
 			$this->builder->tokenizer->switchState( $tokenizerState, $name );
 		}
@@ -94,23 +102,37 @@ class InHead extends InsertionMode {
 	}
 
 	function endTag( $name, $sourceStart, $sourceLength ) {
+		$builder = $this->builder;
+		$stack = $builder->stack;
+
 		switch ( $name ) {
 		case 'head':
-			$this->builder->endTag( $name, $sourceStart, $sourceLength );
+			$builder->pop( $sourceStart, $sourceLength );
 			$this->dispatcher->switchMode( Dispatcher::AFTER_HEAD );
 			break;
 		case 'body':
 		case 'html':
 		case 'br':
-			$this->builder->endTag( 'head', $sourceStart, 0 );
+			$builder->pop( $sourceStart, 0 );
 			$this->dispatcher->switchMode( Dispatcher::AFTER_HEAD )
 				->endTag( $name, $sourceStart, $sourceLength );
 			break;
 		case 'template':
-			$this->builder->endTemplateTag( $sourceStart, $sourceLength );
+			if ( !$stack->hasTemplate() ) {
+				$this->error( 'unexpected </template>', $sourceStart );
+				return;
+			}
+			$builder->generateImpliedEndTags( $sourceStart );
+			if ( $stack->current->htmlName !== 'template' ) {
+				$this->error( 'encountered </template> when other tags are still open' );
+			}
+			$builder->popAllUpTo( 'template', $sourceStart, $sourceLength );
+			$builder->afe->clearToMarker();
+			$this->dispatcher->templateModeStack->pop();
+			$this->dispatcher->reset();
 			break;
 		default:
-			$this->builder->error( 'ignoring unexpected end tag', $sourceStart );
+			$builder->error( 'ignoring unexpected end tag', $sourceStart );
 		}
 	}
 }

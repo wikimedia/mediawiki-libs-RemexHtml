@@ -58,9 +58,7 @@ class TestTreeBuilderHandler implements TreeBuilderHandler {
 		$parent->childNodes[] = '"' . substr( $text, $start, $length ) . '"';
 	}
 
-	public function insert( $parent, $name, Attributes $attrs, $selfClose, $
-
-	public function insertForeign( $parent, $ns, $name, Attributes $attrs,
+	public function insertElement( $parent, $ns, $name, Attributes $attrs,
 		$selfClose, $sourceStart, $sourceLength
 	) {
 		$node = $this->createNode( $ns, $name, $attrs );

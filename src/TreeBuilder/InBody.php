@@ -15,7 +15,7 @@ class InBody extends InsertionMode {
 			if ( strcspn( $text, "\t\n\f\r ", $start, $length ) !== $length ) {
 				$this->builder->framesetOK = false;
 			}
-			$this->builder->characters( $text, $start, $length, $sourceStart, $sourceLength );
+			$this->builder->insertCharacters( $text, $start, $length, $sourceStart, $sourceLength );
 		}
 	}
 
@@ -23,27 +23,27 @@ class InBody extends InsertionMode {
 		if ( strcspn( $text, "\t\n\f\r ", $start, $length ) !== $length ) {
 			$this->builder->framesetOK = false;
 		}
-		$this->builder->characters( $text, $start, $length, $sourceStart, $sourceLength );
+		$this->builder->insertCharacters( $text, $start, $length, $sourceStart, $sourceLength );
 	}
 
 	function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
-		$ack = false;
 		$mode = null;
 		$tokenizerState = null;
 		$isNewAFE = false;
 		$builder = $this->builder;
 		$stack = $builder->stack;
+		$void = false;
 
 		switch ( $name ) {
 		case 'html':
 			$builder->error( 'unexpected html tag', $sourceStart );
-			if ( $builder->stackHas( 'template' ) ) {
-				// Ignore the token
+			if ( $stack->hasTemplate() ) {
 				return;
 			}
-			if ( $attrs->count() ) {
-				$builder->addHtmlAttrs( $attrs );
+			if ( $stack->length() < 1 ) {
+				return;
 			}
+			$builder->mergeAttributes( $stack->item( 0 ), $attrs, $sourceStart, $sourceLength );
 			return;
 		case 'base':
 		case 'basefont':
@@ -59,18 +59,39 @@ class InBody extends InsertionMode {
 				$name, $attrs, $selfClose, $sourceStart, $sourceLength );
 			return;
 		case 'body':
-			$builder->error( 'unexpected body tag', $sourceStart );
-			if ( $attrs->count() && $this->builder->hasBody ) {
-				$builder->addBodyAttrs( $attrs );
-			}
-			return;
-		case 'frameset':
-			$builder->error( 'unexpected frameset tag', $sourceStart );
-			if ( !$builder->framesetOK || !$builder->hasBody ) {
+			if ( $stack->length() < 2 || $stack->hasTemplate() ) {
+				$builder->error( 'ignored unexpected body tag', $sourceStart );
 				return;
 			}
-			$builder->removeBody();
+			$body = $stack->item( 1 );
+			if ( $body->htmlName !== 'body' ) {
+				$builder->error( 'ignored unexpected body tag', $sourceStart );
+				return;
+			}
+			$builder->error( 'merged unexpected body tag', $sourceStart );
+			$this->builder->framesetOK = false;
+			$this->builder->mergeAttributes( $body, $attrs, $sourceStart, $sourceLength );
+			return;
+		case 'frameset':
+			if ( !$builder->framesetOK || $stack->length() < 2 || $stack->hasTemplate() ) {
+				$builder->error( 'ignored unexpected frameset tag', $sourceStart );
+				return;
+			}
+			$body = $stack->item( 1 );
+			if ( $body->htmlName !== 'body' ) {
+				$builder->error( 'ignored unexpected frameset tag', $sourceStart );
+				return;
+			}
+			$builder->error( 'unexpected frameset tag erases body contents', $sourceStart );
+			$builder->handler->removeNode( $body, $sourceStart );
+			// Pop all the nodes from the bottom of the stack of open elements,
+			// from the current node up to, but not including, the root html element.
+			$n = $stack->length();
+			for ( $i = 0; $i < $n - 1; $i++ ) {
+				$stack->pop();
+			}
 			$mode = Dispatcher::IN_FRAMESET;
+			// Insert as normal
 			break;
 		case 'address':
 		case 'article':
@@ -104,9 +125,7 @@ class InBody extends InsertionMode {
 		case 'h5':
 		case 'h6':
 			$builder->closePInButtonScope( $sourceStart );
-			if ( $stack->current->namespace === HTMLData::NS_HTML
-				&& isset( self::$headingNames[$stack->current->name] )
-			) {
+			if ( isset( self::$headingNames[$stack->current->htmlName] ) ) {
 				$builder->error( 'invalid nested heading', $sourceStart );
 				$builder->endTag( $bottomName, $sourceStart, 0 );
 			}
@@ -122,24 +141,27 @@ class InBody extends InsertionMode {
 				return;
 			}
 			$builder->closePInButtonScope( $sourceStart );
-			$builder->insertForm( $attrs, $sourceStart, $sourceLength );
+			$elt = $builder->insertElement( 'form', $attrs, false,
+				$sourceStart, $sourceLength );
+			if ( !$this->stack->hasTemplate() ) {
+				$builder->formElement = $elt;
+			}
 			return;
 		case 'li':
 			$builder->framesetOK = false;
-			$stack =& $builder->tagNameStack;
-			$node = end( $stack );
-			while ( true ) {
-				if ( $node === 'li' ) {
-					$builder->generateImpliedEndTags( 'li' );
-					$this->popAllDownTo( 'li', $stack );
+			for ( $idx = $stack->length() - 1; $idx >= 0; $idx-- ) {
+				$node = $stack->item( $idx );
+				$htmlName = $node->htmlName;
+				if ( $node->htmlName === 'li' ) {
+					$builder->generateImpliedEndTagsWithError( 'li', $sourceStart );
+					$builder->popAllUpTo( 'li', $sourceStart );
 					break;
 				}
-				if ( isset( HTMLData::$special[$node] )
-					&& $node !== 'address' && $node !== 'div' && $node !== 'p'
+				if ( isset( HTMLData::$special[$htmlName] )
+					&& $htmlName !== 'address' && $htmlName !== 'div' && $htmlName !== 'p'
 				) {
 					break;
 				}
-				$node = prev( $stack );
 			}
 			$builder->closePInButtonScope( $sourceStart );
 			unset( $stack );
@@ -147,12 +169,12 @@ class InBody extends InsertionMode {
 		case 'dd':
 		case 'dt':
 			$builder->framesetOK = false;
-			$stack =& $builder->tagNameStack;
-			$node = end( $stack );
-			while ( true ) {
-				if ( $node === 'dd' || $node === 'dt' ) {
-					$builder->generateImpliedEndTags( $node );
-					$this->popAllDownTo( $node, $stack );
+			for ( $idx = $stack->length() - 1; $idx >= 0; $idx-- ) {
+				$node = $stack->item( $idx );
+				$htmlName = $node->htmlName;
+				if ( $htmlName === 'dd' || $htmlName === 'dt' ) {
+					$builder->generateImpliedEndTagsWithError( $htmlName, $sourceStart );
+					$builder->popAllUpTo( $htmlName, $sourceStart );
 					break;
 				}
 				if ( isset( HTMLData::$special[$node] )
@@ -160,7 +182,6 @@ class InBody extends InsertionMode {
 				) {
 					break;
 				}
-				$node = prev( $stack );
 			}
 			$builder->closePInButtonScope( $sourceStart );
 			unset( $stack );
@@ -170,10 +191,10 @@ class InBody extends InsertionMode {
 			$tokenizerState = Tokenizer::STATE_PLAINTEXT;
 			break;
 		case 'button':
-			if ( $builder->isInScope( 'button' ) ) {
+			if ( $stack->isInScope( 'button' ) ) {
 				$builder->error( 'invalid nested button tag', $sourceStart );
-				$builder->generateImpliedEndTags();
-				$this->popAllDownTo( 'button', $builder->stack );
+				$builder->generateImpliedEndTags( false, $sourceStart );
+				$builder->popAllUpTo( 'button', $sourceStart );
 			}
 			$builder->reconstructAFE( $sourceStart );
 			$builder->framesetOK = false;
@@ -232,12 +253,14 @@ class InBody extends InsertionMode {
 		case 'keygen':
 		case 'wbr':
 			$builder->reconstructAFE( $sourceStart );
-			$ack = true;
+			$dispatcher->ack = true;
+			$void = true;
 			$builder->framesetOK = false;
 			break;
 		case 'input':
 			$builder->reconstructAFE( $sourceStart );
-			$ack = true;
+			$dispatcher->ack = true;
+			$void = true;
 			if ( !isset( $attribs['type'] ) || strcasecmp( $attribs['type'], 'hidden' ) !== 0 ) {
 				$builder->framesetOK = false;
 			}
@@ -245,11 +268,13 @@ class InBody extends InsertionMode {
 		case 'param':
 		case 'source':
 		case 'track':
-			$ack = true;
+			$dispatcher->ack = true;
+			$void = true;
 			break;
 		case 'hr':
 			$builder->closePInButtonScope( $sourceStart );
-			$ack = true;
+			$dispatcher->ack = true;
+			$void = true;
 			$builder->framesetOK = false;
 			break;
 		case 'image':
@@ -294,29 +319,44 @@ class InBody extends InsertionMode {
 			break;
 		case 'optgroup':
 		case 'option':
-			if ( end( $builder->tagNameStack ) === 'option' ) {
-				$builder->endTag( 'option', $sourceStart, 0 );
+			if ( $stack->current->htmlName === 'option' ) {
+				$builder->pop( $sourceStart, 0 );
 			}
 			$builder->reconstructAFE( $sourceStart );
 			break;
 		case 'rb':
 		case 'rp':
 		case 'rtc':
-			if ( $builder->isInScope( 'ruby' ) ) {
-				$builder->generateImpliedEndTags();
-				if ( end( $builder->tagNameStack ) !== 'ruby' ) {
+			if ( $stack->isInScope( 'ruby' ) ) {
+				$builder->generateImpliedEndTags( false, $sourceStart );
+				if ( $stack->current->htmlName !== 'ruby'
+				) {
 					$builder->error( "<$name> is not a child of <ruby>", $sourceStart );
 				}
 			}
 			break;
 		case 'rt':
-			if ( $builder->isInScope( 'ruby' ) ) {
-				$builder->generateImpliedEndTags( 'rtc' );
-				if ( !in_array( end( $builder->tagNameStack ), [ 'ruby', 'rtc' ] ) ) {
+			if ( $stack->isInScope( 'ruby' ) ) {
+				$builder->generateImpliedEndTags( 'rtc', $sourceStart );
+				if ( !in_array( $stack->current->htmlName, [ 'ruby', 'rtc' ] ) ) {
 					$builder->error( "<$name> is not a child of <ruby> or <rtc>", $sourceStart );
 				}
 			}
 			break;
+		case 'math':
+			$builder->reconstructAFE( $sourceStart );
+			$attrs = new ForeignAttributes( $attrs, 'math' );
+			$dispatcher->ack = true;
+			$builder->insertForeign( HTMLData::NS_MATHML, 'math', $attrs, $selfClose,
+				$sourceStart, $sourceLength );
+			return;
+		case 'svg':
+			$builder->reconstructAFE( $sourceStart );
+			$attrs = new ForeignAttributes( $attrs, 'svg' );
+			$dispatcher->ack = true;
+			$builder->insertForeign( HTMLData::NS_SVG, 'svg', $attrs, $selfClose,
+				$sourceStart, $sourceLength );
+			return;
 		case 'caption':
 		case 'col':
 		case 'colgroup':
@@ -330,8 +370,6 @@ class InBody extends InsertionMode {
 		case 'tr':
 			$builder->error( "$name is invalid in body mode" );
 			return;
-		case 'math':
-		case 'svg':
 		case 'isindex':
 			// TODO
 			$builder->error( "$name is unimplemented" );
@@ -341,14 +379,12 @@ class InBody extends InsertionMode {
 		}
 
 		// Generic element insertion, for all cases that didn't return above
-		if ( !$ack && $selfClose ) {
-			$builder->error( self::SELF_CLOSE_ERROR, $sourceStart );
-		}
+		$element = $builder->insertElement( $name, $attrs, $void,
+			$sourceStart, $sourceLength );
 		if ( $isNewAFE ) {
-			$builder->startFormattingElement( $name, $attrs, $ack, $sourceStart, $sourceLength );
-		} else {
-			$builder->startTag( $name, $attrs, $ack, $sourceStart, $sourceLength );
+			$builder->afe->push( $element );
 		}
+
 		if ( $tokenizerState !== null ) {
 			$builder->tokenizer->switchState( $tokenizerState, $name );
 		}
@@ -359,18 +395,44 @@ class InBody extends InsertionMode {
 		}
 	}
 
-	private function popAllDownTo( $terminator, &$stack ) {
+	function endTag( $name, $sourceStart, $sourceLength ) {
 		$builder = $this->builder;
-		$builder->generateImpliedEndTags( $terminator );
-		while ( false !== ( $node = end( $stack ) ) ) {
-			$builder->endTag( $node, $sourceStart, 0 );
-			if ( $node === $terminator ) {
+		$stack = $builder->stack;
+
+		switch ( $name ) {
+		case 'template':
+			$this->dispatcher->inHead->endTag( $name, $sourceStart, $sourceLength );
+			break;
+
+		case 'body':
+			if ( !$stack->isInScope( 'body' ) ) {
+				$builder->error( 'end tag has no matching start tag in scope' );
 				break;
 			}
-		}
-	}
+			$allowed = [
+				'dd' => true,
+				'dt' => true,
+				'li' => true,
+				'optgroup' => true,
+				'option' => true,
+				'p' => true,
+				'rb' => true,
+				'rp' => true,
+				'rt' => true,
+				'rtc' => true,
+				'tbody' => true,
+				'td' => true,
+				'tfoot' => true,
+				'th' => true,
+				'thead' => true,
+				'tr' => true,
+				'body' => true,
+				'html' => true,
+			];
+			$builder->checkUnclosed( $allowed );
+			$this->dispatcher->switchMode( Dispatcher::AFTER_BODY );
+			break;
 
-	function endTag( $name, $sourceStart, $sourceLength ) {
 		case 'address':
 		case 'article':
 		case 'aside':
@@ -395,9 +457,111 @@ class InBody extends InsertionMode {
 		case 'pre':
 		case 'section':
 		case 'summary':
-		case 'ul':	
+		case 'ul':
+			if ( !$stack->isInScope( $name ) ) {
+				$builder->error( "unmatched end tag \"</$name>\"" );
+				break;
+			}
+			$builder->generateImpliedEndTagsWithError( $name, $sourceStart );
+			$builder->popAllUpToName( $name, $sourceStart, $sourceLength );
+			break;
 
+		case 'form':
+			if ( !$stack->hasTemplate() ) {
+				$node = $builder->formElement;
+				$builder->formElement = null;
+				if ( $node === null ) {
+					$builder->error( "end tag \"</form>\" found when there is no open form element",
+						$sourceStart );
+					break;
+				}
+				if ( !$stack->isElementInScope( $node ) ) {
+					$builder->error( "end tag \"</form>\" found when there is no form in scope",
+						$sourceStart );
+					break;
+				}
+				$builder->generateImpliedEndTags( false, $sourceStart );
+				if ( $stack->current === $node ) {
+					$builder->pop( $sourceStart, $sourceLength );
+				} else {
+					$builder->error( "end tag \"</form>\" found when there are end tags open " .
+						"which cannot be closed automatically", $sourceStart );
+					$stack->remove( $node );
+					$builder->handler->endTag( $node, $sourceStart, $sourceLength );
+				}
+			} else {
+				if ( !$stack->isInScope( 'form' ) ) {
+					$builder->error( "end tag \"</form>\" found when there is no form in scope",
+						$sourceStart );
+					break;
+				}
+				$builder->generateImpliedEndTagsWithError( 'form', $sourceStart );
+				$builder->popAllUpToName( 'form' );
+			}
+			break;
 
+		case 'p':
+			if ( !$stack->isInButtonScope( 'p' ) ) {
+				$builder->error( "end tag \"</p>\" found when there is no p in scope",
+					$sourceStart );
+				$builder->insertElement( 'p', new PlainAttributes, false, false, $sourceStart, 0 );
+				$builder->pop( $sourceStart, $sourceLength );
+				break;
+			}
+			$builder->generateImpliedEndTagsWithError( 'p', $sourceStart );
+			$builder->popAllUpToName( 'p', $sourceStart, $sourceLength );
+			break;
+
+		case 'li':
+			if ( !$stack->isInListScope( 'li' ) ) {
+				$builder->error( "end tag \"</li>\" found when there is no li in scope",
+					$sourceStart );
+				break;
+			}
+			$builder->generateImpliedEndTagsWithError( 'li', $sourceStart );
+			$builder->popAllUpToName( 'li', $sourceStart, $sourceLength );
+			break;
+
+		case 'dd':
+		case 'dt':
+			if ( !$stack->isInScope( $name ) ) {
+				$builder->error( "end tag \"</$name>\" found when there is no $name in scope",
+					$sourceStart );
+				break;
+			}
+			$builder->generateImpliedEndTagsWithError( $name, $sourceStart );
+			$builder->popAllUpToName( $name, $sourceStart, $sourceLength );
+			break;
+
+		case 'h1':
+		case 'h2':
+		case 'h3':
+		case 'h4':
+		case 'h5':
+		case 'h6':
+			if ( !$stack->isOneOfSetInScope( self::$headingNames ) ) {
+				$builder->error( "end tag \"</$name>\" found when there is no heading tag in scope",
+					$sourceStart );
+				break;
+			}
+			$this->generateImpliedEndTags( false, $sourceStart );
+			if ( $stack->current->htmlName !== $name ) {
+				$builder->error( "end tag \"</$name>\" assumed to close non-matching heading tag",
+					$sourceStart );
+			}
+			while ( true ) {
+				$popped = $stack->pop();
+				if ( $popped === false ) {
+					$builder->error( "unexpectedly reached end of stack", $sourceStart );
+					break;
+				} elseif ( isset( self::$headingNames[$popped->htmlName] ) ) {
+					$builder->handler->endTag( $popped, $sourceStart, $sourceLength );
+					break;
+				} else {
+					$builder->handler->endTag( $popped, $sourceStart, 0 );
+				}
+			}
+			break;
 
 		case 'a':
 		case 'b':
@@ -413,6 +577,42 @@ class InBody extends InsertionMode {
 		case 'strong':
 		case 'tt':
 		case 'u':
+			$builder->adoptionAgency( $name, $sourceStart, $sourceLength );
+			break;
 
+		case 'applet':
+		case 'marquee':
+		case 'object':
+			if ( !$stack->isInScope( $name ) ) {
+				$builder->error( "end tag \"</$name>\" found when there is no $name in scope",
+					$sourceStart );
+				break;
+			}
+			$builder->generateImpliedEndTags( false, $sourceStart );
+			if ( $stack->current->htmlName !== $name ) {
+				$builder->error( "unmatched end tag \"</$name>\"", $sourceStart );
+			}
+			$builder->popAllUpToName( $name );
+			$builder->afe->clearToMarker();
+			break;
+
+		case 'br':
+			$builder->error( 'end tag </br> is invalid, assuming start tag', $sourceStart );
+			$this->startTag( $name, new PlainAttributes, false, $sourceStart, $sourceLength );
+			break;
+
+		default:
+			$builder->anyOtherEndTag( $name, $sourceStart, $sourceLength );
+			break;
+		}
+	}
+
+	public function endDocument( $pos ) {
+		$this->builder->checkUnclosed( $allowed );
+		if ( !$this->dispatcher->templateModeStack->isEmpty() ) {
+			$this->dispatcher->inTemplate->endDocument( $pos );
+		} else {
+			$this->builder->stopParsing( $pos );
+		}
 	}
 }

@@ -7,24 +7,27 @@ use Wikimedia\RemexHtml\Tokenizer\TokenHandler;
 abstract class InsertionMode implements TokenHandler {
 	const SELF_CLOSE_ERROR = 'unacknowledged self closing tag';
 
-	function __construct( TreeBuilder $builder, Dispatcher $dispatcher ) {
+	protected $builder;
+	protected $dispatcher;
+
+	public function __construct( TreeBuilder $builder, Dispatcher $dispatcher ) {
 		$this->builder = $builder;
 		$this->dispatcher = $dispatcher;
 	}
 
-	function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
+	public function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
 		$this->builder->error( "unexpected doctype" );		
 	}
 
-	function comment( $text, $sourceStart, $sourceLength ) {
+	public function comment( $text, $sourceStart, $sourceLength ) {
 		$this->builder->comment( $text, $sourceStart, $sourceLength );
 	}
 
-	function error( $text, $pos ) {
+	public function error( $text, $pos ) {
 		$this->builder->error( $text, $pos );
 	}
 
-	function stripNulls( $text, $start, $length, $sourceStart, $sourceLength ) {
+	protected function stripNulls( $text, $start, $length, $sourceStart, $sourceLength ) {
 		$originalLength = $length;
 		$errorOffset = $sourceStart - $start;
 		while ( $length > 0 ) {
@@ -40,5 +43,11 @@ abstract class InsertionMode implements TokenHandler {
 			$length--;
 		}
 	}
+	
+	abstract public function characters( $text, $start, $length, $sourceStart, $sourceLength );
+	abstract public function startTag( $name, Attributes $attrs, $selfClose,
+		$sourceStart, $sourceLength );
+	abstract public function endTag( $name, $sourceStart, $sourceLength );
+	abstract public function endDocument( $pos );
 }
 

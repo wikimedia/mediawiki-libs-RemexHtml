@@ -14,17 +14,19 @@ class BeforeHtml extends InsertionMode {
 		}
 		$start += $wsLength;
 		// Generate missing <html> tag
-		$this->builder->startTag( 'html', new PlainAttributes, false, $sourceStart, 0 );
+		$this->builder->insertElement( 'html', new PlainAttributes, false, $sourceStart, 0 );
 		$this->dispatcher->switchMode( Dispatcher::BEFORE_HEAD )
 			->characters( $text, $start, $length, $sourceStart, $sourceLength );
 	}
 
 	function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
 		if ( $name !== 'html' ) {
-			$this->builder->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
+			$this->builder->insertElement( $name, $attrs, false,
+				$sourceStart, $sourceLength );
 			$this->dispatcher->switchMode( Dispatcher::BEFORE_HEAD );
 		} else {
-			$this->builder->startTag( 'html', new PlainAttributes,	false, $sourceStart, 0 );
+			$this->builder->insertElement( 'html', new PlainAttributes,	false,
+				$sourceStart, 0 );
 			$this->dispatcher->switchMode( Dispatcher::BEFORE_HEAD )
 				->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
 		}
@@ -36,7 +38,7 @@ class BeforeHtml extends InsertionMode {
 			$this->builder->error( 'end tag not allowed before html', $sourceStart );
 			return;
 		}
-		$this->builder->startTag( 'html', new PlainAttributes, false, $sourceStart, 0 );
+		$this->builder->insertElement( 'html', new PlainAttributes, false, $sourceStart, 0 );
 		$this->dispatcher->switchMode( Dispatcher::BEFORE_HEAD )
 			->endTag( $name, $sourceStart, $sourceLength );
 	}

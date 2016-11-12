@@ -12,76 +12,522 @@ class TreeBuilder {
 	public $isIframeSrcdoc;
 	public $scriptingFlag;
 	public $framesetOK = true;
-	public $hasBody = false;
+	public $afe;
+	public $fosterParenting = false;
 
-	function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
+	public $headElement;
+	public $htmlElement;
+	public $formElement;
+
+	private static $fosterTriggers = [
+		'table' => true,
+		'tbody' => true,
+		'tfoot' => true,
+		'thead' => true,
+		'tr' => true
+	];
+
+	private static $impliedEndTags = [
+		'dd' => true,
+		'dt' => true,
+		'li' => true,
+		'option' => true,
+		'optgroup' => true,
+		'p' => true,
+		'rb' => true,
+		'rt' => true,
+		'rtc' => true,
+	];
+
+	private function appropriatePlace( $target = null ) {
+		$stack = $this->stack;
+		if ( $target === null ) {
+			$target = $stack->current;
+		}
+		if ( !$this->fosterParenting ) {
+			return [ $target, null ];
+		}
+		if ( !isset( self::$fosterTriggers[$target->htmlName] ) ) {
+			return [ $target, null ];
+		}
+		$node = null;
+		for ( $idx = $this->stack->length(); $idx >= 0; $idx-- ) {
+			$node = $this->stack->item( $idx );
+			if ( $node->htmlName === 'table' && $idx >= 1 ) {
+				return [ $this->stack->item( $idx - 1 ), $node ];
+			}
+			if ( $node->htmlName === 'template' ) {
+				return [ $node, null ];
+			}
+		}
+		return [ $node, null ];
 	}
 
-	function insert( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
+	function insertCharacters( $text, $start, $length, $sourceStart, $sourceLength ) {
+		list( $parent, $before ) = $this->appropriatePlace();
+		$this->handler->characters( $parent, $before, $text, $length,
+			$sourceStart, $sourceLength );
 	}
 
-	function insertForeign( $ns, $name, Attributes $attrs, $selfClose,
+	function insertElement( $name, Attributes $attrs, $selfClose, $ack,
 		$sourceStart, $sourceLength
 	) {
-		if ( $attrs->count() ) {
-			$balancerAttrs = new LazyAttributes( $attrs, function( $attrs ) {
-				return $this->adjustAttributes( $attrs );
-			} );
-		}
-	}
-
-	function endTag( $name, $sourceStart, $sourceLength ) {
-	}
-
-	function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
-	}
-
-	function comment( $text, $sourceStart, $sourceLength ) {
-	}
-
-	function error( $text, $pos ) {
-	}
-
-	function insertAfeMarker() {
-	}
-
-	function framesetNotOK() {
-	}
-
-	function pushTemplateMode( $mode ) {
-	}
-
-	function endTemplateTag( $sourceStart, $sourceEnd ) {
-	}
-
-	function stackHas( $name ) {
-	}
-
-	function addHtmlAttrs( Attributes $attrs ) {
-	}
-
-	function addBodyAttrs( Attributes $attrs ) {
-	}
-
-	function closePInButtonScope() {
-	}
-
-	function isFormIgnored() {
-		// If the form element pointer is not null, and there is no 
-		// template element on the stack of open elements, then this
-		// is a parse error; ignore the token.
+		return $this->insertForeign( HTMLData::NS_HTML, $name, $attrs, $selfClose, $ack,
+			$sourceStart, $sourceLength );
 	}
 
 	function insertForm( Attributes $attrs, $sourceStart, $sourceLength ) {
 		// Insert an HTML element for a "form" start tag token, and, if there
 		// is no template element on the stack of open elements, set the form
 		// element pointer to point to the element created.
+		$element = $this->insertForeign( HTMLData::NS_HTML, 'form', $attrs,
+			$sourceStart, $sourceLength );
+		if ( !$this->stack->hasTemplate() ) {
+			$this->formElement = $element;
+		}
+		return $element;
 	}
 
-	function reconstructAFE( $sourceStart ) {
+	function insertForeign( $ns, $name, Attributes $attrs, $void,
+		$sourceStart, $sourceLength
+	) {
+		list( $parent, $before ) = $this->appropriatePlace();
+		$element = new Element( $ns, $name, $attrs );
+		$this->handler->startTag( $parent, $before, $element, $void,
+			$sourceStart, $sourceLength );
+		if ( !$void ) {
+			$this->stack->push( $element );
+		}
+		return $element;
 	}
 
-	function adoptionAgency( $subject, $sourceStart, $sourceLength ) {
-		
+	/**
+	 * Pop the current node from the stack of open elements, and notify the
+	 * handler that we are done with that node.
+	 */
+	function pop( $sourceStart, $sourceLength ) {
+		$element = $this->stack->pop();
+		$this->handler->endTag( $element, $sourceStart, $sourceLength );
+		return $element;
+	}
+
+	function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
+		$this->handler->doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength );
+		$this->quirks = $quirks;
+	}
+
+	function comment( $place, $text, $sourceStart, $sourceLength ) {
+		list( $parent, $before ) = $place !== null ? $place : $this->appropriatePlace();
+		$this->handler->comment( $parent, $before, $text, $sourceStart, $sourceLength );
+	}
+
+	function error( $text, $pos ) {
+		$this->handler->error( $text, $pos );
+	}
+
+	function mergeAttributes( Element $elt, Attributes $attrs, $sourceStart, $sourceLength ) {
+		if ( $attrs->count() ) {
+			$this->handler->mergeAttributes( $elt, $attrs, $sourceStart, $sourceLength );
+		}
+	}
+
+	function closePInButtonScope( $pos ) {
+		if ( $this->stack->isInButtonScope( 'p' ) ) {
+			$this->generateImpliedEndTagsWithError( 'p', $pos );
+			$this->popAllUpToName( 'p', $pos, 0 );
+		}
+	}
+
+	function isFormIgnored() {
+		// If the form element pointer is not null, and there is no 
+		// template element on the stack of open elements, then this
+		// is a parse error; ignore the token.
+		...
+	}
+
+	/**
+	 * Check the stack to see if there is any element which is not on the list
+	 * of allowed elements. Raise an error if any are found.
+	 *
+	 * @param array $allowed An array with the HTML element names in the key
+	 */
+	public function checkUnclosed( $allowed ) {
+		$stack = $this->stack;
+		for ( $i = $stack->length() - 1; $i >= 0; $i-- ) {
+			$unclosedName = $stack->item( $i )->htmlName
+			if ( !isset( $allowed[$unclosedName] ) ) {
+				$builder->error( "unclosed <$unclosedName>" );
+			}
+		}
+	}
+
+	/**
+	 * Reconstruct the active formatting elements.
+	 */
+	public function reconstructAFE( $sourceStart ) {
+		$entry = $this->afe->tail;
+		// If there are no entries in the list of active formatting elements,
+		// then there is nothing to reconstruct
+		if ( !$entry ) {
+			return;
+		}
+		// If the last is a marker, do nothing.
+		if ( $entry instanceof Marker ) {
+			return;
+		}
+		// Or if it is an open element, do nothing.
+		if ( $entry->stackIndex >= 0 ) {
+			return;
+		}
+
+		// Loop backward through the list until we find a marker or an
+		// open element
+		$foundIt = false;
+		while ( $entry->prevAFE ) {
+			$entry = $entry->prevAFE;
+			if ( $entry instanceof Marker || $entry->stackIndex >= 0 ) {
+				$foundIt = true;
+				break;
+			}
+		}
+
+		// Now loop forward, starting from the element after the current one (or
+		// the first element if we didn't find a marker or open element),
+		// recreating formatting elements and pushing them back onto the list
+		// of open elements.
+		if ( $foundIt ) {
+			$entry = $entry->nextAFE;
+		}
+		do {
+			$newElement = $this->insertForeign( HTMLData::NS_HTML, $entry->name,
+				$entry->attrs, false, $sourceStart, 0 );
+			$this->afe->replace( $entry, $newElement );
+			$entry = $newElement->nextAFE;
+		} while ( $entry );
+	}
+
+	/**
+	 * Run the "adoption agency algorithm" (AAA) for the given subject
+	 * tag name.
+	 * @author C. Scott Ananian, Tim Starling
+	 *
+	 * https://www.w3.org/TR/2014/REC-html5-20141028/syntax.html#adoption-agency-algorithm
+	 * 
+	 * @param string $subject The subject tag name.
+	 * @param integer $sourceStart
+	 * @param integer $sourceLength
+	 */
+	public function adoptionAgency( $subject, $sourceStart, $sourceLength ) {
+		$afe = $this->afe;
+		$stack = $this->stack;
+		$handler = $this->handler;
+
+		// If the current node is an HTML element whose tag name is subject,
+		// and the current node is not in the list of active formatting
+		// elements, then pop the current node off the stack of open
+		// elements and abort these steps. [1]
+		if (
+			$stack->current->htmlName === $subject &&
+			!$afe->isInList( $stack->current )
+		) {
+			$this->pop( $sourceStart, $sourceLength );
+			return;
+		}
+
+		// Outer loop: If outer loop counter is greater than or
+		// equal to eight, then abort these steps. [2-4]
+		for ( $outer = 0; $outer < 8; $outer++ ) {
+			// Let the formatting element be the last element in the list
+			// of active formatting elements that: is between the end of
+			// the list and the last scope marker in the list, if any, or
+			// the start of the list otherwise, and has the same tag name
+			// as the token. [5]
+			$fmtElt = $afe->findElementByName( $subject );
+
+			// If there is no such node, then abort these steps and instead
+			// act as described in the "any other end tag" entry above.
+			if ( !$fmtElt ) {
+				$this->anyOtherEndTag( $subject, $sourceStart, $sourceLength );
+				return;
+			}
+
+			// Otherwise, if there is such a node, but that node is not in
+			// the stack of open elements, then this is a parse error;
+			// remove the element from the list, and abort these steps. [6]
+			$fmtEltIndex = $fmtElt->stackIndex;
+			if ( $fmtEltIndex < 0 ) {
+				$this->error( 'closing tag matched an active formatting element ' .
+					'which is not in the stack', $sourceStart );
+				$afe->remove( $fmtElt );
+				return;
+			}
+
+			// Otherwise, if there is such a node, and that node is also in
+			// the stack of open elements, but the element is not in scope,
+			// then this is a parse error; ignore the token, and abort
+			// these steps. [7]
+			if ( !$stack->isElementInScope( $fmtElt ) ) {
+				$this->error( 'end tag matched a start tag which is not in scope',
+					$sourceStart );
+				return;
+			}
+
+			// If formatting element is not the current node, this is a parse
+			// error. (But do not abort these steps.) [8]
+			if ( $fmtElt !== $stack->current ) {
+				$this->error( 'end tag matched a formatting element which was ' .
+					'not the current node' );
+			}
+
+			// Let the furthest block be the topmost node in the stack of
+			// open elements that is lower in the stack than the formatting
+			// element, and is an element in the special category. There
+			// might not be one. [9]
+			$furthestBlock = null;
+			$furthestBlockIndex = -1;
+			$stackLength = $stack->length();
+			for ( $i = $fmtEltIndex+1; $i < $stackLength; $i++ ) {
+				$item = $stack->item( $i );
+				if ( isset( HTMLData::$special[$item->namespace][$item->name] ) ) {
+					$furthestBlock = $item;
+					$furthestBlockIndex = $i;
+					break;
+				}
+			}
+
+			// If there is no furthest block, then the UA must skip the
+			// subsequent steps and instead just pop all the nodes from the
+			// bottom of the stack of open elements, from the current node up
+			// to and including the formatting element, and remove the
+			// formatting element from the list of active formatting
+			// elements. [10]
+			if ( !$furthestBlock ) {
+				$this->popAllUpToElement( $fmtElt, $sourceStart, $sourceLength );
+				$afe->remove( $fmtElt );
+				return;
+			}
+
+			// Let the common ancestor be the element immediately above the
+			// formatting element in the stack of open elements. [11]
+			$ancestor = $stack->item( $fmtEltIndex - 1 );
+
+			// Let a bookmark note the position of the formatting element in
+			// the list of active formatting elements relative to the elements
+			// on either side of it in the list. [12]
+			$bookmark = new Marker( 'bookmark' );
+			$afe->insertAfter( $fmtElt, $bookmark );
+
+			// Let node and last node be the furthest block. [13]
+			$lastNode = $furthestBlock;
+			$nodeIndex = $furthestBlockIndex;
+			$isAFE = false;
+			$stackRemovals = [];
+
+			// Inner loop
+			for ( $inner = 1; true; $inner++ ) {
+				// Let node be the element immediately above node in the stack
+				// of open elements, or if node is no longer in the stack of
+				// open elements (e.g. because it got removed by this
+				// algorithm), the element that was immediately above node in
+				// the stack of open elements before node was removed. [13.3]
+				$node = $stack->item( --$nodeIndex );
+
+				// If node is the formatting element, then go to the next step
+				// in the overall algorithm. [13.4]
+				if ( $node === $fmtElt ) break;
+
+				// If the inner loop counter is greater than three and node
+				// is in the list of active formatting elements, then remove
+				// node from the list of active formatting elements. [13.5]
+				$isAFE = $afe->isInList( $node );
+				if ( $inner > 3 && $isAFE ) {
+					$afe->remove( $node );
+					$isAFE = false;
+				}
+
+				// If node is not in the list of active formatting elements,
+				// then remove node from the stack of open elements and then
+				// go back to the step labeled inner loop. [13.6]
+				if ( !$isAFE ) {
+					$stackRemovals[$nodeIndex] = true;
+					continue;
+				}
+
+				// Create an element for the token for which the element node
+				// was created with common ancestor as the intended parent,
+				// replace the entry for node in the list of active formatting
+				// elements with an entry for the new element, replace the
+				// entry for node in the stack of open elements with an entry
+				// for the new element, and let node be the new element. [13.7]
+				$newElt = new Element(
+					$node->namespace, $node->name, $node->attrs );
+				$afe->replace( $node, $newElt );
+				$stack->replace( $node, $newElt );
+				$handler->endTag( $node );
+				$node = $newElt;
+
+				// If last node is the furthest block, then move the
+				// aforementioned bookmark to be immediately after the new node
+				// in the list of active formatting elements. [13.8]
+				if ( $lastNode === $furthestBlock ) {
+					$afe->remove( $bookmark );
+					$afe->insertAfter( $newElt, $bookmark );
+				}
+
+				// Insert last node into node, first removing it from its
+				// previous parent node if any. [13.9]
+				$handler->reparentNode( $lastNode, $node, $sourceStart );
+
+				// Let last node be node. [13.10]
+				$lastNode = $node;
+			}
+
+			// Insert whatever last node ended up being in the previous step at
+			// the appropriate place for inserting a node, but using common
+			// ancestor as the override target. [14]
+			list( $parent, $refNode ) = $this->appropriatePlace( $ancestor );
+			$handler->insertElement( $parent, $refNode, $lastNode, false, false, $sourceStart, 0 );
+
+			// Create an element for the token for which the formatting element
+			// was created, with furthest block as the intended parent. [15]
+			$newElt2 = new Element(
+				$fmtElt->namespace, $fmtElt->name, $fmtElt->attribs );
+
+			// Take all of the child nodes of the furthest block and append
+			// them to the element created in the last step. [16]
+			$handler->reparentChildren( $furthestBlock, $newElt2 );
+
+			// Append that new element to the furthest block. [17]
+			$handler->insertElement( $furthestBlock, null, $newElt2, false, false, $sourceStart, 0 );
+
+			// Remove the formatting element from the list of active formatting
+			// elements, and insert the new element into the list of active
+			// formatting elements at the position of the aforementioned
+			// bookmark. [18]
+			$afe->remove( $fmtElt );
+			$afe->replace( $bookmark, $newElt2 );
+
+			// Remove the formatting element from the stack of open elements,
+			// and insert the new element into the stack of open elements
+			// immediately below the position of the furthest block in that
+			// stack. [19]
+
+			// Make a temporary stack with the elements we are going to push back in
+			$tempStack = [];
+
+			// Stash the elements up to the furthest block
+			for ( $index = $stack->length(); $index > $furthestBlockIndex; $index-- ) {
+				$tempStack[] = $stack->pop();
+			}
+			// Add the new element
+			$tempStack[] = $newElt2;
+			// Stash the elements up to the formatting element
+			for ( ; $index > $fmtEltIndex; $index-- ) {
+				$elt = $stack->pop();
+				// Drop elements previously marked for removal
+				if ( isset( $stackRemovals[$index] ) ) {
+					$handler->endTag( $elt, $sourcePos, 0 );
+				} else {
+					$tempStack[] = $elt;
+				}
+			}
+			// Remove the formatting element
+			$elt = $stack->pop();
+			$handler->endTag( $elt, $sourcePos, 0 );
+			// Reinsert
+			foreach ( array_reverse( $tempStack ) as $elt ) {
+				$stack->push( $elt );
+			}
+		}
+
+		return;
+	}
+
+	public function anyOtherEndTag( $name, $sourceStart, $sourceLength ) {
+		$stack = $this->stack;
+		$max = $stack->length() - 1;
+		for ( $index = $max; $index >= 0; $index-- ) {
+			$node = $stack->item( $index );
+			if ( $node->htmlName === $name ) {
+				$this->generateImpliedEndTags( $name, $sourceStart );
+				// If node is not the current node, then this is a parse error
+				if ( $index !== $max ) {
+					$this->error( 'end tag matched an element which was not the current node',
+						$sourceStart );
+				}
+				// Pop all the nodes from the current node up to node, including
+				// node, then stop these steps.
+				for ( $j = $max; $j > $index; $j-- ) {
+					$elt = $stack->pop();
+					$this->handler->endTag( $elt, $sourceStart, 0 );
+				}
+				$elt = $stack->pop();
+				$this->handler->endTag( $elt, $sourceStart, $sourceLength );
+				return;
+			}
+
+			// If node is in the special category, then this is a parse error;
+			// ignore the token, and abort these steps
+			if ( isset( HTMLData::$special[$node->htmlName] ) ) {
+				$this->error( "cannot implicitly close a special element <{$node->htmlName}>" );
+				return;
+			}
+		}
+	}
+
+	function generateImpliedEndTags( $name, $pos ) {
+		$stack = $this->stack;
+		$current = $stack->current;
+		while( $current && $current->htmlName !== $name &&
+		  isset( self::$impliedEndTags[$current->htmlName] )
+		) {
+			$popped = $stack->pop();
+			$this->handler->endTag( $popped, $pos, 0 );
+			$current = $stack->current;
+		}
+	}
+
+	function generateImpliedEndTagsWithError( $name, $pos ) {
+		$this->generateImpliedEndTags( $name, $pos );
+		if ( $this->stack->current->htmlName !== $name ) {
+			$this->error( "end tag found with no matching start tag" );
+		}
+	}
+
+	function popAllUpToElement( Element $elt, $sourceStart, $sourceLength ) {
+		while ( true ) {
+			$popped = $this->stack->pop();
+			if ( !$popped ) {
+				break;
+			} elseif ( $popped === $elt ) {
+				$this->handler->endTag( $popped, $sourceStart, $sourceLength );
+				break;
+			} else {
+				$this->handler->endTag( $popped, $sourceStart, 0 );
+			}
+		}
+	}
+
+	function popAllUpToName( $name, $sourceStart, $sourceLength ) {
+		while ( true ) {
+			$popped = $this->stack->pop();
+			if ( !$popped ) {
+				break;
+			} elseif ( $popped->htmlName === $name ) {
+				$this->handler->endTag( $popped, $sourceStart, $sourceLength );
+				break;
+			} else {
+				$this->handler->endTag( $popped, $sourceStart, 0 );
+			}
+		}
+	}
+
+	function stopParsing( $pos ) {
+		$stack = $this->stack;
+		while ( $stack->current ) {
+			$popped = $stack->pop();
+			$this->handler->endTag( $popped, $pos, 0 );
+		}
+		$this->handler->endDocument( $pos );
 	}
 }

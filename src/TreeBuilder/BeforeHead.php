@@ -12,10 +12,10 @@ class BeforeHead extends InsertionMode {
 			return;
 		}
 		$start += $wsLength;
-		$this->builder->startTag( 'head', new PlainAttributes, false, $sourceStart, 0 );
+		$this->builder->headElement = $this->builder->insertElement(
+			'head', new PlainAttributes, false, $sourceStart, 0 );
 		$this->dispatcher->switchMode( Dispatcher::IN_HEAD )
 			->characters( $text, $start, $length, $sourceStart, $sourceLength );
-		// TODO set head element pointer
 	}
 
 	function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
@@ -23,11 +23,11 @@ class BeforeHead extends InsertionMode {
 			$this->dispatcher->inBody->startTag( $name, $attrs, $selfClose,
 				$sourceStart, $sourceLength );
 		} elseif ( $name === 'head' ) {
-			$this->builder->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
-			// TODO set head element pointer
+			$this->builder->headElement = $this->builder->insertElement(
+				$name, $attrs, false, $sourceStart, $sourceLength );
 		} else {
-			$this->builder->startTag( 'head', new PlainAttributes, false, $sourceStart, 0 );
-			// TODO set head element pointer
+			$this->builder->headElement = $this->builder->insertElement(
+				'head', new PlainAttributes, false, $sourceStart, 0 );
 			$this->dispatcher->switchMode( Dispatcher::IN_HEAD )
 				->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
 		}
@@ -39,8 +39,8 @@ class BeforeHead extends InsertionMode {
 			$this->builder->error( 'end tag not allowed before head', $sourceStart );
 			return;
 		}
-		$this->builder->startTag( 'head', new PlainAttributes, false, $sourceStart, 0 );
-		// TODO set head element pointer
+		$this->builder->headElement = $this->builder->insertElement(
+			'head', new PlainAttributes, false, $sourceStart, 0 );
 		$this->dispatcher->switchMode( Dispatcher::IN_HEAD )
 			->endTag( $name, $sourceStart, $sourceLength );
 	}

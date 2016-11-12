@@ -16,8 +16,9 @@ interface TokenHandler {
 
 	/**
 	 * Called when the end of the input string is consumed
+	 * @param integer $pos The input position (past the end)
 	 */
-	function endDocument();
+	function endDocument( $pos );
 
 	/**
 	 * This is called for "parse errors" (as defined by the spec). The spec

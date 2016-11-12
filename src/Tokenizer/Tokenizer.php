@@ -69,6 +69,10 @@ class Tokenizer {
 	protected $listener;
 	protected $state;
 	protected $preprocessed;
+	protected $text;
+	protected $pos;
+	protected $length;
+	
 
 	/**
 	 * Constructor
@@ -246,7 +250,7 @@ class Tokenizer {
 				$this->state = self::STATE_DATA;
 				break;
 			case self::STATE_EOF:
-				$this->listener->endDocument();
+				$this->listener->endDocument( $this->length );
 				$eof = true;
 				break 2;
 			default:

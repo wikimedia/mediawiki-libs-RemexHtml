@@ -21,11 +21,11 @@ class TokenSerializer implements TokenHandler {
 		$this->output = '';
 	}
 
-	function endDocument() {
+	function endDocument( $pos ) {
 	}
 
 	function error( $text, $pos ) {
-		$this->errors[] = [$text, $pos];
+		$this->errors[] = [ $text, $pos ];
 	}
 
 	function characters( $text, $start, $length, $sourceStart, $sourceLength ) {

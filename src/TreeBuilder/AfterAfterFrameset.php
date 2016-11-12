@@ -3,14 +3,16 @@
 namespace Wikimedia\RemexHtml\TreeBuilder;
 use Wikimedia\RemexHtml\Attributes;
 
-class InBody extends InsertionMode {
-
-	function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
+class AfterAfterFrameset extends InsertionMode {
+	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 	}
 
-	function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
+	public function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
 	}
 
-	function endTag( $name, $sourceStart, $sourceLength ) {
+	public function endTag( $name, $sourceStart, $sourceLength ) {
+	}
+
+	public function endDocument( $pos ) {
 	}
 }

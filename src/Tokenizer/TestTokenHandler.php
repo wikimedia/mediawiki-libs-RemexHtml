@@ -16,7 +16,7 @@ class TestTokenHandler implements TokenHandler {
 	public function startDocument() {
 	}
 
-	public function endDocument() {
+	public function endDocument( $pos ) {
 	}
 
 	public function error( $text, $pos ) {

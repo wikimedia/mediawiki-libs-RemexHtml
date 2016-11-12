@@ -113,6 +113,20 @@ EOT;
 		"-//WebTechs//DTD Mozilla HTML//",
 	];
 
+	private static $special = [
+		self::NS_HTML => 'address, applet, area, article, aside, base, basefont,
+			bgsound, blockquote, body, br, button, caption, center, col, colgroup,
+			dd, details, dir, div, dl, dt, embed, fieldset, figcaption, figure,
+			footer, form, frame, frameset, h1, h2, h3, h4, h5, h6, head, header,
+			hgroup, hr, html, iframe, img, input, isindex, li, link, listing,
+			main, marquee, meta, nav, noembed, noframes, noscript, object, ol,
+			p, param, plaintext, pre, script, section, select, source, style,
+			summary, table, tbody, td, template, textarea, tfoot, th, thead,
+			title, tr, track, ul, wbr, xmp',
+		self::NS_MATHML => 'mi, mo, mn, ms, mtext, annotation-xml',
+		self::NS_SVG => 'foreignObject, desc, title',
+	];
+
 	private function makeRegexAlternation( $array ) {
 		$regex = '';
 		foreach ( $array as $value ) {
@@ -172,6 +186,12 @@ EOT;
 		$encLegacy = var_export( $legacyNumericEntities, true );
 		$encQuirkyRegex = var_export( $quirkyRegex, true );
 
+		$special = [];
+		foreach ( self::$special as $ns => $str ) {
+			$special[$ns] = array_map( 'trim', explode( ',', $str ) );
+		}
+		$encSpecial = var_export( $special, true );
+
 		$fileContents = '<' . <<<PHP
 ?php
 
@@ -189,6 +209,7 @@ class HTMLData {
 	const NS_XML = 'http://www.w3.org/XML/1998/namespace';
 	const NS_XMLNS = 'http://www.w3.org/2000/xmlns/';
 
+	static public \$special = $encSpecial;
 	static public \$namedEntityRegex = $encEntityRegex;
 	static public \$namedEntityTranslations = $encTranslations;
 	static public \$legacyNumericEntities = $encLegacy;
