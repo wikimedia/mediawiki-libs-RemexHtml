@@ -15,40 +15,42 @@ class Initial extends InsertionMode {
 		[ 'html', '-//W3C//DTD XHTML 1.1//EN', 'http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd' ]
 	];
 
-	function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
-		$wsLength = strspn( $text, "\t\n\f\r ", $start, $length );
-		$length -= $wsLength;
+	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
+		// Ignore whitespace
+		list( $part1, $part2 ) = $this->splitInitialMatch(
+			true, "\t\n\f\r ", $start, $length, $sourceStart, $sourceLength );
+		list( $start, $length, $sourceStart, $sourceLength ) = $part2;
 		if ( !$length ) {
 			return;
 		}
-		$start += $wsLength;
-		if ( !$this->ignoreErrors && !$this->builder->isIframeSrcdoc ) {
+		if ( !$this->builder->isIframeSrcdoc ) {
 			$this->error( 'missing doctype', $sourceStart );
+			$this->builder->quirks = TreeBuilder::QUIRKS;
 		}
 		$this->dispatcher->switchMode( Dispatcher::BEFORE_HTML )
 			->characters( $text, $start, $length, $sourceStart, $sourceLength );
 	}
 
-	function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
-		if ( !$this->ignoreErrors && !$this->builder->isIframeSrcdoc ) {
+	public function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
+		if ( !$this->builder->isIframeSrcdoc ) {
 			$this->error( 'missing doctype', $sourceStart );
+			$this->builder->quirks = TreeBuilder::QUIRKS;
 		}
 		$this->dispatcher->switchMode( Dispatcher::BEFORE_HTML )
 			->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
 	}
 
-	function endTag( $name, $sourceStart, $sourceLength ) {
-		if ( !$this->ignoreErrors && !$this->builder->isIframeSrcdoc ) {
+	public function endTag( $name, $sourceStart, $sourceLength ) {
+		if ( !$this->builder->isIframeSrcdoc ) {
 			$this->error( 'missing doctype', $sourceStart );
+			$this->builder->quirks = TreeBuilder::QUIRKS;
 		}
 		$this->dispatcher->switchMode( Dispatcher::BEFORE_HTML )
 			->endTag( $name, $sourceStart, $sourceLength );
 	}
 
-	function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
-		if ( !$this->ignoreErrors &&
-			(
-				$name !== 'html' || $public !== null
+	public function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
+		if ( ( $name !== 'html' || $public !== null
 				|| ( $system !== null && $system !== 'about:legacy-compat' )
 			)
 			&& !in_array( [ $name, $public, $system ], self::$allowedDoctypes, true )

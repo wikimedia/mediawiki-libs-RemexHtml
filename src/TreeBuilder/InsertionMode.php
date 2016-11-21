@@ -20,25 +20,85 @@ abstract class InsertionMode implements TokenHandler {
 	}
 
 	public function comment( $text, $sourceStart, $sourceLength ) {
-		$this->builder->comment( $text, $sourceStart, $sourceLength );
+		$this->builder->comment( null, $text, $sourceStart, $sourceLength );
 	}
 
 	public function error( $text, $pos ) {
 		$this->builder->error( $text, $pos );
 	}
 
-	protected function stripNulls( $text, $start, $length, $sourceStart, $sourceLength ) {
+	protected function splitInitialMatch( $isStartOfToken, $mask, $text, $start, $length,
+		$sourceStart, $sourceLength
+	) {
+		$matchLength = strspn( $text, $mask, $start, $length );
+		if ( $isStartOfToken && $matchLength ) {
+			// Do some extra work to figure out a plausible start position if
+			// the text node started with <![CDATA[
+			// FIXME: make this optional?
+			$sourceText = $this->builder->tokenizer->getPreprocessedText();
+			$isCdata = substr_compare( $sourceText, '<![CDATA[', $sourceStart, $sourceLength ) === 0;
+			$cdataLength = $isCdata ? strlen( '<![CDATA[' ) : 0;
+		}
+
+		return [
+			[
+				$start,
+				$matchLength,
+				$sourceStart,
+				$matchLength + $cdataLength,
+			], [
+				$start + $matchLength,
+				$length - $matchLength,
+				$sourceStart + $matchLength + $cdataLength,
+				$sourceLength - $matchLength - $cdataLength
+			]
+		];
+	}
+
+	protected function handleFramesetWhitespace( $inBody, $text, $start, $length,
+		$sourceStart, $sourceLength
+	) {
+		$isStartOfToken = true;
+		$builder = $this->builder;
+
+		do {
+			list( $part1, $part2 ) = $this->splitInitialMatch(
+				$isStartOfToken, "\t\n\f\r ", $start, $length, $sourceStart, $sourceLength );
+			$isStartOfToken = false;
+
+			list( $start, $length, $sourceStart, $sourceLength ) = $part1;
+			if ( $length ) {
+				if ( $inBody ) {
+					$this->dispatcher->inBody->characters( $text, $start, $length,
+						$sourceStart, $sourceLength );
+				} else {
+					$builder->insertCharacters( $text, $start, $length, $sourceStart, $sourceLength );
+				}
+			}
+
+			list( $start, $length, $sourceStart, $sourceLength ) = $part1;
+			if ( $length ) {
+				$builder->error( "unexpected non-whitespace character", $sourceStart );
+				$start++;
+				$length--;
+				$sourceStart++;
+				$sourceLength--;
+			}
+		} while ( $length > 0 );
+	}
+
+	protected function stripNulls( $callback, $text, $start, $length, $sourceStart, $sourceLength ) {
 		$originalLength = $length;
 		$errorOffset = $sourceStart - $start;
 		while ( $length > 0 ) {
 			$validLength = strcspn( $text, "\0", $start, $length );
-			$this->charactersNonNull( $text, $start, $validLength, $sourceStart, $sourceLength );
+			$callback( $text, $start, $validLength, $sourceStart, $sourceLength );
 			$start += $validLength;
 			$length -= $validLength;
 			if ( $length <= 0 ) {
 				break;
 			}
-			$this->error( 'unexpected U+0000', $start + $errorOffset );
+			$this->error( 'unexpected null character', $start + $errorOffset );
 			$start++;
 			$length--;
 		}

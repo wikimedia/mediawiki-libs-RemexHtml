@@ -640,14 +640,15 @@ class Tokenizer {
 			return $text;
 		}
 		if ( !$this->ignoreErrors ) {
+			$offset = 0;
 			while ( true ) {
-				$nullPos = strpos( $text, "\0" );
+				$nullPos = strpos( $text, "\0", $offset );
 				if ( $nullPos === false ) {
 					break;
 				}
 				$this->error( "replaced null character", $sourcePos + $nullPos );
 				if ( $nullPos < strlen( $text ) - 1 ) {
-					$nullPos = strpos( $text, "\0", $nullPos + 1 );
+					$offset = $nullPos + 1;
 				} else {
 					break;
 				}

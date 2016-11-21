@@ -64,6 +64,9 @@ class Dispatcher implements TokenHandler {
 	public $inTemplate;
 	public $inForeign;
 
+	protected $builder;
+	protected $handler;
+	protected $dispatchTable;
 	protected $mode;
 	protected $originalMode;
 
@@ -97,11 +100,23 @@ class Dispatcher implements TokenHandler {
 
 	public function restoreMode() {
 		if ( $this->originalMode === null ) {
-			throw new BalancerError( "original insertion mode is not set" );
+			throw new TreeBuilderError( "original insertion mode is not set" );
 		}
 		$mode = $this->originalMode;
 		$this->originalMode = null;
 		return $this->handler = $this->dispatchTable[$mode];
+	}
+
+	/**
+	 * Get the handler for the current insertion mode in HTML content.
+	 * This is used by the "in foreign" handler to execute the HTML insertion
+	 * mode. It does not necessarily correspond to the handler currently being
+	 * executed.
+	 *
+	 * @return InsertionMode
+	 */
+	public function getHandler() {
+		return $this->handler;
 	}
 
 	/**
@@ -202,20 +217,20 @@ class Dispatcher implements TokenHandler {
 		return self::IN_BODY;
 	}
 
-	function startDocument() {
+	public function startDocument() {
 		$this->builder->startDocument();
 	}
 
-	function endDocument( $pos ) {
+	public function endDocument( $pos ) {
 		$this->handler->endDocument( $pos );
 	}
 
-	function error( $text, $pos ) {
+	public function error( $text, $pos ) {
 		$this->builder->error( $text, $pos );
 	}
 
-	function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
-		$current = $this->builder->stack->current;
+	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
+		$current = $this->builder->adjustedCurrentNode();
 		if ( !$current
 			|| $current->namespace === HTMLData::NS_HTML
 			|| $current->isMathmlTextIntegration()
@@ -228,9 +243,9 @@ class Dispatcher implements TokenHandler {
 		}
 	}
 
-	function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
+	public function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
 		$this->ack = false;
-		$current = $this->builder->stack->current;
+		$current = $this->builder->adjustedCurrentNode();
 		if ( !$current
 			|| $current->namespace === HTMLData::NS_HTML
 			|| ( $current->isMathmlTextIntegration()
@@ -252,8 +267,8 @@ class Dispatcher implements TokenHandler {
 		}
 	}
 
-	function endTag( $name, $sourceStart, $sourceLength ) {
-		$current = $this->builder->stack->current;
+	public function endTag( $name, $sourceStart, $sourceLength ) {
+		$current = $this->builder->adjustedCurrentNode();
 		if ( !$current || $current->namespace === HTMLData::NS_HTML ) {
 			$this->handler->endTag( $name, $sourceStart, $sourceLength );
 		} else {
@@ -261,8 +276,8 @@ class Dispatcher implements TokenHandler {
 		}
 	}
 
-	function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
-		$current = $this->builder->stack->current;
+	public function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
+		$current = $this->builder->adjustedCurrentNode();
 		if ( !$current || $current->namespace === HTMLData::NS_HTML ) {
 			$this->handler->doctype( $name, $public, $system, $quirks,
 				$sourceStart, $sourceLength );
@@ -272,8 +287,8 @@ class Dispatcher implements TokenHandler {
 		}
 	}
 
-	function comment( $text, $sourceStart, $sourceLength ) {
-		$current = $this->builder->stack->current;
+	public function comment( $text, $sourceStart, $sourceLength ) {
+		$current = $this->builder->adjustedCurrentNode();
 		if ( !$current || $current->namespace === HTMLData::NS_HTML ) {
 			$this->handler->comment( $text, $sourceStart, $sourceLength );
 		} else {

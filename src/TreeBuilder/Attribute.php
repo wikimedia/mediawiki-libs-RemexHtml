@@ -9,7 +9,7 @@ class Attribute {
 	public $localName;
 	public $value;
 
-	function __construct( $qualifiedName, $namespaceURI, $prefix, $localName, $value ) {
+	public function __construct( $qualifiedName, $namespaceURI, $prefix, $localName, $value ) {
 		$this->qualifiedName = qualifiedName;
 		$this->namespaceURI = namespaceURI;
 		$this->prefix = prefix;

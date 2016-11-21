@@ -75,6 +75,7 @@ class ForeignAttributes implements Attributes {
 			'ychannelselector' => 'yChannelSelector',
 			'zoomandpan' => 'zoomAndPan',
 		],
+		'other' => [],
 	];
 
 	private static $namespaceMap = [

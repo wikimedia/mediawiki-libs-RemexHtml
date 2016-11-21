@@ -8,16 +8,23 @@ class TreeBuilder {
 	const LIMITED_QUIRKS = 1;
 	const QUIRKS = 2;
 
-	public $quirks = self::NO_QUIRKS;
+	// Configuration
 	public $isIframeSrcdoc;
 	public $scriptingFlag;
-	public $framesetOK = true;
-	public $afe;
-	public $fosterParenting = false;
+	public $ignoreErrors;
 
+	// Objects
+	public $stack;
+	public $afe;
+
+	// State
+	public $isFragment = false;
+	public $fragmentContext;
 	public $headElement;
-	public $htmlElement;
 	public $formElement;
+	public $framesetOK = true;
+	public $quirks = self::NO_QUIRKS;
+	public $fosterParenting = false;
 
 	private static $fosterTriggers = [
 		'table' => true,
@@ -38,6 +45,39 @@ class TreeBuilder {
 		'rt' => true,
 		'rtc' => true,
 	];
+
+	public function __construct( $options = [] ) {
+		$this->afe = new ActiveFormattingElements;
+		$options = $options + [
+			'isIframeSrcdoc' => false,
+			'scriptingFlag' => true,
+			'ignoreErrors' => false,
+			'scopeCache' => true,
+		];
+
+		$this->isIframeSrcdoc = $options['isIframeSrcdoc'];
+		$this->scriptingFlag = $options['scriptingFlag'];
+		$this->ignoreErrors = $options['ignoreErrors'];
+
+		if ( $options['scopeCache'] ) {
+			$this->stack = new CachingStack;
+		} else {
+			$this->stack = new SimpleStack;
+		}
+	}
+
+	/**
+	 * Get the adjusted current node
+	 * @return Element|null
+	 */
+	public function adjustedCurrentNode() {
+		$current = $this->stack->current;
+		if ( $this->isFragment && $current->stackIndex === 0 ) {
+			return $this->fragmentContext;
+		} else {
+			return $current;
+		}
+	}
 
 	private function appropriatePlace( $target = null ) {
 		$stack = $this->stack;
@@ -63,34 +103,18 @@ class TreeBuilder {
 		return [ $node, null ];
 	}
 
-	function insertCharacters( $text, $start, $length, $sourceStart, $sourceLength ) {
+	public function insertCharacters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		list( $parent, $before ) = $this->appropriatePlace();
 		$this->handler->characters( $parent, $before, $text, $length,
 			$sourceStart, $sourceLength );
 	}
 
-	function insertElement( $name, Attributes $attrs, $selfClose, $ack,
-		$sourceStart, $sourceLength
-	) {
+	public function insertElement( $name, Attributes $attrs, $void, $sourceStart, $sourceLength ) {
 		return $this->insertForeign( HTMLData::NS_HTML, $name, $attrs, $selfClose, $ack,
 			$sourceStart, $sourceLength );
 	}
 
-	function insertForm( Attributes $attrs, $sourceStart, $sourceLength ) {
-		// Insert an HTML element for a "form" start tag token, and, if there
-		// is no template element on the stack of open elements, set the form
-		// element pointer to point to the element created.
-		$element = $this->insertForeign( HTMLData::NS_HTML, 'form', $attrs,
-			$sourceStart, $sourceLength );
-		if ( !$this->stack->hasTemplate() ) {
-			$this->formElement = $element;
-		}
-		return $element;
-	}
-
-	function insertForeign( $ns, $name, Attributes $attrs, $void,
-		$sourceStart, $sourceLength
-	) {
+	public function insertForeign( $ns, $name, Attributes $attrs, $void, $sourceStart, $sourceLength ) {
 		list( $parent, $before ) = $this->appropriatePlace();
 		$element = new Element( $ns, $name, $attrs );
 		$this->handler->startTag( $parent, $before, $element, $void,
@@ -105,44 +129,39 @@ class TreeBuilder {
 	 * Pop the current node from the stack of open elements, and notify the
 	 * handler that we are done with that node.
 	 */
-	function pop( $sourceStart, $sourceLength ) {
+	public function pop( $sourceStart, $sourceLength ) {
 		$element = $this->stack->pop();
 		$this->handler->endTag( $element, $sourceStart, $sourceLength );
 		return $element;
 	}
 
-	function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
+	public function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
 		$this->handler->doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength );
 		$this->quirks = $quirks;
 	}
 
-	function comment( $place, $text, $sourceStart, $sourceLength ) {
+	public function comment( $place, $text, $sourceStart, $sourceLength ) {
 		list( $parent, $before ) = $place !== null ? $place : $this->appropriatePlace();
 		$this->handler->comment( $parent, $before, $text, $sourceStart, $sourceLength );
 	}
 
-	function error( $text, $pos ) {
-		$this->handler->error( $text, $pos );
+	public function error( $text, $pos ) {
+		if ( !$this->ignoreErrors ) {
+			$this->handler->error( $text, $pos );
+		}
 	}
 
-	function mergeAttributes( Element $elt, Attributes $attrs, $sourceStart, $sourceLength ) {
+	public function mergeAttributes( Element $elt, Attributes $attrs, $sourceStart, $sourceLength ) {
 		if ( $attrs->count() ) {
 			$this->handler->mergeAttributes( $elt, $attrs, $sourceStart, $sourceLength );
 		}
 	}
 
-	function closePInButtonScope( $pos ) {
+	public function closePInButtonScope( $pos ) {
 		if ( $this->stack->isInButtonScope( 'p' ) ) {
 			$this->generateImpliedEndTagsWithError( 'p', $pos );
 			$this->popAllUpToName( 'p', $pos, 0 );
 		}
-	}
-
-	function isFormIgnored() {
-		// If the form element pointer is not null, and there is no 
-		// template element on the stack of open elements, then this
-		// is a parse error; ignore the token.
-		...
 	}
 
 	/**
@@ -163,6 +182,7 @@ class TreeBuilder {
 
 	/**
 	 * Reconstruct the active formatting elements.
+	 * @author C. Scott Ananian, Tim Starling
 	 */
 	public function reconstructAFE( $sourceStart ) {
 		$entry = $this->afe->tail;
@@ -475,7 +495,7 @@ class TreeBuilder {
 		}
 	}
 
-	function generateImpliedEndTags( $name, $pos ) {
+	public function generateImpliedEndTags( $name, $pos ) {
 		$stack = $this->stack;
 		$current = $stack->current;
 		while( $current && $current->htmlName !== $name &&
@@ -487,14 +507,14 @@ class TreeBuilder {
 		}
 	}
 
-	function generateImpliedEndTagsWithError( $name, $pos ) {
+	public function generateImpliedEndTagsWithError( $name, $pos ) {
 		$this->generateImpliedEndTags( $name, $pos );
 		if ( $this->stack->current->htmlName !== $name ) {
 			$this->error( "end tag found with no matching start tag" );
 		}
 	}
 
-	function popAllUpToElement( Element $elt, $sourceStart, $sourceLength ) {
+	public function popAllUpToElement( Element $elt, $sourceStart, $sourceLength ) {
 		while ( true ) {
 			$popped = $this->stack->pop();
 			if ( !$popped ) {
@@ -508,7 +528,7 @@ class TreeBuilder {
 		}
 	}
 
-	function popAllUpToName( $name, $sourceStart, $sourceLength ) {
+	public function popAllUpToName( $name, $sourceStart, $sourceLength ) {
 		while ( true ) {
 			$popped = $this->stack->pop();
 			if ( !$popped ) {
@@ -522,7 +542,39 @@ class TreeBuilder {
 		}
 	}
 
-	function stopParsing( $pos ) {
+	public function popAllUpToNames( $names, $sourceStart, $sourceLength ) {
+		while ( true ) {
+			$popped = $this->stack->pop();
+			if ( !$popped ) {
+				break;
+			} elseif ( isset( $names[$popped->htmlName] ) ) {
+				$this->handler->endTag( $popped, $sourceStart, $sourceLength );
+				break;
+			} else {
+				$this->handler->endTag( $popped, $sourceStart, 0 );
+			}
+		}
+	}
+
+	/**
+	 * The "clear stack back to" algorithm used by several template insertion
+	 * modes. Similar to popAllUpToName(), except that the named element is
+	 * not popped, and a set of names is used instead of a single name.
+	 *
+	 * @param array $names
+	 * @param integer $pos
+	 */
+	public function clearStackBack( $names, $pos ) {
+		$stack = $this->stack;
+		while ( $stack->current && !isset( $names[$stack->current->htmlName] ) ) {
+			$this->pop( $pos, 0 );
+		}
+		if ( !$stack->current ) {
+			throw new TreeBuilderError( 'clearStackBack: stack is unexpectedly empty' );
+		}
+	}
+
+	public function stopParsing( $pos ) {
 		$stack = $this->stack;
 		while ( $stack->current ) {
 			$popped = $stack->pop();

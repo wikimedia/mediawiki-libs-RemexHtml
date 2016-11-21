@@ -17,22 +17,22 @@ class TokenSerializer implements TokenHandler {
 		return $this->errors;
 	}
 
-	function startDocument() {
+	public function startDocument() {
 		$this->output = '';
 	}
 
-	function endDocument( $pos ) {
+	public function endDocument( $pos ) {
 	}
 
-	function error( $text, $pos ) {
+	public function error( $text, $pos ) {
 		$this->errors[] = [ $text, $pos ];
 	}
 
-	function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
+	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		$this->output .= htmlspecialchars( substr( $text, $start, $length ) );
 	}
 
-	function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
+	public function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
 		$attrs = $attrs->getArrayCopy();
 		$this->output .= "<$name";
 		foreach ( $attrs as $name => $value ) {
@@ -44,11 +44,11 @@ class TokenSerializer implements TokenHandler {
 		$this->output .= '>';
 	}
 
-	function endTag( $name, $sourceStart, $sourceLength ) {
+	public function endTag( $name, $sourceStart, $sourceLength ) {
 		$this->output .= "</$name>";
 	}
 
-	function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
+	public function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
 		$this->output .= "<!DOCTYPE $name";
 		if ( strlen( $public ) ) {
 			$this->output .= " PUBLIC \"$public\"";
@@ -64,7 +64,7 @@ class TokenSerializer implements TokenHandler {
 		}
 	}
 
-	function comment( $text, $sourceStart, $sourceLength ) {
+	public function comment( $text, $sourceStart, $sourceLength ) {
 		$this->output .= '<!--' . $text . '-->';
 	}
 }

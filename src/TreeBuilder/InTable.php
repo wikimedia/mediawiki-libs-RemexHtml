@@ -5,6 +5,12 @@ use Wikimedia\RemexHtml\Attributes;
 use Wikimedia\RemexHtml\PlainAttributes;
 
 class InTable extends InsertionMode {
+	private static $tableContext = [
+		'table' => true,
+		'template' => true,
+		'html' => true
+	];
+
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		$allowed = [
 			'table' => true,
@@ -32,7 +38,7 @@ class InTable extends InsertionMode {
 
 		switch ( $name ) {
 		case 'caption':
-			$this->clearStackBack( $sourceStart );
+			$builder->clearStackBack( self::$tableContext, $sourceStart );
 			$builder->afe->insertMarker();
 			$dispatcher->switchMode( Dispatcher::IN_CAPTION );
 			$builder->insertElement( $name, $attrs, $selfClose, false,
@@ -40,14 +46,14 @@ class InTable extends InsertionMode {
 			break;
 
 		case 'colgroup':
-			$this->clearStackBack( $sourceStart );
+			$builder->clearStackBack( self::$tableContext, $sourceStart );
 			$dispatcher->switchMode( Dispatcher::IN_COLUMN_GROUP );
 			$builder->insertElement( $name, $attrs, $selfClose, false,
 				$sourceStart, $sourceLength );
 			break;
 
 		case 'col':
-			$this->clearStackBack( $sourceStart );
+			$builder->clearStackBack( self::$tableContext, $sourceStart );
 			$builder->insertElement( 'colgroup', new PlainAttributes, false, false,
 				$sourceStart, 0 );
 			$dispatcher->switchMode( Dispatcher::IN_COLUMN_GROUP )
@@ -57,7 +63,7 @@ class InTable extends InsertionMode {
 		case 'tbody':
 		case 'tfoot':
 		case 'thead':
-			$this->clearStackBack( $sourceStart );
+			$builder->clearStackBack( self::$tableContext, $sourceStart );
 			$builder->insertElement( $name, $attrs, $selfClose, false,
 				$sourceStart, $sourceLength );
 			$dispatcher->switchMode( Dispatcher::IN_TABLE_BODY );
@@ -66,7 +72,7 @@ class InTable extends InsertionMode {
 		case 'td':
 		case 'th':
 		case 'tr':
-			$this->clearStackBack( $sourceStart );
+			$builder->clearStackBack( self::$tableContext, $sourceStart );
 			$builder->insertElement( 'tbody', new PlainAttributes, false, false,
 				$sourceStart, $sourceLength );
 			$dispatcher->switchMode( Dispatcher::IN_TABLE_BODY )
@@ -79,7 +85,7 @@ class InTable extends InsertionMode {
 				// Ignore
 				break;
 			}
-			$builder->popAllUpTo( 'table', $sourceStart, 0 );
+			$builder->popAllUpToName( 'table', $sourceStart, 0 );
 			$dispatcher->reset()
 				->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
 			break;
@@ -134,7 +140,7 @@ class InTable extends InsertionMode {
 				// Ignore
 				break;
 			}
-			$builder->popAllUpTo( 'table', $sourceStart, $sourceLength );
+			$builder->popAllUpToName( 'table', $sourceStart, $sourceLength );
 			$dispatcher->reset();
 			break;
 

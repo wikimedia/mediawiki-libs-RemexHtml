@@ -5,21 +5,21 @@ use Wikimedia\RemexHtml\Tokenizer\Attributes;
 use Wikimedia\RemexHtml\Tokenizer\PlainAttributes;
 
 class BeforeHtml extends InsertionMode {
-	function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
+	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		// Ignore whitespace
-		$wsLength = strspn( $text, "\t\n\f\r ", $start, $length );
-		$length -= $wsLength;
+		list( $part1, $part2 ) = $this->splitInitialMatch(
+			true, "\t\n\f\r ", $start, $length, $sourceStart, $sourceLength );
+		list( $start, $length, $sourceStart, $sourceLength ) = $part2;
 		if ( !$length ) {
 			return;
 		}
-		$start += $wsLength;
 		// Generate missing <html> tag
 		$this->builder->insertElement( 'html', new PlainAttributes, false, $sourceStart, 0 );
 		$this->dispatcher->switchMode( Dispatcher::BEFORE_HEAD )
 			->characters( $text, $start, $length, $sourceStart, $sourceLength );
 	}
 
-	function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
+	public function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
 		if ( $name !== 'html' ) {
 			$this->builder->insertElement( $name, $attrs, false,
 				$sourceStart, $sourceLength );
@@ -32,7 +32,7 @@ class BeforeHtml extends InsertionMode {
 		}
 	}
 
-	function endTag( $name, $sourceStart, $sourceLength ) {
+	public function endTag( $name, $sourceStart, $sourceLength ) {
 		$allowed = [ "head" => true, "body" => true, "html" => true, "br" => true ];
 		if ( !isset( $allowed[$name] ) ) {
 			$this->builder->error( 'end tag not allowed before html', $sourceStart );

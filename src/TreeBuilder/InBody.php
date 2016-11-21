@@ -8,25 +8,21 @@ class InBody extends InsertionMode {
 	static private $headingNames = ['h1' => true, 'h2' => true, 'h3' => true, 'h4' => true,
 		'h5' => true, 'h6' => true];
 
-	function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
-		if ( !$this->builder->ignoreNulls ) {
-			$this->stripNulls( $text, $start, $length, $sourceStart, $sourceLength );
-		} else {
-			if ( strcspn( $text, "\t\n\f\r ", $start, $length ) !== $length ) {
+	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
+		$handleNonNull = function ( $text, $start, $length, $sourceStart, $sourceLength ) {
+			if ( strspn( $text, "\t\n\f\r ", $start, $length ) !== $length ) {
 				$this->builder->framesetOK = false;
 			}
 			$this->builder->insertCharacters( $text, $start, $length, $sourceStart, $sourceLength );
+		};
+		if ( !$this->builder->ignoreNulls ) {
+			$this->stripNulls( $handleNonNull, $text, $start, $length, $sourceStart, $sourceLength );
+		} else {
+			$handleNonNull( $text, $start, $length, $sourceStart, $sourceLength );
 		}
 	}
 
-	function charactersNonNull( $text, $start, $length, $sourceStart, $sourceLength ) {
-		if ( strcspn( $text, "\t\n\f\r ", $start, $length ) !== $length ) {
-			$this->builder->framesetOK = false;
-		}
-		$this->builder->insertCharacters( $text, $start, $length, $sourceStart, $sourceLength );
-	}
-
-	function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
+	public function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
 		$mode = null;
 		$tokenizerState = null;
 		$isNewAFE = false;
@@ -127,7 +123,7 @@ class InBody extends InsertionMode {
 			$builder->closePInButtonScope( $sourceStart );
 			if ( isset( self::$headingNames[$stack->current->htmlName] ) ) {
 				$builder->error( 'invalid nested heading', $sourceStart );
-				$builder->endTag( $bottomName, $sourceStart, 0 );
+				$builder->pop( $sourceStart, 0 );
 			}
 			break;
 		case 'pre':
@@ -136,7 +132,7 @@ class InBody extends InsertionMode {
 			$builder->framesetOK = false;
 			break;
 		case 'form':
-			if ( $builder->isFormIgnored() ) {
+			if ( $builder->formElement !== null && !$stack->hasTemplate() ) {
 				$builder->error( 'invalid nested form', $sourceStart );
 				return;
 			}
@@ -154,7 +150,7 @@ class InBody extends InsertionMode {
 				$htmlName = $node->htmlName;
 				if ( $node->htmlName === 'li' ) {
 					$builder->generateImpliedEndTagsWithError( 'li', $sourceStart );
-					$builder->popAllUpTo( 'li', $sourceStart );
+					$builder->popAllUpToName( 'li', $sourceStart );
 					break;
 				}
 				if ( isset( HTMLData::$special[$htmlName] )
@@ -164,7 +160,6 @@ class InBody extends InsertionMode {
 				}
 			}
 			$builder->closePInButtonScope( $sourceStart );
-			unset( $stack );
 			break;
 		case 'dd':
 		case 'dt':
@@ -174,7 +169,7 @@ class InBody extends InsertionMode {
 				$htmlName = $node->htmlName;
 				if ( $htmlName === 'dd' || $htmlName === 'dt' ) {
 					$builder->generateImpliedEndTagsWithError( $htmlName, $sourceStart );
-					$builder->popAllUpTo( $htmlName, $sourceStart );
+					$builder->popAllUpToName( $htmlName, $sourceStart );
 					break;
 				}
 				if ( isset( HTMLData::$special[$node] )
@@ -184,7 +179,6 @@ class InBody extends InsertionMode {
 				}
 			}
 			$builder->closePInButtonScope( $sourceStart );
-			unset( $stack );
 			break;
 		case 'plaintext':
 			$builder->closePInButtonScope( $sourceStart );
@@ -194,16 +188,20 @@ class InBody extends InsertionMode {
 			if ( $stack->isInScope( 'button' ) ) {
 				$builder->error( 'invalid nested button tag', $sourceStart );
 				$builder->generateImpliedEndTags( false, $sourceStart );
-				$builder->popAllUpTo( 'button', $sourceStart );
+				$builder->popAllUpToName( 'button', $sourceStart );
 			}
 			$builder->reconstructAFE( $sourceStart );
 			$builder->framesetOK = false;
 			break;
 		case 'a':
-			if ( $builder->findAFEAfterMarker( 'a' ) !== false ) {
+			$elt = $builder->afe->findElementByName( 'a' );
+			if ( $elt !== null ) {
 				$builder->error( 'invalid nested a tag', $sourceStart );
 				$this->adoptionAgency( 'a', $sourceStart, 0 );
-				$builder->removeAFEAfterMarker( 'a' );
+				$this->afe->remove( $elt );
+				if ( $elt->stackIndex >= 0 ) {
+					$stack->remove( $elt );
+				}
 			}
 			$builder->reconstructAFE( $sourceStart );
 			$isNewAFE = true;
@@ -225,7 +223,7 @@ class InBody extends InsertionMode {
 			break;
 		case 'nobr':
 			$builder->reconstructAFE( $sourceStart );
-			if ( $builder->isInElementScope( 'nobr' ) ) {
+			if ( $stack->isInScope( 'nobr' ) ) {
 				$builder->error( 'invalid nested nobr tag', $sourceStart );
 				$this->adoptionAgency( 'nobr', $sourceStart, 0 );
 				$builder->reconstructAFE( $sourceStart );
@@ -236,7 +234,7 @@ class InBody extends InsertionMode {
 		case 'marquee':
 		case 'object':
 			$builder->reconstructAFE( $sourceStart );
-			$builder->addAFEMarker();
+			$builder->afe->insertMarker();
 			$builder->framesetOK = false;
 			break;
 		case 'table':
@@ -395,7 +393,7 @@ class InBody extends InsertionMode {
 		}
 	}
 
-	function endTag( $name, $sourceStart, $sourceLength ) {
+	public function endTag( $name, $sourceStart, $sourceLength ) {
 		$builder = $this->builder;
 		$stack = $builder->stack;
 
@@ -484,7 +482,7 @@ class InBody extends InsertionMode {
 				if ( $stack->current === $node ) {
 					$builder->pop( $sourceStart, $sourceLength );
 				} else {
-					$builder->error( "end tag \"</form>\" found when there are end tags open " .
+					$builder->error( "end tag \"</form>\" found when there are tags open " .
 						"which cannot be closed automatically", $sourceStart );
 					$stack->remove( $node );
 					$builder->handler->endTag( $node, $sourceStart, $sourceLength );
@@ -549,18 +547,7 @@ class InBody extends InsertionMode {
 				$builder->error( "end tag \"</$name>\" assumed to close non-matching heading tag",
 					$sourceStart );
 			}
-			while ( true ) {
-				$popped = $stack->pop();
-				if ( $popped === false ) {
-					$builder->error( "unexpectedly reached end of stack", $sourceStart );
-					break;
-				} elseif ( isset( self::$headingNames[$popped->htmlName] ) ) {
-					$builder->handler->endTag( $popped, $sourceStart, $sourceLength );
-					break;
-				} else {
-					$builder->handler->endTag( $popped, $sourceStart, 0 );
-				}
-			}
+			$builder->popAllUpToNames( self::$headingNames, $sourceStart, $sourceLength );
 			break;
 
 		case 'a':

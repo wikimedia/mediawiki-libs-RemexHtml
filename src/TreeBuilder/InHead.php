@@ -5,17 +5,22 @@ use Wikimedia\RemexHtml\Tokenizer\Attributes;
 use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
 
 class InHead extends InsertionMode {
-	function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
-		$wsLength = strspn( $text, "\t\n\f\r ", $start, $length );
-		if ( $wsLength ) {
-			$this->builder->characters( $text, $start, $wsLength, $sourceStart,
+	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
+		// Split and insert whitespace
+		list( $part1, $part2 ) = $this->splitInitialMatch(
+			true, "\t\n\f\r ", $start, $length, $sourceStart, $sourceLength );
+
+		list( $start, $length, $sourceStart, $sourceLength ) = $part1;
+		if ( $length ) {
+			$this->builder->insertCharacters( $text, $start, $length, $sourceStart,
 				$sourceLength );
 		}
-		$length -= $wsLength;
+
+		// Handle non-whitespace specially
+		list( $start, $length, $sourceStart, $sourceLength ) = $part2;
 		if ( !$length ) {
 			return;
 		}
-		$start += $wsLength;
 
 		$elt = $this->builder->pop( $sourceStart, 0 );
 		if ( $elt->htmlName !== 'head' ) {
@@ -25,7 +30,7 @@ class InHead extends InsertionMode {
 			->characters( $text, $start, $length, $sourceStart, $sourceLength );
 	}
 
-	function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
+	public function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
 		$void = false;
 		$tokenizerState = null;
 		$textMode = null;
@@ -101,7 +106,7 @@ class InHead extends InsertionMode {
 		}
 	}
 
-	function endTag( $name, $sourceStart, $sourceLength ) {
+	public function endTag( $name, $sourceStart, $sourceLength ) {
 		$builder = $this->builder;
 		$stack = $builder->stack;
 
@@ -126,7 +131,7 @@ class InHead extends InsertionMode {
 			if ( $stack->current->htmlName !== 'template' ) {
 				$this->error( 'encountered </template> when other tags are still open' );
 			}
-			$builder->popAllUpTo( 'template', $sourceStart, $sourceLength );
+			$builder->popAllUpToName( 'template', $sourceStart, $sourceLength );
 			$builder->afe->clearToMarker();
 			$this->dispatcher->templateModeStack->pop();
 			$this->dispatcher->reset();
