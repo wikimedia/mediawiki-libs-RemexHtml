@@ -1,9 +1,10 @@
 <?php
 
 namespace Wikimedia\RemexHtml\TreeBuilder;
+use Wikimedia\RemexHtml\HTMLData;
 use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
-class TestTreeBuilderHandler implements TreeBuilderHandler {
+class TestTreeBuilderHandler implements TreeHandler {
 	protected $root;
 	protected $doctype = '';
 	protected $errors = '';
@@ -35,7 +36,7 @@ class TestTreeBuilderHandler implements TreeBuilderHandler {
 			$s .= "$indent $name=\"$value\"\n";
 		}
 		foreach ( $parent->childNodes as $child ) {
-			if ( is_string( $child ) {
+			if ( is_string( $child ) ) {
 				$s .= "$indent $child\n";
 			} else {
 				$s .= $this->serializeSubtree( "$indent ", $child );
@@ -59,7 +60,7 @@ class TestTreeBuilderHandler implements TreeBuilderHandler {
 	}
 
 	public function insertElement( $parent, $ns, $name, Attributes $attrs,
-		$selfClose, $sourceStart, $sourceLength
+		$void, $sourceStart, $sourceLength
 	) {
 		$node = $this->createNode( $ns, $name, $attrs );
 		if ( !$parent ) {

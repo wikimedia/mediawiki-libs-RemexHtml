@@ -1,10 +1,10 @@
 <?php
 
 namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 use Wikimedia\RemexHtml\Tokenizer\TokenHandler;
 
-abstract class InsertionMode implements TokenHandler {
+abstract class InsertionMode {
 	const SELF_CLOSE_ERROR = 'unacknowledged self closing tag';
 
 	protected $builder;
@@ -38,6 +38,8 @@ abstract class InsertionMode implements TokenHandler {
 			$sourceText = $this->builder->tokenizer->getPreprocessedText();
 			$isCdata = substr_compare( $sourceText, '<![CDATA[', $sourceStart, $sourceLength ) === 0;
 			$cdataLength = $isCdata ? strlen( '<![CDATA[' ) : 0;
+		} else {
+			$cdataLength = 0;
 		}
 
 		return [
@@ -63,7 +65,7 @@ abstract class InsertionMode implements TokenHandler {
 
 		do {
 			list( $part1, $part2 ) = $this->splitInitialMatch(
-				$isStartOfToken, "\t\n\f\r ", $start, $length, $sourceStart, $sourceLength );
+				$isStartOfToken, "\t\n\f\r ", $text, $start, $length, $sourceStart, $sourceLength );
 			$isStartOfToken = false;
 
 			list( $start, $length, $sourceStart, $sourceLength ) = $part1;

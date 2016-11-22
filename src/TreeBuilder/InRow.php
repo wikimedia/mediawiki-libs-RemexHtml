@@ -1,7 +1,7 @@
 <?php
 
 namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 class InRow extends InsertionMode {
 	private static $tableRowContext = [

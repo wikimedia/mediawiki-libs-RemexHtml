@@ -72,7 +72,7 @@ class Tokenizer {
 	protected $text;
 	protected $pos;
 	protected $length;
-	
+	protected $enableCdataCallback;
 
 	/**
 	 * Constructor
@@ -105,6 +105,10 @@ class Tokenizer {
 		$this->ignoreCharRefs = !empty( $options['ignoreCharRefs'] );
 		$this->ignoreNulls = !empty( $options['ignoreNulls'] );
 		$this->skipPreprocess = !empty( $options['skipPreprocess'] );
+	}
+
+	public function setEnableCdataCallback( $cb ) {
+		$this->enableCdataCallback = $cb;
 	}
 
 	/**
@@ -381,6 +385,19 @@ class Tokenizer {
 			$this->pos = $startPos;
 			$nextPos = $m[0][1] + strlen( $m[0][0] );
 
+			if ( isset( $m[self::MD_CDATA] ) && $m[self::MD_CDATA][1] >= 0 ) {
+				if ( $this->enableCdataCallback ) {
+					$isCdata = call_user_func( $this->enableCdataCallback );
+				} else {
+					$isCdata = false;
+				}
+				if ( !$isCdata ) {
+					$m[self::MD_BOGUS_COMMENT] = $m[self::MD_CDATA];
+				}
+			} else {
+				$isCdata = false;
+			}
+
 			if ( strlen( $tagName ) ) {
 				// Tag
 				$isEndTag = (bool)strlen( $m[self::MD_END_TAG_OPEN][0] );
@@ -405,7 +422,7 @@ class Tokenizer {
 			} elseif ( isset( $m[self::MD_DOCTYPE] ) && $m[self::MD_DOCTYPE][1] >= 0 ) {
 				// DOCTYPE
 				$this->interpretDoctypeMatches( $m );
-			} elseif ( isset( $m[self::MD_CDATA] ) && $m[self::MD_CDATA][1] >= 0 ) {
+			} elseif ( $isCdata ) {
 				// CDATA
 				$this->pos += strlen( $m[self::MD_CDATA][0] );
 				$endPos = strpos( $this->text, ']]>', $this->pos );

@@ -8,10 +8,11 @@ if ( PHP_SAPI !== 'cli' ) {
 require __DIR__ . '/../vendor/autoload.php';
 
 use Wikimedia\RemexHtml\Tokenizer;
+use Wikimedia\RemexHtml\TreeBuilder;
 
 class NullHandler implements Tokenizer\TokenHandler {
 	function startDocument() {}
-	function endDocument() {}
+	function endDocument( $pos ) {}
 	function error( $text, $pos ) {}
 	function characters( $text, $start, $length, $sourceStart, $sourceLength ) {}
 	function startTag( $name, Tokenizer\Attributes $attrs, $selfClose,
@@ -40,6 +41,29 @@ function reseralizeScript( $text ) {
 	foreach ( $handler->getErrors() as $error ) {
 		print "Error at {$error[1]}: {$error[0]}\n";
 	}
+}
+
+function traceDispatch( $text ) {
+	TreeBuilder\Parser::parseDocument( $text, [ 'traceDispatch' => true ] );
+}
+
+function tidyBody( $text ) {
+	$docText = "<!DOCTYPE html>\n<html><head></head><body>$text</body></html>";
+	$doc = TreeBuilder\Parser::parseDocument( $docText, [] );
+	$body = $doc->getElementsByTagName( 'body' )->item( 0 );
+	foreach ( $body->childNodes as $node ) {
+		print $doc->saveHTML( $node );
+	}
+	print "\n";
+}
+
+function tidy( $text ) {
+	$doc = TreeBuilder\Parser::parseDocument( $text, [
+		'treeBuilder' => [
+			'scopeCache' => true,
+		]
+	] );
+	print $doc->saveHTML() . "\n";
 }
 
 function benchmarkNull( $text ) {
@@ -88,7 +112,7 @@ $options = [
 	'ignoreErrors' => true,
 	'skipPreprocess' => true,
 ];
-$text = file_get_contents( '/tmp/test.html' );
+$text = file_get_contents( '/tmp/Australia.html' );
 
 while ( ( $__line = readline( "> " ) ) !== false ) {
 	readline_add_history( $__line );

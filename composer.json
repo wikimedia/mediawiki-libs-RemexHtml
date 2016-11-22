@@ -12,7 +12,8 @@
 		"wikimedia/utfnormal": "1.*"
 	},
 	"require-dev": {
-		"phpunit/phpunit": "4.*"
+		"phpunit/phpunit": "4.*",
+		"mediawiki/mediawiki-codesniffer": "0.7.2"
 	},
 	"autoload": {
 		"psr-4": {
@@ -20,6 +21,7 @@
 		}
 	},
 	"scripts": {
-		"test": "hhvm vendor/bin/phpunit --no-globals-backup tests/phpunit"
+		"test": "hhvm vendor/bin/phpunit --no-globals-backup tests/phpunit",
+		"phpcs": "hhvm vendor/bin/phpcs src"
 	}
 }

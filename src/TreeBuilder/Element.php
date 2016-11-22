@@ -1,8 +1,10 @@
 <?php
 
 namespace Wikimedia\RemexHtml\TreeBuilder;
+use Wikimedia\RemexHtml\HTMLData;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
-class Element {
+class Element implements FormattingElement {
 	public $namespace;
 	public $name;
 	public $htmlName;
@@ -41,6 +43,7 @@ class Element {
 		} else {
 			$this->htmlName = "$namespace $name";
 		}
+		$this->attrs = $attrs;
 	}
 
 	public function isMathmlTextIntegration() {
@@ -50,7 +53,7 @@ class Element {
 
 	public function isHtmlIntegration() {
 		if ( $this->namespace === HTMLData::NS_MATHML ) {
-			$encoding = strtolower( $attrs['encoding'] );
+			$encoding = strtolower( $this->attrs['encoding'] );
 			return $encoding === 'text/html' || $encoding === 'application/xhtml+xml';
 		} elseif ( $this->namespace === HTMLData::NS_SVG ) {
 			return isset( self::$svgHtmlIntegration[$this->name] );
@@ -79,7 +82,7 @@ class Element {
 			$this->attrObjects = $this->attrs->createAttributeObjects();
 		} else {
 			$result = [];
-			foreach ( $this->attrs as $name => $value ) {
+			foreach ( $this->attrs->getArrayCopy() as $name => $value ) {
 				$result[] = new Attribute( $name, null, null, $name, $value );
 			}
 			$this->attrObjects = $result;

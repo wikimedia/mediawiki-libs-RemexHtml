@@ -158,7 +158,7 @@ class ActiveFormattingElements {
 	 */
 	public function remove( Element $elt ) {
 		if ( $this->head !== $elt && !$elt->prevAFE ) {
-			throw new ParameterAssertionException( '$elt',
+			throw new TreeBuilderError(
 				"Attempted to remove an element which is not in the AFE list" );
 		}
 		// Update head and tail pointers
@@ -229,7 +229,7 @@ class ActiveFormattingElements {
 	 */
 	public function replace( FormattingElement $a, FormattingElement $b ) {
 		if ( $this->head !== $a && !$a->prevAFE ) {
-			throw new ParameterAssertionException( '$a',
+			throw new TreeBuilderError(
 				"Attempted to replace an element which is not in the AFE list" );
 		}
 		// Update head and tail pointers
@@ -267,7 +267,7 @@ class ActiveFormattingElements {
 	 */
 	public function insertAfter( FormattingElement $a, FormattingElement $b ) {
 		if ( $this->head !== $a && !$a->prevAFE ) {
-			throw new ParameterAssertionException( '$a',
+			throw new TreeBuilderError(
 				"Attempted to insert after an element which is not in the AFE list" );
 		}
 		if ( $this->tail === $a ) {
@@ -295,9 +295,9 @@ class ActiveFormattingElements {
 				$s .= "MARKER\n";
 				continue;
 			}
-			$s .= $node->localName . '#' . substr( md5( spl_object_hash( $node ) ), 0, 8 );
+			$s .= $node->name . '#' . substr( md5( spl_object_hash( $node ) ), 0, 8 );
 			if ( $node->nextNoah ) {
-				$s .= " (noah sibling: {$node->nextNoah->localName}#" .
+				$s .= " (noah sibling: {$node->nextNoah->name}#" .
 					substr( md5( spl_object_hash( $node->nextNoah ) ), 0, 8 ) .
 					')';
 			}
@@ -310,5 +310,13 @@ class ActiveFormattingElements {
 			$s .= "(tail pointer is wrong!)\n";
 		}
 		return $s;
+	}
+
+	/**
+	 * Get the most recently inserted element in the list
+	 * @return Element|null
+	 */
+	public function getTail() {
+		return $this->tail;
 	}
 }

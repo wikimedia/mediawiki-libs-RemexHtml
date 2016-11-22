@@ -1,7 +1,8 @@
 <?php
 
 namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Attributes;
+use Wikimedia\RemexHtml\HTMLData;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 use Wikimedia\RemexHtml\PlainAttributes;
 
 class InBody extends InsertionMode {
@@ -24,15 +25,17 @@ class InBody extends InsertionMode {
 
 	public function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
 		$mode = null;
+		$textMode = null;
 		$tokenizerState = null;
 		$isNewAFE = false;
 		$builder = $this->builder;
 		$stack = $builder->stack;
+		$dispatcher = $this->dispatcher;
 		$void = false;
 
 		switch ( $name ) {
 		case 'html':
-			$builder->error( 'unexpected html tag', $sourceStart );
+			$builder->error( 'merging unexpected html tag', $sourceStart );
 			if ( $stack->hasTemplate() ) {
 				return;
 			}
@@ -51,7 +54,7 @@ class InBody extends InsertionMode {
 		case 'style':
 		case 'template':
 		case 'title':
-			$this->dispatcher->inHead->startTag(
+			$dispatcher->inHead->startTag(
 				$name, $attrs, $selfClose, $sourceStart, $sourceLength );
 			return;
 		case 'body':
@@ -122,7 +125,7 @@ class InBody extends InsertionMode {
 		case 'h6':
 			$builder->closePInButtonScope( $sourceStart );
 			if ( isset( self::$headingNames[$stack->current->htmlName] ) ) {
-				$builder->error( 'invalid nested heading', $sourceStart );
+				$builder->error( 'invalid nested heading, closing previous', $sourceStart );
 				$builder->pop( $sourceStart, 0 );
 			}
 			break;
@@ -133,7 +136,7 @@ class InBody extends InsertionMode {
 			break;
 		case 'form':
 			if ( $builder->formElement !== null && !$stack->hasTemplate() ) {
-				$builder->error( 'invalid nested form', $sourceStart );
+				$builder->error( 'ignoring nested form tag', $sourceStart );
 				return;
 			}
 			$builder->closePInButtonScope( $sourceStart );
@@ -149,8 +152,7 @@ class InBody extends InsertionMode {
 				$node = $stack->item( $idx );
 				$htmlName = $node->htmlName;
 				if ( $node->htmlName === 'li' ) {
-					$builder->generateImpliedEndTagsWithError( 'li', $sourceStart );
-					$builder->popAllUpToName( 'li', $sourceStart );
+					$builder->generateImpliedEndTagsAndPop( 'li', $sourceStart, 0 );
 					break;
 				}
 				if ( isset( HTMLData::$special[$htmlName] )
@@ -168,12 +170,11 @@ class InBody extends InsertionMode {
 				$node = $stack->item( $idx );
 				$htmlName = $node->htmlName;
 				if ( $htmlName === 'dd' || $htmlName === 'dt' ) {
-					$builder->generateImpliedEndTagsWithError( $htmlName, $sourceStart );
-					$builder->popAllUpToName( $htmlName, $sourceStart );
+					$builder->generateImpliedEndTagsAndPop( $htmlName, $sourceStart, 0 );
 					break;
 				}
-				if ( isset( HTMLData::$special[$node] )
-					&& $node !== 'address' && $node !== 'div' && $node !== 'p'
+				if ( isset( HTMLData::$special[$htmlName] )
+					&& $htmlName !== 'address' && $htmlName !== 'div' && $htmlName !== 'p'
 				) {
 					break;
 				}
@@ -186,7 +187,7 @@ class InBody extends InsertionMode {
 			break;
 		case 'button':
 			if ( $stack->isInScope( 'button' ) ) {
-				$builder->error( 'invalid nested button tag', $sourceStart );
+				$builder->error( 'invalid nested button tag, closing previous', $sourceStart );
 				$builder->generateImpliedEndTags( false, $sourceStart );
 				$builder->popAllUpToName( 'button', $sourceStart );
 			}
@@ -196,10 +197,12 @@ class InBody extends InsertionMode {
 		case 'a':
 			$elt = $builder->afe->findElementByName( 'a' );
 			if ( $elt !== null ) {
-				$builder->error( 'invalid nested a tag', $sourceStart );
-				$this->adoptionAgency( 'a', $sourceStart, 0 );
-				$this->afe->remove( $elt );
-				if ( $elt->stackIndex >= 0 ) {
+				$builder->error( 'invalid nested a tag, closing previous', $sourceStart );
+				$builder->adoptionAgency( 'a', $sourceStart, 0 );
+				if ( $builder->afe->isInList( $elt ) ) {
+					$builder->afe->remove( $elt );
+				}
+				if ( $elt->stackIndex !== null ) {
 					$stack->remove( $elt );
 				}
 			}
@@ -224,7 +227,7 @@ class InBody extends InsertionMode {
 		case 'nobr':
 			$builder->reconstructAFE( $sourceStart );
 			if ( $stack->isInScope( 'nobr' ) ) {
-				$builder->error( 'invalid nested nobr tag', $sourceStart );
+				$builder->error( 'invalid nested nobr tag, closing previous', $sourceStart );
 				$this->adoptionAgency( 'nobr', $sourceStart, 0 );
 				$builder->reconstructAFE( $sourceStart );
 			}
@@ -366,11 +369,11 @@ class InBody extends InsertionMode {
 		case 'th':
 		case 'thead':
 		case 'tr':
-			$builder->error( "$name is invalid in body mode" );
+			$builder->error( "$name is invalid in body mode", $sourceStart );
 			return;
 		case 'isindex':
 			// TODO
-			$builder->error( "$name is unimplemented" );
+			$builder->error( "$name is unimplemented", $sourceStart );
 			// fall through
 		default:
 			$builder->reconstructAFE( $sourceStart );
@@ -387,24 +390,25 @@ class InBody extends InsertionMode {
 			$builder->tokenizer->switchState( $tokenizerState, $name );
 		}
 		if ( $mode !== null ) {
-			$this->dispatcher->switchMode( $mode );
+			$dispatcher->switchMode( $mode );
 		} elseif ( $textMode !== null ) {
-			$this->dispatcher->switchMode( $textMode, true );
+			$dispatcher->switchAndSave( $textMode );
 		}
 	}
 
 	public function endTag( $name, $sourceStart, $sourceLength ) {
 		$builder = $this->builder;
 		$stack = $builder->stack;
+		$dispatcher = $this->dispatcher;
 
 		switch ( $name ) {
 		case 'template':
-			$this->dispatcher->inHead->endTag( $name, $sourceStart, $sourceLength );
+			$dispatcher->inHead->endTag( $name, $sourceStart, $sourceLength );
 			break;
 
 		case 'body':
 			if ( !$stack->isInScope( 'body' ) ) {
-				$builder->error( 'end tag has no matching start tag in scope' );
+				$builder->error( 'end tag has no matching start tag in scope', $sourceStart );
 				break;
 			}
 			$allowed = [
@@ -427,8 +431,8 @@ class InBody extends InsertionMode {
 				'body' => true,
 				'html' => true,
 			];
-			$builder->checkUnclosed( $allowed );
-			$this->dispatcher->switchMode( Dispatcher::AFTER_BODY );
+			$builder->checkUnclosed( $allowed, $sourceStart );
+			$dispatcher->switchMode( Dispatcher::AFTER_BODY );
 			break;
 
 		case 'address':
@@ -457,11 +461,10 @@ class InBody extends InsertionMode {
 		case 'summary':
 		case 'ul':
 			if ( !$stack->isInScope( $name ) ) {
-				$builder->error( "unmatched end tag \"</$name>\"" );
+				$builder->error( "unmatched </$name>, ignoring", $sourceStart );
 				break;
 			}
-			$builder->generateImpliedEndTagsWithError( $name, $sourceStart );
-			$builder->popAllUpToName( $name, $sourceStart, $sourceLength );
+			$builder->generateImpliedEndTagsAndPop( $name, $sourceStart, $sourceLength );
 			break;
 
 		case 'form':
@@ -469,12 +472,12 @@ class InBody extends InsertionMode {
 				$node = $builder->formElement;
 				$builder->formElement = null;
 				if ( $node === null ) {
-					$builder->error( "end tag \"</form>\" found when there is no open form element",
+					$builder->error( "found </form> when there is no open form element",
 						$sourceStart );
 					break;
 				}
 				if ( !$stack->isElementInScope( $node ) ) {
-					$builder->error( "end tag \"</form>\" found when there is no form in scope",
+					$builder->error( "found </form> when there is no form in scope",
 						$sourceStart );
 					break;
 				}
@@ -482,53 +485,49 @@ class InBody extends InsertionMode {
 				if ( $stack->current === $node ) {
 					$builder->pop( $sourceStart, $sourceLength );
 				} else {
-					$builder->error( "end tag \"</form>\" found when there are tags open " .
+					$builder->error( "found </form> when there are tags open " .
 						"which cannot be closed automatically", $sourceStart );
 					$stack->remove( $node );
 					$builder->handler->endTag( $node, $sourceStart, $sourceLength );
 				}
 			} else {
 				if ( !$stack->isInScope( 'form' ) ) {
-					$builder->error( "end tag \"</form>\" found when there is no form in scope",
+					$builder->error( "found </form> when there is no form in scope",
 						$sourceStart );
 					break;
 				}
-				$builder->generateImpliedEndTagsWithError( 'form', $sourceStart );
-				$builder->popAllUpToName( 'form' );
+				$builder->generateImpliedEndTagsAndPop( 'form', $sourceStart, $sourceLength );
 			}
 			break;
 
 		case 'p':
 			if ( !$stack->isInButtonScope( 'p' ) ) {
-				$builder->error( "end tag \"</p>\" found when there is no p in scope",
+				$builder->error( "found </p> when there is no p in scope",
 					$sourceStart );
-				$builder->insertElement( 'p', new PlainAttributes, false, false, $sourceStart, 0 );
+				$builder->insertElement( 'p', new PlainAttributes, false, $sourceStart, 0 );
 				$builder->pop( $sourceStart, $sourceLength );
 				break;
 			}
-			$builder->generateImpliedEndTagsWithError( 'p', $sourceStart );
-			$builder->popAllUpToName( 'p', $sourceStart, $sourceLength );
+			$builder->generateImpliedEndTagsAndPop( 'p', $sourceStart, $sourceLength );
 			break;
 
 		case 'li':
 			if ( !$stack->isInListScope( 'li' ) ) {
-				$builder->error( "end tag \"</li>\" found when there is no li in scope",
+				$builder->error( "found </li> when there is no li in scope, ignoring",
 					$sourceStart );
 				break;
 			}
-			$builder->generateImpliedEndTagsWithError( 'li', $sourceStart );
-			$builder->popAllUpToName( 'li', $sourceStart, $sourceLength );
+			$builder->generateImpliedEndTagsAndPop( 'li', $sourceStart, $sourceLength );
 			break;
 
 		case 'dd':
 		case 'dt':
 			if ( !$stack->isInScope( $name ) ) {
-				$builder->error( "end tag \"</$name>\" found when there is no $name in scope",
+				$builder->error( "found </$name> when there is no $name in scope, ignoring",
 					$sourceStart );
 				break;
 			}
-			$builder->generateImpliedEndTagsWithError( $name, $sourceStart );
-			$builder->popAllUpToName( $name, $sourceStart, $sourceLength );
+			$builder->generateImpliedEndTagsAndPop( $name, $sourceStart, $sourceLength );
 			break;
 
 		case 'h1':
@@ -538,13 +537,13 @@ class InBody extends InsertionMode {
 		case 'h5':
 		case 'h6':
 			if ( !$stack->isOneOfSetInScope( self::$headingNames ) ) {
-				$builder->error( "end tag \"</$name>\" found when there is no heading tag in scope",
+				$builder->error( "found </$name> when there is no heading tag in scope, ignoring",
 					$sourceStart );
 				break;
 			}
-			$this->generateImpliedEndTags( false, $sourceStart );
+			$builder->generateImpliedEndTags( false, $sourceStart );
 			if ( $stack->current->htmlName !== $name ) {
-				$builder->error( "end tag \"</$name>\" assumed to close non-matching heading tag",
+				$builder->error( "end tag </$name> assumed to close non-matching heading tag",
 					$sourceStart );
 			}
 			$builder->popAllUpToNames( self::$headingNames, $sourceStart, $sourceLength );
@@ -571,13 +570,14 @@ class InBody extends InsertionMode {
 		case 'marquee':
 		case 'object':
 			if ( !$stack->isInScope( $name ) ) {
-				$builder->error( "end tag \"</$name>\" found when there is no $name in scope",
+				$builder->error( "found </$name> when there is no $name in scope",
 					$sourceStart );
 				break;
 			}
 			$builder->generateImpliedEndTags( false, $sourceStart );
 			if ( $stack->current->htmlName !== $name ) {
-				$builder->error( "unmatched end tag \"</$name>\"", $sourceStart );
+				$builder->error( "found </$name> when there are tags open which " .
+					"cannot be implicitly closed, closing them anyway", $sourceStart );
 			}
 			$builder->popAllUpToName( $name );
 			$builder->afe->clearToMarker();
@@ -595,7 +595,22 @@ class InBody extends InsertionMode {
 	}
 
 	public function endDocument( $pos ) {
-		$this->builder->checkUnclosed( $allowed );
+		$allowed = [
+			'dd' => true,
+			'dt' => true,
+			'li' => true,
+			'p' => true,
+			'tbody' => true,
+			'td' => true,
+			'tfoot' => true,
+			'th' => true,
+			'thead' => true,
+			'tr' => true,
+			'body' => true,
+			'html' => true,
+		];
+
+		$this->builder->checkUnclosed( $allowed, $pos );
 		if ( !$this->dispatcher->templateModeStack->isEmpty() ) {
 			$this->dispatcher->inTemplate->endDocument( $pos );
 		} else {

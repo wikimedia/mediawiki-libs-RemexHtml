@@ -1,7 +1,9 @@
 <?php
 
 namespace Wikimedia\RemexHtml\TreeBuilder;
+use Wikimedia\RemexHtml\HTMLData;
 use Wikimedia\RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
 
 class TreeBuilder {
 	const NO_QUIRKS = 0;
@@ -12,10 +14,13 @@ class TreeBuilder {
 	public $isIframeSrcdoc;
 	public $scriptingFlag;
 	public $ignoreErrors;
+	public $ignoreNulls;
 
 	// Objects
+	public $handler;
 	public $stack;
 	public $afe;
+	public $tokenizer;
 
 	// State
 	public $isFragment = false;
@@ -46,24 +51,41 @@ class TreeBuilder {
 		'rtc' => true,
 	];
 
-	public function __construct( $options = [] ) {
+	public function __construct( TreeHandler $handler, $options = [] ) {
+		$this->handler = $handler;
 		$this->afe = new ActiveFormattingElements;
 		$options = $options + [
 			'isIframeSrcdoc' => false,
 			'scriptingFlag' => true,
 			'ignoreErrors' => false,
+			'ignoreNulls' => false,
 			'scopeCache' => true,
 		];
 
 		$this->isIframeSrcdoc = $options['isIframeSrcdoc'];
 		$this->scriptingFlag = $options['scriptingFlag'];
 		$this->ignoreErrors = $options['ignoreErrors'];
+		$this->ignoreNulls = $options['ignoreNulls'];
 
 		if ( $options['scopeCache'] ) {
 			$this->stack = new CachingStack;
 		} else {
 			$this->stack = new SimpleStack;
 		}
+	}
+
+	public function startDocument() {
+		$this->handler->startDocument();
+	}
+
+	public function registerTokenizer( Tokenizer $tokenizer ) {
+		$tokenizer->setEnableCdataCallback(
+			function () {
+				$acn = $this->adjustedCurrentNode();
+				return $acn && $acn->namespace !== HTMLData::NS_HTML;
+			}
+		);
+		$this->tokenizer = $tokenizer;
 	}
 
 	/**
@@ -91,7 +113,7 @@ class TreeBuilder {
 			return [ $target, null ];
 		}
 		$node = null;
-		for ( $idx = $this->stack->length(); $idx >= 0; $idx-- ) {
+		for ( $idx = $this->stack->length() - 1; $idx >= 0; $idx-- ) {
 			$node = $this->stack->item( $idx );
 			if ( $node->htmlName === 'table' && $idx >= 1 ) {
 				return [ $this->stack->item( $idx - 1 ), $node ];
@@ -105,19 +127,21 @@ class TreeBuilder {
 
 	public function insertCharacters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		list( $parent, $before ) = $this->appropriatePlace();
-		$this->handler->characters( $parent, $before, $text, $length,
+		$this->handler->characters( $parent, $before, $text, $start, $length,
 			$sourceStart, $sourceLength );
 	}
 
 	public function insertElement( $name, Attributes $attrs, $void, $sourceStart, $sourceLength ) {
-		return $this->insertForeign( HTMLData::NS_HTML, $name, $attrs, $selfClose, $ack,
+		return $this->insertForeign( HTMLData::NS_HTML, $name, $attrs, $void,
 			$sourceStart, $sourceLength );
 	}
 
-	public function insertForeign( $ns, $name, Attributes $attrs, $void, $sourceStart, $sourceLength ) {
+	public function insertForeign( $ns, $name, Attributes $attrs, $void,
+		$sourceStart, $sourceLength
+	) {
 		list( $parent, $before ) = $this->appropriatePlace();
 		$element = new Element( $ns, $name, $attrs );
-		$this->handler->startTag( $parent, $before, $element, $void,
+		$this->handler->insertElement( $parent, $before, $element, $void,
 			$sourceStart, $sourceLength );
 		if ( !$void ) {
 			$this->stack->push( $element );
@@ -159,8 +183,7 @@ class TreeBuilder {
 
 	public function closePInButtonScope( $pos ) {
 		if ( $this->stack->isInButtonScope( 'p' ) ) {
-			$this->generateImpliedEndTagsWithError( 'p', $pos );
-			$this->popAllUpToName( 'p', $pos, 0 );
+			$this->generateImpliedEndTagsAndPop( 'p', $pos, 0 );
 		}
 	}
 
@@ -170,12 +193,12 @@ class TreeBuilder {
 	 *
 	 * @param array $allowed An array with the HTML element names in the key
 	 */
-	public function checkUnclosed( $allowed ) {
+	public function checkUnclosed( $allowed, $pos ) {
 		$stack = $this->stack;
 		for ( $i = $stack->length() - 1; $i >= 0; $i-- ) {
-			$unclosedName = $stack->item( $i )->htmlName
+			$unclosedName = $stack->item( $i )->htmlName;
 			if ( !isset( $allowed[$unclosedName] ) ) {
-				$builder->error( "unclosed <$unclosedName>" );
+				$this->error( "closing unclosed <$unclosedName>", $pos );
 			}
 		}
 	}
@@ -185,7 +208,7 @@ class TreeBuilder {
 	 * @author C. Scott Ananian, Tim Starling
 	 */
 	public function reconstructAFE( $sourceStart ) {
-		$entry = $this->afe->tail;
+		$entry = $this->afe->getTail();
 		// If there are no entries in the list of active formatting elements,
 		// then there is nothing to reconstruct
 		if ( !$entry ) {
@@ -196,7 +219,7 @@ class TreeBuilder {
 			return;
 		}
 		// Or if it is an open element, do nothing.
-		if ( $entry->stackIndex >= 0 ) {
+		if ( $entry->stackIndex !== null ) {
 			return;
 		}
 
@@ -205,7 +228,7 @@ class TreeBuilder {
 		$foundIt = false;
 		while ( $entry->prevAFE ) {
 			$entry = $entry->prevAFE;
-			if ( $entry instanceof Marker || $entry->stackIndex >= 0 ) {
+			if ( $entry instanceof Marker || $entry->stackIndex !== null ) {
 				$foundIt = true;
 				break;
 			}
@@ -275,7 +298,7 @@ class TreeBuilder {
 			// the stack of open elements, then this is a parse error;
 			// remove the element from the list, and abort these steps. [6]
 			$fmtEltIndex = $fmtElt->stackIndex;
-			if ( $fmtEltIndex < 0 ) {
+			if ( $fmtEltIndex === null ) {
 				$this->error( 'closing tag matched an active formatting element ' .
 					'which is not in the stack', $sourceStart );
 				$afe->remove( $fmtElt );
@@ -406,7 +429,7 @@ class TreeBuilder {
 			// the appropriate place for inserting a node, but using common
 			// ancestor as the override target. [14]
 			list( $parent, $refNode ) = $this->appropriatePlace( $ancestor );
-			$handler->insertElement( $parent, $refNode, $lastNode, false, false, $sourceStart, 0 );
+			$handler->insertElement( $parent, $refNode, $lastNode, false, $sourceStart, 0 );
 
 			// Create an element for the token for which the formatting element
 			// was created, with furthest block as the intended parent. [15]
@@ -418,7 +441,7 @@ class TreeBuilder {
 			$handler->reparentChildren( $furthestBlock, $newElt2 );
 
 			// Append that new element to the furthest block. [17]
-			$handler->insertElement( $furthestBlock, null, $newElt2, false, false, $sourceStart, 0 );
+			$handler->insertElement( $furthestBlock, null, $newElt2, false, $sourceStart, 0 );
 
 			// Remove the formatting element from the list of active formatting
 			// elements, and insert the new element into the list of active
@@ -495,6 +518,12 @@ class TreeBuilder {
 		}
 	}
 
+	/**
+	 * Generate implied end tags, optionally with an element to exclude.
+	 * 
+	 * @param string|null $name The name to exclude
+	 * @param integer $pos The source position
+	 */
 	public function generateImpliedEndTags( $name, $pos ) {
 		$stack = $this->stack;
 		$current = $stack->current;
@@ -507,11 +536,23 @@ class TreeBuilder {
 		}
 	}
 
-	public function generateImpliedEndTagsWithError( $name, $pos ) {
-		$this->generateImpliedEndTags( $name, $pos );
+	/**
+	 * Generate implied end tags, with an element to exclude, and if the
+	 * current element is not now the named excluded element, raise an error.
+	 * Then, pop all elements until an element with the name is popped from
+	 * the list.
+	 *
+	 * @param string $name The name to exclude
+	 * @param integer $sourceStart
+	 * @param integer $sourceLength
+	 */
+	public function generateImpliedEndTagsAndPop( $name, $sourceStart, $sourceLength ) {
+		$this->generateImpliedEndTags( $name, $sourceStart );
 		if ( $this->stack->current->htmlName !== $name ) {
-			$this->error( "end tag found with no matching start tag" );
+			$this->error( "found </$name> but elements are open that cannot " .
+				"have implied end tags, closing them", $sourceStart );
 		}
+		$this->popAllUpToName( $name, $sourceStart, $sourceLength );
 	}
 
 	public function popAllUpToElement( Element $elt, $sourceStart, $sourceLength ) {

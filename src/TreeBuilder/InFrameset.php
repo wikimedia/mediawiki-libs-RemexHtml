@@ -1,7 +1,7 @@
 <?php
 
 namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 class InFrameset extends InsertionMode {
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {

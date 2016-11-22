@@ -1,7 +1,8 @@
 <?php
 
 namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Attributes;
+use Wikimedia\RemexHtml\HTMLData;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 class InForeignContent extends InsertionMode {
 	private static $notAllowed = [

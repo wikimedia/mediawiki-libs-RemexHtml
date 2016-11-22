@@ -1,18 +1,18 @@
 <?php
 
 namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 class AfterBody extends InsertionMode {
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		list( $part1, $part2 ) = $this->splitInitialMatch(
 			true, "\t\n\f\r ", $text, $start, $length );
-		list( $text, $start, $length, $sourceStart, $sourceLength ) = $part1;
+		list( $start, $length, $sourceStart, $sourceLength ) = $part1;
 		if ( $length ) {
 			$this->dispatcher->inBody->characters(
 				$text, $start, $length, $sourceStart, $sourceLength );
 		}
-		list( $text, $start, $length, $sourceStart, $sourceLength ) = $part2;
+		list( $start, $length, $sourceStart, $sourceLength ) = $part2;
 		$this->builder->error( "unexpected non-whitespace character after body",
 			$sourceStart );
 		$this->dispatcher->switchMode( Dispatcher::IN_BODY )

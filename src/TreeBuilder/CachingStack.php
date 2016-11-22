@@ -1,6 +1,7 @@
 <?php
 
 namespace Wikimedia\RemexHtml\TreeBuilder;
+use Wikimedia\RemexHtml\HTMLData;
 use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 class CachingStack extends Stack {
@@ -32,26 +33,6 @@ class CachingStack extends Stack {
 		'desc',
 		'title'
 	];
-
-	private $elements = [];
-	private $scopes = [
-		self::SCOPE_DEFAULT => [],
-		self::SCOPE_LIST => [],
-		self::SCOPE_BUTTON => [],
-		self::SCOPE_TABLE => [],
-		self::SCOPE_SELECT => []
-	];
-	private $scopeStacks = [
-		self::SCOPE_DEFAULT => [],
-		self::SCOPE_LIST => [],
-		self::SCOPE_BUTTON => [],
-		self::SCOPE_TABLE => [],
-		self::SCOPE_SELECT => []
-	];
-
-	private $templateCount;
-
-	public $current;
 
 	/**
 	 * If you compile every predicate of the form "an X element in Y scope" in
@@ -132,6 +113,52 @@ class CachingStack extends Stack {
 	];
 
 	/**
+	 * The stack of open elements
+	 */
+	private $elements = [];
+
+	/**
+	 * A cache of the elements which are currently in a given scope.
+	 * The first key is the scope ID, the second key is the element name, and the
+	 * value is the first Element in a singly-linked list of Element objects,
+	 * linked by $element->nextScope.
+	 *
+	 * @todo Benchmark time and memory compared to an array stack instead of an
+	 * SLL. The SLL here is maybe not quite so well justified as some other
+	 * SLLs in RemexHtml.
+	 *
+	 * @var Element[int][string]
+	 */
+	private $scopes = [
+		self::SCOPE_DEFAULT => [],
+		self::SCOPE_LIST => [],
+		self::SCOPE_BUTTON => [],
+		self::SCOPE_TABLE => [],
+		self::SCOPE_SELECT => []
+	];
+
+	/**
+	 * This is the part of the scope cache which stores scope lists for objects
+	 * which are not currently in scope. The first key is the scope ID, the
+	 * second key is the stack index, the third key is the element name.
+	 * 
+	 * @var Element[int][int][string]
+	 */
+	private $scopeStacks = [
+		self::SCOPE_DEFAULT => [],
+		self::SCOPE_LIST => [],
+		self::SCOPE_BUTTON => [],
+		self::SCOPE_TABLE => [],
+		self::SCOPE_SELECT => []
+	];
+
+	/**
+	 * The number of <template> elements in the stack of open elements. This
+	 * speeds up the hot function hasTemplate().
+	 */
+	private $templateCount;
+
+	/**
 	 * Get the list of scopes that are broken for a given namespace and
 	 * element name.
 	 */
@@ -189,11 +216,14 @@ class CachingStack extends Stack {
 		$name = $elt->name;
 		foreach ( $this->getBrokenScopes( $ns, $name ) as $scope ) {
 			$this->scopeStacks[$scope][] = $this->scopes[$scope];
-			$this->scopes[$scope] = null;
+			$this->scopes[$scope] = [];
 		}
 		if ( $ns === HTMLData::NS_HTML && isset( self::$predicateMap[$name] ) ) {
-			$elt->nextScope = $this->scopes[self::$predicateMap[$name]][$name];
-			$this->scopes[self::$predicateMap[$name]][$name] = $elt;
+			$scopeId = self::$predicateMap[$name];
+			$scope =& $this->scopes[$scopeId];
+			$elt->nextScope = isset( $scope[$name] ) ? $scope[$name] : null;
+			$scope[$name] = $elt;
+			unset( $scope );
 		}
 		// Update the template count
 		if ( $ns === HTMLData::NS_HTML && $name === 'template' ) {
@@ -202,20 +232,22 @@ class CachingStack extends Stack {
 	}
 
 	public function pop() {
+		$n = count( $this->elements );
+		if ( !$n ) {
+			throw new TreeBuilderError( __METHOD__.': stack empty' );
+		}
 		// Update the stack store, index cache and current node
 		$elt = array_pop( $this->elements );
+		$n--;
 		$elt->stackIndex = null;
 		$ns = $elt->namespace;
 		$name = $elt->name;
-		$n = count( $this->elements );
 		$this->current = $n ? $this->elements[$n - 1] : null;
 		// Update the scope cache
 		if ( $ns === HTMLData::NS_HTML && isset( self::$predicateMap[$name] ) ) {
 			$scope = self::$predicateMap[$name];
-			if ( isset( $this->scopes[$scope][$name] ) ) {
-				$this->scopes[$scope][$name]->nextScope = null;
-			}
 			$this->scopes[$scope][$name] = $elt->nextScope;
+			$elt->nextScope = null;
 		}
 		foreach ( $this->getBrokenScopes( $ns, $name ) as $scope ) {
 			$this->scopes[$scope] = array_pop( $this->scopeStacks[$scope] );
@@ -233,16 +265,16 @@ class CachingStack extends Stack {
 		// simplifies the scope cache update, and eliminates the template count
 		// update
 		if ( $oldElt->name !== $elt->name || $oldElt->namespace !== $elt->namespace ) {
-			throw new \Exception( __METHOD__.' can only be called for elements of the same name' );
+			throw new TreeBuilderError( __METHOD__.' can only be called for elements of the same name' );
 		}
 		$ns = $elt->namespace;
 		$name = $elt->name;
 		// Find the old element in its scope list and replace it
 		if ( $ns === HTMLData::NS_HTML && isset( self::$predicateMap[$name] ) ) {
-			$scope = self::$predicateMap[$name];
-			$scopeElt = $this->scopes[$scope][$name];
+			$scopeId = self::$predicateMap[$name];
+			$scopeElt = $this->scopes[$scopeId][$name];
 			if ( $scopeElt === $oldElt ) {
-				$this->scopes[$scope][$name] = $elt;
+				$this->scopes[$scopeId][$name] = $elt;
 				$elt->nextScope = $scopeElt->nextScope;
 				$scopeElt->nextScope = null;
 			} else {
@@ -258,7 +290,7 @@ class CachingStack extends Stack {
 					$nextElt = $scopeElt->nextScope;
 				}
 				if ( !$nextElt ) {
-					throw new \Exception( __METHOD__.': cannot find old element in scope cache' );
+					throw new TreeBuilderError( __METHOD__.': cannot find old element in scope cache' );
 				}
 			}
 		}
@@ -274,6 +306,9 @@ class CachingStack extends Stack {
 	public function remove( Element $elt ) {
 		$tempStack = [];
 		$eltIndex = $elt->stackIndex;
+		if ( $eltIndex === null ) {
+			throw new TreeBuilderError( __METHOD__ . ': element not in stack' );
+		}
 		$n = count( $this->elements );
 		for ( $i = $n - 1; $i > $eltIndex; $i++ ) {
 			$tempStack[] = $this->pop();
@@ -286,7 +321,7 @@ class CachingStack extends Stack {
 
 	public function isInScope( $name ) {
 		if ( self::$predicateMap[$name] !== self::SCOPE_DEFAULT ) {
-			throw new \Exception( "Unexpected predicate: \"$name is in scope\"" );
+			throw new TreeBuilderError( "Unexpected predicate: \"$name is in scope\"" );
 		}
 		return !empty( $this->scopes[self::SCOPE_DEFAULT][$name] );
 	}
@@ -294,7 +329,7 @@ class CachingStack extends Stack {
 	public function isElementInScope( Element $elt ) {
 		$name = $elt->name;
 		if ( self::$predicateMap[$name] !== self::SCOPE_DEFAULT ) {
-			throw new \Exception( "Unexpected predicate: \"$name is in scope\"" );
+			throw new TreeBuilderError( "Unexpected predicate: \"$name is in scope\"" );
 		}
 		if ( !empty( $this->scopes[self::SCOPE_DEFAULT][$name] ) ) {
 			$scopeMember = $this->scopes[self::SCOPE_DEFAULT][$name];
@@ -310,7 +345,7 @@ class CachingStack extends Stack {
 
 	public function isOneOfSetInScope( $names ) {
 		foreach ( $names as $name => $unused ) {
-			if ( $this->isInScope( $name ) {
+			if ( $this->isInScope( $name ) ) {
 				return true;
 			}
 		}
@@ -319,28 +354,28 @@ class CachingStack extends Stack {
 
 	public function isInListScope( $name ) {
 		if ( self::$predicateMap[$name] !== self::SCOPE_LIST ) {
-			throw new \Exception( "Unexpected predicate: \"$name is in list scope\"" );
+			throw new TreeBuilderError( "Unexpected predicate: \"$name is in list scope\"" );
 		}
 		return !empty( $this->scopes[self::SCOPE_LIST][$name] );
 	}
 
 	public function isInButtonScope( $name ) {
 		if ( self::$predicateMap[$name] !== self::SCOPE_BUTTON ) {
-			throw new \Exception( "Unexpected predicate: \"$name is in button scope\"" );
+			throw new TreeBuilderError( "Unexpected predicate: \"$name is in button scope\"" );
 		}
 		return !empty( $this->scopes[self::SCOPE_BUTTON][$name] );
 	}
 
 	public function isInTableScope( $name ) {
 		if ( self::$predicateMap[$name] !== self::SCOPE_TABLE ) {
-			throw new \Exception( "Unexpected predicate: \"$name is in table scope\"" );
+			throw new TreeBuilderError( "Unexpected predicate: \"$name is in table scope\"" );
 		}
 		return !empty( $this->scopes[self::SCOPE_TABLE][$name] );
 	}
 
 	public function isInSelectScope( $name ) {
 		if ( self::$predicateMap[$name] !== self::SCOPE_SELECT ) {
-			throw new \Exception( "Unexpected predicate: \"$name is in select scope\"" );
+			throw new TreeBuilderError( "Unexpected predicate: \"$name is in select scope\"" );
 		}
 		return !empty( $this->scopes[self::SCOPE_SELECT][$name] );
 	}

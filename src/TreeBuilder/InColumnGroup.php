@@ -1,12 +1,12 @@
 <?php
 
 namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 class InColumnGroup extends InsertionMode {
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		list( $part1, $part2 ) = $this->splitInitialMatch(
-			true, "\t\n\f\r ", $start, $length, $sourceStart, $sourceLength );
+			true, "\t\n\f\r ", $text, $start, $length, $sourceStart, $sourceLength );
 
 		list( $start, $length, $sourceStart, $sourceLength ) = $part1;
 		if ( $length !== 0 ) {
@@ -47,7 +47,7 @@ class InColumnGroup extends InsertionMode {
 			break;
 		case 'col':
 			$dispatcher->ack = true;
-			$builder->insertElement( $name, $attrs, $selfClose, true, $sourceStart, $sourceLength );
+			$builder->insertElement( $name, $attrs, true, $sourceStart, $sourceLength );
 			break;
 		case 'template':
 			$dispatcher->inHead->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );

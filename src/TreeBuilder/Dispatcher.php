@@ -1,6 +1,8 @@
 <?php
 
 namespace Wikimedia\RemexHtml\TreeBuilder;
+use Wikimedia\RemexHtml\HTMLData;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 use Wikimedia\RemexHtml\Tokenizer\TokenHandler;
 
 class Dispatcher implements TokenHandler {
@@ -34,7 +36,7 @@ class Dispatcher implements TokenHandler {
 		self::BEFORE_HTML => BeforeHtml::class,
 		self::BEFORE_HEAD => BeforeHead::class,
 		self::IN_HEAD => InHead::class,
-		self::IN_HEAD_NOSCRIPT => InHeadNoScript::class,
+		self::IN_HEAD_NOSCRIPT => InHeadNoscript::class,
 		self::AFTER_HEAD => AfterHead::class,
 		self::IN_BODY => InBody::class,
 		self::TEXT => Text::class,
@@ -53,7 +55,7 @@ class Dispatcher implements TokenHandler {
 		self::AFTER_FRAMESET => AfterFrameset::class,
 		self::AFTER_AFTER_BODY => AfterAfterBody::class,
 		self::AFTER_AFTER_FRAMESET => AfterAfterFrameset::class,
-		self::IN_FOREIGN_CONTENT = InForeignContent::class
+		self::IN_FOREIGN_CONTENT => InForeignContent::class
 	];
 
 	// Public shortcuts for "using the rules for" actions
@@ -87,13 +89,18 @@ class Dispatcher implements TokenHandler {
 		$this->inTable = $this->dispatchTable[self::IN_TABLE];
 		$this->inSelect = $this->dispatchTable[self::IN_SELECT];
 		$this->inTemplate = $this->dispatchTable[self::IN_TEMPLATE];
-		$this->inForeign = $this->dispatchTable[self::IN_FOREIGN];
+		$this->inForeign = $this->dispatchTable[self::IN_FOREIGN_CONTENT];
+
+		$this->switchMode( self::INITIAL );
 	}
 
-	public function switchMode( $mode, $save = false ) {
-		if ( $save ) {
-			$this->originalMode = $this->mode;
-		}
+	public function switchMode( $mode ) {
+		$this->mode = $mode;
+		return $this->handler = $this->dispatchTable[$mode];
+	}
+
+	public function switchAndSave( $mode ) {
+		$this->originalMode = $this->mode;
 		$this->mode = $mode;
 		return $this->handler = $this->dispatchTable[$mode];
 	}
@@ -102,7 +109,7 @@ class Dispatcher implements TokenHandler {
 		if ( $this->originalMode === null ) {
 			throw new TreeBuilderError( "original insertion mode is not set" );
 		}
-		$mode = $this->originalMode;
+		$mode = $this->mode = $this->originalMode;
 		$this->originalMode = null;
 		return $this->handler = $this->dispatchTable[$mode];
 	}
@@ -263,7 +270,7 @@ class Dispatcher implements TokenHandler {
 			$this->inForeign->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
 		}
 		if ( $selfClose && !$this->ack ) {
-			$this->builder->error( self::SELF_CLOSE_ERROR, $sourceStart );
+			$this->builder->error( "unacknowledged self-closing tag", $sourceStart );
 		}
 	}
 

@@ -1,7 +1,7 @@
 <?php
 
 namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 class AfterAfterFrameset extends InsertionMode {
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
@@ -15,12 +15,12 @@ class AfterAfterFrameset extends InsertionMode {
 
 		switch ( $name ) {
 		case 'html':
-			$dispatcher->inBody->startTag( $name, Attributes $attrs, $selfClose,
+			$dispatcher->inBody->startTag( $name, $attrs, $selfClose,
 				$sourceStart, $sourceLength );
 			break;
 
 		case 'noframes':
-			$dispatcher->inHead->startTag( $name, Attributes $attrs, $selfClose,
+			$dispatcher->inHead->startTag( $name, $attrs, $selfClose,
 				$sourceStart, $sourceLength );
 			break;
 

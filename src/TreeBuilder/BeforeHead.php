@@ -8,7 +8,7 @@ class BeforeHead extends InsertionMode {
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		// Ignore whitespace
 		list( $part1, $part2 ) = $this->splitInitialMatch(
-			true, "\t\n\f\r ", $start, $length, $sourceStart, $sourceLength );
+			true, "\t\n\f\r ", $text, $start, $length, $sourceStart, $sourceLength );
 		list( $start, $length, $sourceStart, $sourceLength ) = $part2;
 		if ( !$length ) {
 			return;
@@ -45,5 +45,12 @@ class BeforeHead extends InsertionMode {
 			'head', new PlainAttributes, false, $sourceStart, 0 );
 		$this->dispatcher->switchMode( Dispatcher::IN_HEAD )
 			->endTag( $name, $sourceStart, $sourceLength );
+	}
+
+	public function endDocument( $pos ) {
+		$this->builder->headElement = $this->builder->insertElement(
+			'head', new PlainAttributes, false, $pos, 0 );
+		$this->dispatcher->switchMode( Dispatcher::IN_HEAD )
+			->endDocument( $pos );
 	}
 }

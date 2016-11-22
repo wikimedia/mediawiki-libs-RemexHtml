@@ -8,7 +8,7 @@ class InHead extends InsertionMode {
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		// Split and insert whitespace
 		list( $part1, $part2 ) = $this->splitInitialMatch(
-			true, "\t\n\f\r ", $start, $length, $sourceStart, $sourceLength );
+			true, "\t\n\f\r ", $text, $start, $length, $sourceStart, $sourceLength );
 
 		list( $start, $length, $sourceStart, $sourceLength ) = $part1;
 		if ( $length ) {
@@ -81,7 +81,7 @@ class InHead extends InsertionMode {
 			$this->dispatcher->templateModeStack->push( Dispatcher::IN_TEMPLATE );
 			break;
 		case 'head':
-			$this->builder->error( 'unexpected head tag', $sourceStart );
+			$this->builder->error( 'unexpected head tag in head, ignoring', $sourceStart );
 			return;
 		default:
 			$elt = $this->builder->pop( $sourceStart, 0 );
@@ -100,7 +100,7 @@ class InHead extends InsertionMode {
 			$this->builder->tokenizer->switchState( $tokenizerState, $name );
 		}
 		if ( $textMode !== null ) {
-			$this->dispatcher->switchMode( $textMode, true );
+			$this->dispatcher->switchAndSave( $textMode );
 		} elseif ( $mode !== null ) {
 			$this->dispatcher->switchMode( $mode );
 		}
@@ -124,12 +124,13 @@ class InHead extends InsertionMode {
 			break;
 		case 'template':
 			if ( !$stack->hasTemplate() ) {
-				$this->error( 'unexpected </template>', $sourceStart );
+				$this->error( 'found </template> but there is no open template, ignoring',
+					$sourceStart );
 				return;
 			}
-			$builder->generateImpliedEndTags( $sourceStart );
+			$builder->generateImpliedEndTags( false, $sourceStart );
 			if ( $stack->current->htmlName !== 'template' ) {
-				$this->error( 'encountered </template> when other tags are still open' );
+				$this->error( 'found </template> when other tags are still open' );
 			}
 			$builder->popAllUpToName( 'template', $sourceStart, $sourceLength );
 			$builder->afe->clearToMarker();
@@ -137,7 +138,13 @@ class InHead extends InsertionMode {
 			$this->dispatcher->reset();
 			break;
 		default:
-			$builder->error( 'ignoring unexpected end tag', $sourceStart );
+			$builder->error( "ignoring </$name> in head", $sourceStart );
 		}
+	}
+
+	public function endDocument( $pos ) {
+		$this->builder->pop( $pos, 0 );
+		$this->dispatcher->switchMode( Dispatcher::AFTER_HEAD )
+			->endDocument( $pos );
 	}
 }

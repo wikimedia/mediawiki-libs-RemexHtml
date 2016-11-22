@@ -1,8 +1,8 @@
 <?php
 
 namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Attributes;
-use Wikimedia\RemexHtml\PlainAttributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\PlainAttributes;
 
 class InTable extends InsertionMode {
 	private static $tableContext = [
@@ -20,10 +20,10 @@ class InTable extends InsertionMode {
 			'tr' => true ];
 		if ( isset( $allowed[$this->builder->stack->current->htmlName] ) ) {
 			$this->builder->pendingTableCharacters = [];
-			$this->dispatcher->switchMode( Dispatcher::IN_TABLE_TEXT, true )
+			$this->dispatcher->switchAndSave( Dispatcher::IN_TABLE_TEXT )
 				->characters( $text, $start, $length, $sourceStart, $sourceLength );
 		} else {
-			$this->builder->error( 'unexpected text in table', $sourceStart );
+			$this->builder->error( 'unexpected text in table, fostering', $sourceStart );
 			$this->builder->fosterParenting = true;
 			$this->dispatcher->inBody->characters(
 				$text, $start, $length, $sourceStart, $sourceLength );
@@ -41,20 +41,20 @@ class InTable extends InsertionMode {
 			$builder->clearStackBack( self::$tableContext, $sourceStart );
 			$builder->afe->insertMarker();
 			$dispatcher->switchMode( Dispatcher::IN_CAPTION );
-			$builder->insertElement( $name, $attrs, $selfClose, false,
+			$builder->insertElement( $name, $attrs, false,
 				$sourceStart, $sourceLength );
 			break;
 
 		case 'colgroup':
 			$builder->clearStackBack( self::$tableContext, $sourceStart );
 			$dispatcher->switchMode( Dispatcher::IN_COLUMN_GROUP );
-			$builder->insertElement( $name, $attrs, $selfClose, false,
+			$builder->insertElement( $name, $attrs, false,
 				$sourceStart, $sourceLength );
 			break;
 
 		case 'col':
 			$builder->clearStackBack( self::$tableContext, $sourceStart );
-			$builder->insertElement( 'colgroup', new PlainAttributes, false, false,
+			$builder->insertElement( 'colgroup', new PlainAttributes, false,
 				$sourceStart, 0 );
 			$dispatcher->switchMode( Dispatcher::IN_COLUMN_GROUP )
 				->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
@@ -64,7 +64,7 @@ class InTable extends InsertionMode {
 		case 'tfoot':
 		case 'thead':
 			$builder->clearStackBack( self::$tableContext, $sourceStart );
-			$builder->insertElement( $name, $attrs, $selfClose, false,
+			$builder->insertElement( $name, $attrs, false,
 				$sourceStart, $sourceLength );
 			$dispatcher->switchMode( Dispatcher::IN_TABLE_BODY );
 			break;
@@ -73,7 +73,7 @@ class InTable extends InsertionMode {
 		case 'th':
 		case 'tr':
 			$builder->clearStackBack( self::$tableContext, $sourceStart );
-			$builder->insertElement( 'tbody', new PlainAttributes, false, false,
+			$builder->insertElement( 'tbody', new PlainAttributes, false,
 				$sourceStart, $sourceLength );
 			$dispatcher->switchMode( Dispatcher::IN_TABLE_BODY )
 				->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
@@ -97,15 +97,12 @@ class InTable extends InsertionMode {
 			break;
 
 		case 'form':
-			$builder->error( 'invalid form in table', $sourcePos );
+			$builder->error( 'invalid form in table, ignoring', $sourcePos );
 			if ( $stack->hasTemplate() || $builder->formElement !== null ) {
 				// Ignore
 				break;
 			}
-			if ( $selfClose ) {
-				$builder->error( TreeBuilder::SELF_CLOSE_ERROR, $sourceStart );
-			}
-			$elt = $builder->insertElement( 'form', $attrs, true, true,
+			$elt = $builder->insertElement( 'form', $attrs, false,
 				$sourceStart, $sourceLength );
 			$builder->formElement = $elt;
 			break;
@@ -114,13 +111,14 @@ class InTable extends InsertionMode {
 			if ( isset( $attrs['type'] ) && strncmp( $attrs['type'], 'hidden' ) === 0 ) {
 				$builder->error( 'begrudgingly accepting a hidden input in table mode',
 					$sourcePos );
-				$builder->insertElement( $name, $attrs, true, true );
+				$dispatcher->ack = true;
+				$builder->insertElement( $name, $attrs, true, $sourceStart, $sourceLength );
 				break;
 			}
 			// Fall through
 
 		default:
-			$builder->error( 'invalid start tag in table', $sourceStart );
+			$builder->error( 'invalid start tag in table, fostering', $sourceStart );
 			$builder->fosterParenting = true;
 			$dispatcher->inBody->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
 			$builder->fosterParenting = false;
@@ -135,8 +133,8 @@ class InTable extends InsertionMode {
 
 		switch ( $name ) {
 		case 'table':
-			if ( !$stack->isInScope( 'table' ) ) {
-				$builder->error( '</table> found but no table element in scope' );
+			if ( !$stack->isInTableScope( 'table' ) ) {
+				$builder->error( '</table> found but no table element in scope, ignoring' );
 				// Ignore
 				break;
 			}

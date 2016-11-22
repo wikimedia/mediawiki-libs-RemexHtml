@@ -1,7 +1,7 @@
 <?php
 
 namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 class InTableText extends InsertionMode {
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
@@ -53,7 +53,7 @@ class InTableText extends InsertionMode {
 			$builder->fosterParenting = true;
 			foreach ( $builder->pendingTableCharacters as $token ) {
 				list( $text, $start, $length, $sourceStart, $sourceLength ) = $token;
-				$builder->error( 'invalid characters in table text', $sourceStart );
+				$builder->error( 'invalid characters in table text, fostering', $sourceStart );
 				$this->dispatcher->inBody->characters( $text, $start, $length,
 					$sourceStart, $sourceLength );
 			}

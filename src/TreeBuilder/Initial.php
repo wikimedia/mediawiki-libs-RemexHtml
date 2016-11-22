@@ -1,8 +1,8 @@
 <?php
 
 namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
 use Wikimedia\RemexHtml\HTMLData;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 class Initial extends InsertionMode {
 	private static $allowedDoctypes = [
@@ -18,7 +18,7 @@ class Initial extends InsertionMode {
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		// Ignore whitespace
 		list( $part1, $part2 ) = $this->splitInitialMatch(
-			true, "\t\n\f\r ", $start, $length, $sourceStart, $sourceLength );
+			true, "\t\n\f\r ", $text, $start, $length, $sourceStart, $sourceLength );
 		list( $start, $length, $sourceStart, $sourceLength ) = $part2;
 		if ( !$length ) {
 			return;
@@ -89,5 +89,14 @@ class Initial extends InsertionMode {
 		$this->builder->doctype( $name, $public, $system, $quirks,
 			$sourceStart, $sourceLength );
 		$this->dispatcher->switchMode( Dispatcher::BEFORE_HTML );
+	}
+
+	public function endDocument( $pos ) {
+		if ( !$this->builder->isIframeSrcdoc ) {
+			$this->error( 'missing doctype', $sourceStart );
+			$this->builder->quirks = TreeBuilder::QUIRKS;
+		}
+		$this->dispatcher->switchMode( Dispatcher::BEFORE_HTML )
+			->endDocument( $pos );
 	}
 }

@@ -1,7 +1,7 @@
 <?php
 
 namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 class InCell extends InsertionMode {
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
@@ -47,21 +47,22 @@ class InCell extends InsertionMode {
 				$builder->error( "</$name> encountered but there is no $name in scope, ignoring" );
 				return;
 			}
-			$builder->generateImpliedEndTags();
+			$builder->generateImpliedEndTags( null, $sourceStart );
 			if ( $stack->current->htmlName !== $name ) {
 				$builder->error( "</$name> encountered when there are tags open " .
 					"which can't be closed automatically", $sourceStart );
 			}
-			$builder->popAllUpToName( $name, $sourcePos, $sourceLength );
+			$builder->popAllUpToName( $name, $sourceStart, $sourceLength );
 			$builder->afe->clearToMarker();
 			$dispatcher->switchMode( Dispatcher::IN_ROW );
+			break;
 
 		case 'body':
 		case 'caption':
 		case 'col':
 		case 'colgroup':
 		case 'html':
-			$builder->error( "unexpected </$name>", $sourceStart );
+			$builder->error( "unexpected </$name> in cell, ignoring", $sourceStart );
 			return;
 
 		case 'table':
@@ -90,8 +91,8 @@ class InCell extends InsertionMode {
 		$tdth = [ 'td' => true, 'th' => true ];
 		$builder = $this->builder;
 		$stack = $builder->stack;
-		$builder->generateImpliedEndTags();
-		if ( !isset( $tdth[$stack->current->htmlName] ) {
+		$builder->generateImpliedEndTags( false, $sourceStart );
+		if ( !isset( $tdth[$stack->current->htmlName] ) ) {
 			$builder->error( "closing the cell but there are tags open " .
 				"which can't be closed automatically", $sourceStart );
 		}

@@ -1,4 +1,6 @@
 <?php
+namespace Wikimedia\RemexHtml\TreeBuilder;
+use Wikimedia\RemexHtml\HTMLData;
 
 class SimpleStack extends Stack {
 	private $elements;
@@ -95,7 +97,7 @@ class SimpleStack extends Stack {
 	public function isOneOfSetInScope( $names ) {
 		for ( $i = count( $this->elements ) - 1; $i >= 0; $i--) {
 			$node = $this->elements[$i];
-			if ( $node->namespace === NS_HTML && isset( $names[$node->name] ) ) {
+			if ( $node->namespace === HTMLData::NS_HTML && isset( $names[$node->name] ) ) {
 				return true;
 			}
 			if ( isset( self::$defaultScope[$node->namespace][$node->name] ) ) {
@@ -121,7 +123,7 @@ class SimpleStack extends Stack {
 			self::$buttonScope = self::$defaultScope;
 			self::$buttonScope[HTMLData::NS_HTML]['button'] = true;
 		}
-		return $this->isInSpecificScope( $name, $self::$buttonScope );
+		return $this->isInSpecificScope( $name, self::$buttonScope );
 	}
 
 	public function isInTableScope( $name ) {
@@ -131,10 +133,10 @@ class SimpleStack extends Stack {
 	public function isInSelectScope( $name ) {
 		for ( $i = count( $this->elements ) - 1; $i >= 0; $i--) {
 			$node = $this->elements[$i];
-			if ( $node->namespace === NS_HTML && $node->name === $name ) {
+			if ( $node->namespace === HTMLData::NS_HTML && $node->name === $name ) {
 				return true;
 			}
-			if ( $node->namespace !== NS_HTML ) {
+			if ( $node->namespace !== HTMLData::NS_HTML ) {
 				return false;
 			}
 			if ( $node->name !== 'optgroup' && $node->name !== 'option' ) {
@@ -147,7 +149,7 @@ class SimpleStack extends Stack {
 	private function isInSpecificScope( $name, $set ) {
 		for ( $i = count( $this->elements ) - 1; $i >= 0; $i--) {
 			$node = $this->elements[$i];
-			if ( $node->namespace === NS_HTML && $node->name === $name ) {
+			if ( $node->namespace === HTMLData::NS_HTML && $node->name === $name ) {
 				return true;
 			}
 			if ( isset( $set[$node->namespace][$node->name] ) ) {
@@ -167,7 +169,7 @@ class SimpleStack extends Stack {
 
 	public function hasTemplate() {
 		foreach ( $this->elements as $elt ) {
-			if ( $elt->namespace === NS_HTML && $elt->name === 'template' ) {
+			if ( $elt->namespace === HTMLData::NS_HTML && $elt->name === 'template' ) {
 				return true;
 			}
 		}

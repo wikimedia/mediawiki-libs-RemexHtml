@@ -6,7 +6,7 @@ use Wikimedia\RemexHtml\Tokenizer\Attributes;
 interface TreeHandler {
 	function startDocument();
 
-	function endDocument();
+	function endDocument( $pos );
 
 	function characters( $parent, $refNode, $text, $start, $length, $sourceStart, $sourceLength );
 
