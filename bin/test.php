@@ -22,9 +22,25 @@ class NullHandler implements Tokenizer\TokenHandler {
 	function comment( $text, $sourceStart, $sourceLength ) {}
 }
 
+class NullTreeHandler implements TreeBuilder\TreeHandler {
+	function startDocument() {}
+	function endDocument( $pos ) {}
+	function characters( $parent, $refNode, $text, $start, $length, $sourceStart, $sourceLength ) {}
+	function insertElement( $parent, $refNode, TreeBuilder\Element $element, $void,
+		$sourceStart, $sourceLength ) {}
+	function endTag( TreeBuilder\Element $element, $sourceStart, $sourceLength ) {}
+	function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {}
+	function comment( $parent, $refNode, $text, $sourceStart, $sourceLength ) {}
+	function error( $text, $pos ) {}
+	function mergeAttributes( TreeBuilder\Element $element, Tokenizer\Attributes $attrs, $sourceStart ) {}
+	function reparentNode( TreeBuilder\Element $element, TreeBuilder\Element $newParent, $sourceStart ) {}
+	function removeNode( TreeBuilder\Element $element, $sourceStart ) {}
+	function reparentChildren( TreeBuilder\Element $element, TreeBuilder\Element $newParent ) {}
+}
+
 function reserialize( $text ) {
 	$handler = new Tokenizer\TokenSerializer;
-	$tokenizer = new Tokenizer\Tokenizer( $handler, $text, $GLOBALS['options'] );
+	$tokenizer = new Tokenizer\Tokenizer( $handler, $text, $GLOBALS['tokenizerOptions'] );
 	$tokenizer->execute();
 	print $handler->getOutput() . "\n";
 	foreach ( $handler->getErrors() as $error ) {
@@ -34,7 +50,7 @@ function reserialize( $text ) {
 
 function reseralizeScript( $text ) {
 	$handler = new Tokenizer\TokenSerializer;
-	$tokenizer = new Tokenizer\Tokenizer( $handler, $text, $GLOBALS['options'] );
+	$tokenizer = new Tokenizer\Tokenizer( $handler, $text, $GLOBALS['tokenizerOptions'] );
 	$tokenizer->switchState( Tokenizer\Tokenizer::STATE_SCRIPT_DATA, 'script' );
 	$tokenizer->execute( Tokenizer\Tokenizer::STATE_SCRIPT_DATA );
 	print $handler->getOutput() . "\n";
@@ -69,7 +85,7 @@ function tidy( $text ) {
 function benchmarkNull( $text ) {
 	$time = -microtime( true );
 	$handler = new NullHandler;
-	$tokenizer = new Tokenizer\Tokenizer( $handler, $text, $GLOBALS['options'] );
+	$tokenizer = new Tokenizer\Tokenizer( $handler, $text, $GLOBALS['tokenizerOptions'] );
 	$tokenizer->execute();
 	$time += microtime( true );
 	print "$time\n";
@@ -78,14 +94,37 @@ function benchmarkNull( $text ) {
 function benchmarkSerialize( $text ) {
 	$time = -microtime( true );
 	$handler = new Tokenizer\TokenSerializer;
-	$tokenizer = new Tokenizer\Tokenizer( $handler, $text, $GLOBALS['options'] );
+	$tokenizer = new Tokenizer\Tokenizer( $handler, $text, $GLOBALS['tokenizerOptions'] );
 	$tokenizer->execute();
 	$time += microtime( true );
 	print "$time\n";
 }
 
+function benchmarkTreeBuilder( $text ) {
+	$time = -microtime( true );
+	$handler = new NullTreeHandler;
+	$treeBuilder = new TreeBuilder\TreeBuilder( $handler, [] );
+	$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
+	$tokenizer = new Tokenizer\Tokenizer( $dispatcher, $text, $GLOBALS['tokenizerOptions'] );
+	$tokenizer->execute();
+	$time += microtime( true );
+	print "$time\n";
+}
+
+function benchmarkDOM( $text ) {
+	$time = -microtime( true );
+	$dom = TreeBuilder\Parser::parseDocument( $text, [
+		'treeBuilder' => [
+			'ignoreErrors' => true,
+		],
+		'tokenizer' => $GLOBALS['tokenizerOptions']
+	] );
+	$time += microtime( true );
+	print "$time\n";
+}
+
 function generate( $text ) {
-	$generator = Tokenizer\TokenGenerator::generate( $text, $GLOBALS['options'] );
+	$generator = Tokenizer\TokenGenerator::generate( $text, $GLOBALS['tokenizerOptions'] );
 	foreach ( $generator as $token ) {
 		if ( $token['type'] === 'text' ) {
 			$token['text'] = substr( $token['text'], $token['start'], $token['length'] );
@@ -98,15 +137,14 @@ function generate( $text ) {
 
 function benchmarkGenerate( $text ) {
 	$time = -microtime( true );
-	$generator = Tokenizer\TokenGenerator::generate( $text, $GLOBALS['options'] );
+	$generator = Tokenizer\TokenGenerator::generate( $text, $GLOBALS['tokenizerOptions'] );
 	foreach ( $generator as $token ) {
 	}
 	$time += microtime( true );
 	print "$time\n";
 }
 
-//$options = [];
-$options = [
+$tokenizerOptions = [
 	'ignoreNulls' => true,
 	'ignoreCharRefs' => true,
 	'ignoreErrors' => true,

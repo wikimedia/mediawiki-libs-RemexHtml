@@ -5,6 +5,11 @@ use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 class DOMBuilder implements TreeHandler {
 	private $doc;
+	private $errorCallback;
+
+	public function __construct( $errorCallback = null ) {
+		$this->errorCallback = $errorCallback;
+	}
 
 	public function getDocument() {
 		return $this->doc;
@@ -63,7 +68,9 @@ class DOMBuilder implements TreeHandler {
 	}
 
 	public function error( $text, $pos ) {
-		print "Error at $pos: $text\n";
+		if ( $this->errorCallback ) {
+			call_user_func( $this->errorCallback, $text, $pos );
+		}
 	}
 
 	public function mergeAttributes( Element $element, Attributes $attrs, $sourceStart ) {
