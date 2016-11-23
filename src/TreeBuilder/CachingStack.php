@@ -141,7 +141,7 @@ class CachingStack extends Stack {
 	 * This is the part of the scope cache which stores scope lists for objects
 	 * which are not currently in scope. The first key is the scope ID, the
 	 * second key is the stack index, the third key is the element name.
-	 * 
+	 *
 	 * @var Element[int][int][string]
 	 */
 	private $scopeStacks = [

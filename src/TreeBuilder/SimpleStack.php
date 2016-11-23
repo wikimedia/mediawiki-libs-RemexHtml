@@ -82,7 +82,7 @@ class SimpleStack extends Stack {
 	}
 
 	public function isElementInScope( Element $elt ) {
-		for ( $i = count( $this->elements ) - 1; $i >= 0; $i--) {
+		for ( $i = count( $this->elements ) - 1; $i >= 0; $i-- ) {
 			$node = $this->elements[$i];
 			if ( $node === $elt ) {
 				return true;
@@ -95,7 +95,7 @@ class SimpleStack extends Stack {
 	}
 
 	public function isOneOfSetInScope( $names ) {
-		for ( $i = count( $this->elements ) - 1; $i >= 0; $i--) {
+		for ( $i = count( $this->elements ) - 1; $i >= 0; $i-- ) {
 			$node = $this->elements[$i];
 			if ( $node->namespace === HTMLData::NS_HTML && isset( $names[$node->name] ) ) {
 				return true;
@@ -131,7 +131,7 @@ class SimpleStack extends Stack {
 	}
 
 	public function isInSelectScope( $name ) {
-		for ( $i = count( $this->elements ) - 1; $i >= 0; $i--) {
+		for ( $i = count( $this->elements ) - 1; $i >= 0; $i-- ) {
 			$node = $this->elements[$i];
 			if ( $node->namespace === HTMLData::NS_HTML && $node->name === $name ) {
 				return true;
@@ -147,7 +147,7 @@ class SimpleStack extends Stack {
 	}
 
 	private function isInSpecificScope( $name, $set ) {
-		for ( $i = count( $this->elements ) - 1; $i >= 0; $i--) {
+		for ( $i = count( $this->elements ) - 1; $i >= 0; $i-- ) {
 			$node = $this->elements[$i];
 			if ( $node->namespace === HTMLData::NS_HTML && $node->name === $name ) {
 				return true;

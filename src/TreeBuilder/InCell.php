@@ -20,8 +20,8 @@ class InCell extends InsertionMode {
 		case 'th':
 		case 'thead':
 		case 'tr':
-			if (   !$this->builder->stack->isInTableScope( 'td' )
-				&& !$this->builder->stack->isInTableScope( 'th' )
+			if ( !$this->builder->stack->isInTableScope( 'td' )
+			  && !$this->builder->stack->isInTableScope( 'th' )
 			) {
 				$this->builder->error( "<$name> tag should close the cell but none is in scope",
 					$sourceStart );

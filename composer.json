@@ -22,6 +22,6 @@
 	},
 	"scripts": {
 		"test": "hhvm vendor/bin/phpunit --no-globals-backup tests/phpunit",
-		"phpcs": "hhvm vendor/bin/phpcs src"
+		"phpcs": "hhvm vendor/bin/phpcs -s src"
 	}
 }

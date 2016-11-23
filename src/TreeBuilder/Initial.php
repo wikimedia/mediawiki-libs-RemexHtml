@@ -60,7 +60,7 @@ class Initial extends InsertionMode {
 
 		$quirks = $quirks ? TreeBuilder::QUIRKS : TreeBuilder::NO_QUIRKS;
 
-		$quirksIfNoSystem = '~-//W3C//DTD HTML 4\.01 Frameset//|' . 
+		$quirksIfNoSystem = '~-//W3C//DTD HTML 4\.01 Frameset//|' .
 			'-//W3C//DTD HTML 4\.01 Transitional//~Ai';
 		$limitedQuirks = '~-//W3C//DTD XHTML 1\.0 Frameset//|' .
 			'-//W3C//DTD XHTML 1\.0 Transitional//~Ai';
@@ -75,7 +75,7 @@ class Initial extends InsertionMode {
 		) {
 			$quirks = TreeBuilder::QUIRKS;
 		} elseif ( !$this->builder->isIframeSrcdoc
-			&& ( 
+			&& (
 				preg_match( $limitedQuirks, $public )
 				|| ( $system !== null && preg_match( $quirksIfNoSystem, $public ) )
 			)

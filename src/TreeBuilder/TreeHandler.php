@@ -29,13 +29,13 @@ interface TreeHandler {
 	function insertElement( $parent, $refNode, Element $element, $void,
 		$sourceStart, $sourceLength );
 
-	function endTag( Element $element, $sourceStart, $sourceLength ) ;
+	function endTag( Element $element, $sourceStart, $sourceLength );
 
-	function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) ;
+	function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength );
 
-	function comment( $parent, $refNode, $text, $sourceStart, $sourceLength ) ;
+	function comment( $parent, $refNode, $text, $sourceStart, $sourceLength );
 
-	function error( $text, $pos ) ;
+	function error( $text, $pos );
 
 	function mergeAttributes( Element $element, Attributes $attrs, $sourceStart );
 

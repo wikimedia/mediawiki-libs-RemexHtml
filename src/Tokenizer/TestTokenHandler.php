@@ -24,27 +24,27 @@ class TestTokenHandler implements TokenHandler {
 	}
 
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
-		$this->tokens[] = ['Character', substr( $text, $start, $length ) ];
+		$this->tokens[] = [ 'Character', substr( $text, $start, $length ) ];
 	}
 
 	public function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
 		$attrArray = $attrs->getArrayCopy();
 		if ( $selfClose ) {
-			$this->tokens[] = ['StartTag', $name, $attrArray, $selfClose];
+			$this->tokens[] = [ 'StartTag', $name, $attrArray, $selfClose ];
 		} else {
-			$this->tokens[] = ['StartTag', $name, $attrArray];
+			$this->tokens[] = [ 'StartTag', $name, $attrArray ];
 		}
 	}
 
 	public function endTag( $name, $sourceStart, $sourceLength ) {
-		$this->tokens[] = ['EndTag', $name];
+		$this->tokens[] = [ 'EndTag', $name ];
 	}
 
 	public function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
-		$this->tokens[] = ['DOCTYPE', $name, $public, $system, !$quirks];
+		$this->tokens[] = [ 'DOCTYPE', $name, $public, $system, !$quirks ];
 	}
 
 	public function comment( $text, $sourceStart, $sourceLength ) {
-		$this->tokens[] = ['Comment', $text];
+		$this->tokens[] = [ 'Comment', $text ];
 	}
 }

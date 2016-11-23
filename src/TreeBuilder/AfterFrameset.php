@@ -26,7 +26,7 @@ class AfterFrameset extends InsertionMode {
 		default:
 			$builder->error( "unexpected start tag after frameset, ignoring", $sourceStart );
 			return;
-		}	
+		}
 	}
 
 	public function endTag( $name, $sourceStart, $sourceLength ) {

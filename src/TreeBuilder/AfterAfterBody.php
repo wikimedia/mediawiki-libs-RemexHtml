@@ -41,7 +41,7 @@ class AfterAfterBody extends InsertionMode {
 
 	public function endTag( $name, $sourceStart, $sourceLength ) {
 		$this->builder->error( "unexpected end tag after after body", $sourceStart );
-		$this->dispatcher->switchMode(  Dispatcher::IN_BODY )
+		$this->dispatcher->switchMode( Dispatcher::IN_BODY )
 			->endTag( $name, $sourceStart, $sourceLength );
 	}
 

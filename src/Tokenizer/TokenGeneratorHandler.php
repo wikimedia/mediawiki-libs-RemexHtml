@@ -9,11 +9,11 @@ class TokenGeneratorHandler implements TokenHandler {
 	public $tokens = [];
 
 	public function startDocument() {
-		$this->tokens[] = ['type' => 'startDocument'];
+		$this->tokens[] = [ 'type' => 'startDocument' ];
 	}
 
 	public function endDocument() {
-		$this->tokens[] = ['type' => 'endDocument'];
+		$this->tokens[] = [ 'type' => 'endDocument' ];
 	}
 
 	public function error( $text, $pos ) {

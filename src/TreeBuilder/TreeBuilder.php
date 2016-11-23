@@ -255,7 +255,7 @@ class TreeBuilder {
 	 * @author C. Scott Ananian, Tim Starling
 	 *
 	 * https://www.w3.org/TR/2014/REC-html5-20141028/syntax.html#adoption-agency-algorithm
-	 * 
+	 *
 	 * @param string $subject The subject tag name.
 	 * @param integer $sourceStart
 	 * @param integer $sourceLength
@@ -377,7 +377,9 @@ class TreeBuilder {
 
 				// If node is the formatting element, then go to the next step
 				// in the overall algorithm. [13.4]
-				if ( $node === $fmtElt ) break;
+				if ( $node === $fmtElt ) {
+					break;
+				}
 
 				// If the inner loop counter is greater than three and node
 				// is in the list of active formatting elements, then remove
@@ -465,7 +467,7 @@ class TreeBuilder {
 			// Add the new element
 			$tempStack[] = $newElt2;
 			// Stash the elements up to the formatting element
-			for ( ; $index > $fmtEltIndex; $index-- ) {
+			for ( 0; $index > $fmtEltIndex; $index-- ) {
 				$elt = $stack->pop();
 				// Drop elements previously marked for removal
 				if ( isset( $stackRemovals[$index] ) ) {
@@ -520,14 +522,14 @@ class TreeBuilder {
 
 	/**
 	 * Generate implied end tags, optionally with an element to exclude.
-	 * 
+	 *
 	 * @param string|null $name The name to exclude
 	 * @param integer $pos The source position
 	 */
 	public function generateImpliedEndTags( $name, $pos ) {
 		$stack = $this->stack;
 		$current = $stack->current;
-		while( $current && $current->htmlName !== $name &&
+		while ( $current && $current->htmlName !== $name &&
 		  isset( self::$impliedEndTags[$current->htmlName] )
 		) {
 			$popped = $stack->pop();

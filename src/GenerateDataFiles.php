@@ -24,7 +24,7 @@ class GenerateDataFiles {
 	}
 
 	/**
-	 * This is the character entity mapping table copied from 
+	 * This is the character entity mapping table copied from
 	 * https://www.w3.org/TR/2014/REC-html5-20141028/syntax.html#tokenizing-character-references
 	 */
 	private static $legacyNumericEntityData = <<<EOT
@@ -180,10 +180,10 @@ EOT;
 		$legacyNumericEntities = [];
 		foreach ( $matches as $match ) {
 			$legacyNumericEntities[ intval( $match[1], 16 ) ] =
-				\UtfNormal\Utils::codepointToUtf8( intval( $match[2], 16  ) );
+				\UtfNormal\Utils::codepointToUtf8( intval( $match[2], 16 ) );
 		}
 
-		$quirkyRegex = 
+		$quirkyRegex =
 			'~' .
 			$this->makeRegexAlternation( self::$quirkyPublicPrefixes ) .
 			'~xAi';

@@ -716,7 +716,9 @@ class Tokenizer {
 	 *   suppresses errors in a place where no errors are emitted anyway.
 	 * @return The expanded text
 	 */
-	protected function handleCharRefs( $text, $sourcePos, $inAttr = false, $additionalAllowedChar = '' ) {
+	protected function handleCharRefs( $text, $sourcePos, $inAttr = false,
+		$additionalAllowedChar = ''
+	) {
 		if ( $this->ignoreCharRefs ) {
 			return $text;
 		}
@@ -864,7 +866,7 @@ class Tokenizer {
 						0xDFFFE => true, 0xDFFFF => true,
 						0xEFFFE => true, 0xEFFFF => true,
 						0xFFFFE => true, 0xFFFFF => true,
-						0x10FFFE => true, 0x10FFFF => true];
+						0x10FFFE => true, 0x10FFFF => true ];
 					if (
 						( $codepoint >= 1 && $codepoint <= 8 ) ||
 						( $codepoint >= 0x0d && $codepoint <= 0x1f ) ||

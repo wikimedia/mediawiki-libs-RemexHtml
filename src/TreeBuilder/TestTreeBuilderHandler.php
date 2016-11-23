@@ -24,7 +24,6 @@ class TestTreeBuilderHandler implements TreeHandler {
 		}
 	}
 
-
 	public function getDocument() {
 		return $this->serializeSubtree( '| ', $parent );
 	}
@@ -97,7 +96,7 @@ class TestTreeBuilderHandler implements TreeHandler {
 		return $node;
 	}
 
-	public function endTag( $node, $prefix, $name, $sourceStart, $sourceLength )  {
+	public function endTag( $node, $prefix, $name, $sourceStart, $sourceLength ) {
 	}
 
 	public function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
@@ -153,8 +152,8 @@ class TestTreeBuilderHandler implements TreeHandler {
 	}
 
 	public function reparentNode( $parent, $target, $prefix, $name,
-		Attributes $attrs, $sourceStart )
-	{
+		Attributes $attrs, $sourceStart
+	) {
 		$node = $this->createNode( $prefix, $name, $attrs );
 		$node->childNodes = [ $target ];
 		foreach ( $parent->childNodes as $i => $child ) {

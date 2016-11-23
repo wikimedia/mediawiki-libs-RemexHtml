@@ -6,8 +6,8 @@ use Wikimedia\RemexHtml\Tokenizer\Attributes;
 use Wikimedia\RemexHtml\PlainAttributes;
 
 class InBody extends InsertionMode {
-	static private $headingNames = ['h1' => true, 'h2' => true, 'h3' => true, 'h4' => true,
-		'h5' => true, 'h6' => true];
+	static private $headingNames = [ 'h1' => true, 'h2' => true, 'h3' => true, 'h4' => true,
+		'h5' => true, 'h6' => true ];
 
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		$handleNonNull = function ( $text, $start, $length, $sourceStart, $sourceLength ) {

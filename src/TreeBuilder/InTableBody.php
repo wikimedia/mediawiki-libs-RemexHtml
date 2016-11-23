@@ -42,9 +42,9 @@ class InTableBody extends InsertionMode {
 		case 'tbody':
 		case 'tfoot':
 		case 'thead':
-			if (   !$stack->isInTableScope( 'tbody' )
-				&& !$stack->isInTableScope( 'thead' )
-				&& !$stack->isInTableScope( 'tfoot' )
+			if ( !$stack->isInTableScope( 'tbody' )
+			  && !$stack->isInTableScope( 'thead' )
+			  && !$stack->isInTableScope( 'tfoot' )
 			) {
 				$builder->error( "<$name> encountered in table body mode " .
 					"when there is no tbody/thead/tfoot in scope", $sourceStart );
