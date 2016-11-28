@@ -18,7 +18,6 @@ class TokenizerTest extends \PHPUnit_Framework_TestCase {
 	];
 
 	public function provider() {
-		$failedTests = 0;
 		$tests = [];
 		$testFiles = [];
 		foreach ( self::$testDirs as $testDir ) {

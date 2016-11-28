@@ -3,7 +3,8 @@
 namespace Wikimedia\RemexHtml\TreeBuilder;
 use Wikimedia\RemexHtml\HTMLData;
 use Wikimedia\RemexHtml\Tokenizer\Attributes;
-use Wikimedia\RemexHtml\PlainAttributes;
+use Wikimedia\RemexHtml\Tokenizer\PlainAttributes;
+use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
 
 class InBody extends InsertionMode {
 	static private $headingNames = [ 'h1' => true, 'h2' => true, 'h3' => true, 'h4' => true,
@@ -228,7 +229,7 @@ class InBody extends InsertionMode {
 			$builder->reconstructAFE( $sourceStart );
 			if ( $stack->isInScope( 'nobr' ) ) {
 				$builder->error( 'invalid nested nobr tag, closing previous', $sourceStart );
-				$this->adoptionAgency( 'nobr', $sourceStart, 0 );
+				$builder->adoptionAgency( 'nobr', $sourceStart, 0 );
 				$builder->reconstructAFE( $sourceStart );
 			}
 			$isNewAFE = true;

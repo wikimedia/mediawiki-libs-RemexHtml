@@ -93,7 +93,7 @@ class Initial extends InsertionMode {
 
 	public function endDocument( $pos ) {
 		if ( !$this->builder->isIframeSrcdoc ) {
-			$this->error( 'missing doctype', $sourceStart );
+			$this->error( 'missing doctype', $pos );
 			$this->builder->quirks = TreeBuilder::QUIRKS;
 		}
 		$this->dispatcher->switchMode( Dispatcher::BEFORE_HTML )

@@ -93,7 +93,7 @@ class DOMBuilder implements TreeHandler {
 		$node->parent->removeChild( $node );
 	}
 
-	public function reparentChildren( Element $element, Element $newParent ) {
+	public function reparentChildren( Element $element, Element $newParent, $sourceStart ) {
 		$node = $element->userData;
 		$newParentNode = $element->userData;
 		foreach ( $node->childNodes as $child ) {

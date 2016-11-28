@@ -79,5 +79,13 @@ interface TokenHandler {
 	 * @param integer $sourceLength The input length
 	 */
 	function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength );
+
+	/**
+	 * A comment.
+	 *
+	 * @param string $text The inner text of the comment
+	 * @param integer $sourceStart The input position
+	 * @param integer $sourceLength The input length
+	 */
 	function comment( $text, $sourceStart, $sourceLength );
 }

@@ -9,6 +9,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use Wikimedia\RemexHtml\Tokenizer;
 use Wikimedia\RemexHtml\TreeBuilder;
+use Wikimedia\RemexHtml\Serializer;
 
 class NullHandler implements Tokenizer\TokenHandler {
 	function startDocument() {}
@@ -35,7 +36,7 @@ class NullTreeHandler implements TreeBuilder\TreeHandler {
 	function mergeAttributes( TreeBuilder\Element $element, Tokenizer\Attributes $attrs, $sourceStart ) {}
 	function reparentNode( TreeBuilder\Element $element, TreeBuilder\Element $newParent, $sourceStart ) {}
 	function removeNode( TreeBuilder\Element $element, $sourceStart ) {}
-	function reparentChildren( TreeBuilder\Element $element, TreeBuilder\Element $newParent ) {}
+	function reparentChildren( TreeBuilder\Element $element, TreeBuilder\Element $newParent, $sourceStart ) {}
 }
 
 function reserialize( $text ) {
@@ -63,7 +64,7 @@ function traceDispatch( $text ) {
 	TreeBuilder\Parser::parseDocument( $text, [ 'traceDispatch' => true ] );
 }
 
-function tidyBody( $text ) {
+function tidyBodyViaDOM( $text ) {
 	$docText = "<!DOCTYPE html>\n<html><head></head><body>$text</body></html>";
 	$doc = TreeBuilder\Parser::parseDocument( $docText, [] );
 	$body = $doc->getElementsByTagName( 'body' )->item( 0 );
@@ -73,13 +74,23 @@ function tidyBody( $text ) {
 	print "\n";
 }
 
-function tidy( $text ) {
+function tidyViaDOM( $text ) {
 	$doc = TreeBuilder\Parser::parseDocument( $text, [
 		'treeBuilder' => [
 			'scopeCache' => true,
 		]
 	] );
 	print $doc->saveHTML() . "\n";
+}
+
+function tidy( $text ) {
+	$formatter = new Serializer\FastFormatter;
+	$serializer = new Serializer\Serializer( $formatter );
+	$treeBuilder = new TreeBuilder\TreeBuilder( $serializer, [] );
+	$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
+	$tokenizer = new Tokenizer\Tokenizer( $dispatcher, $text, $GLOBALS['tokenizerOptions'] );
+	$tokenizer->execute();
+	print $serializer->getResult() . "\n";
 }
 
 function benchmarkNull( $text ) {
@@ -119,6 +130,18 @@ function benchmarkDOM( $text ) {
 		],
 		'tokenizer' => $GLOBALS['tokenizerOptions']
 	] );
+	$time += microtime( true );
+	print "$time\n";
+}
+
+function benchmarkTidy( $text ) {
+	$time = -microtime( true );
+	$formatter = new Serializer\FastFormatter;
+	$serializer = new Serializer\Serializer( $formatter );
+	$treeBuilder = new TreeBuilder\TreeBuilder( $serializer, [] );
+	$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
+	$tokenizer = new Tokenizer\Tokenizer( $dispatcher, $text, $GLOBALS['tokenizerOptions'] );
+	$tokenizer->execute();
 	$time += microtime( true );
 	print "$time\n";
 }

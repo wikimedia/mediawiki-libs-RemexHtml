@@ -319,7 +319,7 @@ class TreeBuilder {
 			// error. (But do not abort these steps.) [8]
 			if ( $fmtElt !== $stack->current ) {
 				$this->error( 'end tag matched a formatting element which was ' .
-					'not the current node' );
+					'not the current node', $sourceStart );
 			}
 
 			// Let the furthest block be the topmost node in the stack of
@@ -440,7 +440,7 @@ class TreeBuilder {
 
 			// Take all of the child nodes of the furthest block and append
 			// them to the element created in the last step. [16]
-			$handler->reparentChildren( $furthestBlock, $newElt2 );
+			$handler->reparentChildren( $furthestBlock, $newElt2, $sourceStart );
 
 			// Append that new element to the furthest block. [17]
 			$handler->insertElement( $furthestBlock, null, $newElt2, false, $sourceStart, 0 );
@@ -514,7 +514,8 @@ class TreeBuilder {
 			// If node is in the special category, then this is a parse error;
 			// ignore the token, and abort these steps
 			if ( isset( HTMLData::$special[$node->htmlName] ) ) {
-				$this->error( "cannot implicitly close a special element <{$node->htmlName}>" );
+				$this->error( "cannot implicitly close a special element <{$node->htmlName}>",
+					$sourceStart);
 				return;
 			}
 		}

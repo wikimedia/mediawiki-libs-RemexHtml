@@ -61,7 +61,7 @@ class InHead extends InsertionMode {
 			break;
 		case 'noscript':
 			if ( !$this->builder->scriptingFlag ) {
-				$mode = Dispatcher::HEAD_NOSCRIPT;
+				$mode = Dispatcher::IN_HEAD_NOSCRIPT;
 				break;
 			}
 			// Fall through
