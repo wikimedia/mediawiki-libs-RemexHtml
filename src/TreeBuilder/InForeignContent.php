@@ -145,7 +145,7 @@ class InForeignContent extends InsertionMode {
 		}
 		for ( $idx = $stack->length() - 1; $idx > 0; $idx-- ) {
 			if ( strcasecmp( $node->name, $name ) === 0 ) {
-				$builder->popAllUpToElement( $node );
+				$builder->popAllUpToElement( $node, $sourceStart, $sourceLength );
 				break;
 			}
 			$node = $stack->item( $idx - 1 );

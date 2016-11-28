@@ -114,6 +114,6 @@ class InRow extends InsertionMode {
 	}
 
 	public function endDocument( $pos ) {
-		$dispatcher->inTable->endDocument( $pos );
+		$this->dispatcher->inTable->endDocument( $pos );
 	}
 }

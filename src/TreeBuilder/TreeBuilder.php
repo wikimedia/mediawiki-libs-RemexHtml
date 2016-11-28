@@ -3,6 +3,7 @@
 namespace Wikimedia\RemexHtml\TreeBuilder;
 use Wikimedia\RemexHtml\HTMLData;
 use Wikimedia\RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\PlainAttributes;
 use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
 
 class TreeBuilder {
@@ -72,6 +73,20 @@ class TreeBuilder {
 		} else {
 			$this->stack = new SimpleStack;
 		}
+	}
+
+	/**
+	 * Do not call this directly. Use Dispatcher::setFragmentContext().
+	 *
+	 * @param string $namespace The namespace of the context element
+	 * @param string $name The name of the context element
+	 */
+	public function setFragmentContext( $namespace, $name ) {
+		$this->isFragment = true;
+		$this->fragmentContext = new Element( HTMLData::NS_HTML, $name,
+			new PlainAttributes );
+		$html = new Element( HTMLData::NS_HTML, 'html', new PlainAttributes );
+		$this->stack->push( $html );
 	}
 
 	public function startDocument() {
@@ -622,7 +637,9 @@ class TreeBuilder {
 		$stack = $this->stack;
 		while ( $stack->current ) {
 			$popped = $stack->pop();
-			$this->handler->endTag( $popped, $pos, 0 );
+			if ( !$this->isFragment || $popped->htmlName !== 'html' ) {
+				$this->handler->endTag( $popped, $pos, 0 );
+			}
 		}
 		$this->handler->endDocument( $pos );
 	}

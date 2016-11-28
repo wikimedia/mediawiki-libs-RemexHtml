@@ -1,6 +1,7 @@
 <?php
 
 namespace Wikimedia\RemexHtml\TreeBuilder;
+use Wikimedia\RemexHtml\HTMLData;
 use Wikimedia\RemexHtml\Tokenizer;
 use Wikimedia\RemexHtml\TreeBuilder;
 use Wikimedia\RemexHtml\Serializer;
@@ -64,7 +65,7 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 				}
 				switch ( $section['name'] ) {
 				case 'errors':
-					$test['errors'] = explode( "\n", rtrim( $section['value'] ) );
+					$test['errors'] = explode( "\n", rtrim( $section['value'], "\n" ) );
 					break;
 
 				case 'document':
@@ -97,16 +98,16 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 		$startPos = $pos;
 		$name = $m[1];
 		$valuePos = $pos + strlen( $m[0] );
-		$endPos = strpos( $text, "\n\n", $valuePos );
-		$hashPos = strpos( $text, "\n#", $valuePos );
+		$endPos = strpos( $text, "\n\n", $valuePos - 1 );
+		$hashPos = strpos( $text, "\n#", $valuePos - 1 );
 		if ( $hashPos === false && $endPos === false ) {
 			$value = substr( $text, $valuePos );
 			$pos = strlen( $text );
-		} elseif ( $hashPos === false || $endPos < $hashPos ) {
+		} elseif ( $hashPos === false || ( $endPos !== false && $endPos < $hashPos ) ) {
 			$value = substr( $text, $valuePos, $endPos - $valuePos );
 			$pos = $endPos + strlen( "\n\n" );
 		} else {
-			$value = substr( $text, $valuePos, $hashPos - $valuePos + 1 );
+			$value = substr( $text, $valuePos, $hashPos - $valuePos );
 			$pos = $hashPos + 1;
 		}
 		$result = [
@@ -114,12 +115,19 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 			'value' => $value,
 			'line' => $lineNum
 		];
-		$lineNum += substr_count( $text, "\n", $startPos, $pos - $startPos );
+		if ( $pos >= strlen( $text ) ) {
+			$lineNum += substr_count( $text, "\n", $startPos );
+		} else {
+			$lineNum += substr_count( $text, "\n", $startPos, $pos - $startPos );
+		}
 		return $result;
 	}
 
 	/** @dataProvider provider */
 	public function testDefault( $params ) {
+		if ( !isset( $params['document'] ) ) {
+			throw new \Exception( "Test lacks #document: {$params['file']}:{$params['line']}" );
+		}
 		$formatter = new Serializer\TestFormatter;
 		$serializer = new Serializer\Serializer( $formatter );
 		$treeBuilder = new TreeBuilder\TreeBuilder( $serializer, [
@@ -127,6 +135,28 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 		] );
 		$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
 		$tokenizer = new Tokenizer\Tokenizer( $dispatcher, $params['data'], [] );
+		$treeBuilder->registerTokenizer( $tokenizer );
+
+		if ( isset( $params['fragment'] ) ) {
+			$fragment = explode( ' ', $params['fragment'] );
+			if ( count( $fragment ) > 1 ) {
+				if ( $fragment[0] === 'svg' ) {
+					$ns = HTMLData::NS_SVG;
+				} elseif ( $fragment[0] === 'math' ) {
+					$ns = HTMLData::NS_MATHML;
+				} else {
+					$ns = HTMLData::NS_HTML;
+				}
+				$name = $fragment[1];
+			} else {
+				$ns = HTMLData::NS_HTML;
+				$name = $fragment[0];
+			}
+
+			$dispatcher->setFragmentContext( $ns, $name );
+			$tokenizer->setFragmentContext( $ns, $name );
+		}
+
 		$tokenizer->execute();
 		$result = $serializer->getResult();
 

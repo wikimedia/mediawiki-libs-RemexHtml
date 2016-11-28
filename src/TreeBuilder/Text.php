@@ -10,7 +10,7 @@ class Text extends InsertionMode {
 
 	public function endDocument( $pos ) {
 		$this->builder->error( 'unexpected end of input in text mode', $pos );
-		$this->builder->pop();
+		$this->builder->pop( $pos, 0 );
 		$this->dispatcher->restoreMode()
 			->endDocument( $pos );
 	}
@@ -21,7 +21,7 @@ class Text extends InsertionMode {
 
 	public function endTag( $name, $sourceStart, $sourceLength ) {
 		// I think this is complete if we have no support for executing scripts
-		$this->builder->pop();
+		$this->builder->pop( $sourceStart, $sourceLength );
 		$this->dispatcher->restoreMode();
 	}
 }

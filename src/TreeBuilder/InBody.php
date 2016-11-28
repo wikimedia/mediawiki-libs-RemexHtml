@@ -190,7 +190,7 @@ class InBody extends InsertionMode {
 			if ( $stack->isInScope( 'button' ) ) {
 				$builder->error( 'invalid nested button tag, closing previous', $sourceStart );
 				$builder->generateImpliedEndTags( false, $sourceStart );
-				$builder->popAllUpToName( 'button', $sourceStart );
+				$builder->popAllUpToName( 'button', $sourceStart, 0 );
 			}
 			$builder->reconstructAFE( $sourceStart );
 			$builder->framesetOK = false;

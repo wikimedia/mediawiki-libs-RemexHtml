@@ -53,8 +53,8 @@ class Element implements FormattingElement {
 
 	public function isHtmlIntegration() {
 		if ( $this->namespace === HTMLData::NS_MATHML ) {
-			$encoding = strtolower( $this->attrs['encoding'] );
-			return $encoding === 'text/html' || $encoding === 'application/xhtml+xml';
+			return isset( $this->attrs['encoding'] )
+				&& ( $encoding === 'text/html' || $encoding === 'application/xhtml+xml' );
 		} elseif ( $this->namespace === HTMLData::NS_SVG ) {
 			return isset( self::$svgHtmlIntegration[$this->name] );
 		} else {

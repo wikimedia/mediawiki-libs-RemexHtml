@@ -94,6 +94,20 @@ class Dispatcher implements TokenHandler {
 		$this->switchMode( self::INITIAL );
 	}
 
+	/**
+	 * Set the fragment context of the dispatcher and tree builder
+	 *
+	 * @param string $namespace The namespace of the context element
+	 * @param string $name The name of the context element
+	 */
+	public function setFragmentContext( $namespace, $name ) {
+		$this->builder->setFragmentContext( $namespace, $name );
+		if ( $name === 'template' ) {
+			$this->templateModeStack->push( self::IN_TEMPLATE );
+		}
+		$this->reset();
+	}
+
 	public function switchMode( $mode ) {
 		$this->mode = $mode;
 		return $this->handler = $this->dispatchTable[$mode];
@@ -156,6 +170,9 @@ class Dispatcher implements TokenHandler {
 			$node = $stack->item( $idx );
 			if ( $idx === 0 ) {
 				$last = true;
+				if ( $builder->isFragment ) {
+					$node = $builder->fragmentContext;
+				}
 			}
 			switch ( $node->htmlName ) {
 			case 'select':

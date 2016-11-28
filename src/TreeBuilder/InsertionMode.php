@@ -16,7 +16,7 @@ abstract class InsertionMode {
 	}
 
 	public function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
-		$this->builder->error( "unexpected doctype" );
+		$this->builder->error( "unexpected doctype", $sourceStart );
 	}
 
 	public function comment( $text, $sourceStart, $sourceLength ) {

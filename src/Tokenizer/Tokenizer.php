@@ -148,6 +148,47 @@ class Tokenizer {
 	}
 
 	/**
+	 * Initialize the tokenizer for fragment parsing
+	 *
+	 * @param string $namespace The namespace of the context element
+	 * @param string $tagName The name of the context element
+	 */
+	public function setFragmentContext( $namespace, $tagName ) {
+		if ( strval( $namespace ) !== '' && $namespace !== HTMLData::NS_HTML ) {
+			return;
+		}
+
+		switch( $tagName ) {
+		case 'title':
+		case 'textarea':
+			$this->state = Tokenizer::STATE_RCDATA;
+			break;
+
+		case 'style':
+		case 'xmp':
+		case 'iframe':
+		case 'noembed':
+		case 'noframes':
+			$this->state = Tokenizer::STATE_RAWTEXT;
+			break;
+
+		case 'script':
+			$this->state = Tokenizer::STATE_SCRIPT_DATA;
+			break;
+
+		case 'noscript':
+			if ( $this->scriptingFlag ) {
+				$this->state = Tokenizer::STATE_RAWTEXT;
+			}
+			break;
+
+		case 'plaintext':
+			$this->state = Tokenizer::STATE_PLAINTEXT;
+			break;
+		}
+	}
+
+	/**
 	 * Notify the tokenizer that the document will be tokenized by repeated step()
 	 * calls. This must be called once only, before the first call to step().
 	 */

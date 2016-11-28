@@ -84,7 +84,7 @@ class InCell extends InsertionMode {
 	}
 
 	public function endDocument( $pos ) {
-		$dispatcher->inBody->endDocument( $pos );
+		$this->dispatcher->inBody->endDocument( $pos );
 	}
 
 	private function closeTheCell( $sourceStart ) {

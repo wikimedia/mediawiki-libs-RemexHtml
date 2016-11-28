@@ -45,7 +45,11 @@ class Serializer implements TreeHandler {
 		$encoded = (string)$this->formatter->characters( $text, $start, $length );
 
 		if ( $parentElement !== null ) {
-			$parent = $parentElement->userData->self;
+			if ( $parentElement->userData === null ) {
+				$parent = $this->root;
+			} else {
+				$parent = $parentElement->userData->self;
+			}
 		} else {
 			$parent = $this->root;
 		}
@@ -76,7 +80,12 @@ class Serializer implements TreeHandler {
 		$sourceStart, $sourceLength
 	) {
 		if ( $parentElement !== null ) {
-			$parent = $parentElement->userData->self;
+			if ( $parentElement->userData === null ) {
+				// Fragment case
+				$parent = $this->root;
+			} else {
+				$parent = $parentElement->userData->self;
+			}
 		} else {
 			$parent = $this->root;
 		}
@@ -103,6 +112,9 @@ class Serializer implements TreeHandler {
 	}
 
 	public function endTag( Element $element, $sourceStart, $sourceLength ) {
+		if ( !$element->userData ) {
+			throw new \Exception( var_export( $element, true ) );
+		}
 		$parent = $element->userData->parent;
 		$self = $element->userData->self;
 		$children =& $parent->children;
@@ -141,7 +153,11 @@ class Serializer implements TreeHandler {
 	public function comment( $parentElement, $refElement, $text, $sourceStart, $sourceLength ) {
 		$encoded = $this->formatter->comment( $text );
 		if ( $parentElement !== null ) {
-			$parent = $parentElement->userData->self;
+			if ( $parentElement->userData === null ) {
+				$parent = $this->root;
+			} else {
+				$parent = $parentElement->userData->self;
+			}
 		} else {
 			$parent = $this->root;
 		}

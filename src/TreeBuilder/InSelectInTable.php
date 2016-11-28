@@ -72,6 +72,6 @@ class InSelectInTable extends InsertionMode {
 	}
 
 	public function endDocument( $pos ) {
-		$dispatcher->inSelect->endDocument( $pos );
+		$this->dispatcher->inSelect->endDocument( $pos );
 	}
 }
