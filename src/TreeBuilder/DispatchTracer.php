@@ -16,19 +16,25 @@ class DispatchTracer implements TokenHandler {
 	}
 
 	private function trace( $msg ) {
-		call_user_func( $this->callback, $msg );
+		call_user_func( $this->callback, "[Dispatch] $msg" );
+	}
+
+	private function excerpt( $text ) {
+		if ( strlen( $text ) > 20 ) {
+			$text = substr( $text, 0, 20 ) . '...';
+		}
+		return str_replace( "\n", "\\n", $text );
 	}
 
 	private function wrap( $funcName, $sourceStart, $sourceLength, $args ) {
 		$prevHandler = $this->getHandlerName();
-		$msg = "$funcName $prevHandler\n";
-		$msg .= '  ' . wordwrap( substr( $this->input, $sourceStart, $sourceLength ),
-			75, "\n  " ) . "\n";
+		$excerpt = $this->excerpt( substr( $this->input, $sourceStart, $sourceLength ) );
+		$msg = "$funcName $prevHandler \"$excerpt\"";
 		$this->trace( $msg );
 		call_user_func_array( [ $this->dispatcher, $funcName ], $args );
 		$handler = $this->getHandlerName();
 		if ( $prevHandler !== $handler ) {
-			$this->trace( "$prevHandler -> $handler\n" );
+			$this->trace( "$prevHandler -> $handler" );
 		}
 	}
 

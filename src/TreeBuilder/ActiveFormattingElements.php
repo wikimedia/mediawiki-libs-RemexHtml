@@ -295,10 +295,9 @@ class ActiveFormattingElements {
 				$s .= "MARKER\n";
 				continue;
 			}
-			$s .= $node->name . '#' . substr( md5( spl_object_hash( $node ) ), 0, 8 );
+			$s .= $node->getDebugTag();
 			if ( $node->nextNoah ) {
-				$s .= " (noah sibling: {$node->nextNoah->name}#" .
-					substr( md5( spl_object_hash( $node->nextNoah ) ), 0, 8 ) .
+				$s .= " (noah sibling: " . $node->nextNoah->getDebugTag() .
 					')';
 			}
 			if ( $node->nextAFE && $node->nextAFE->prevAFE !== $node ) {

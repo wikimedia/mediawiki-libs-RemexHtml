@@ -44,7 +44,8 @@ class InCell extends InsertionMode {
 		case 'td':
 		case 'th':
 			if ( !$stack->isInTableScope( $name ) ) {
-				$builder->error( "</$name> encountered but there is no $name in scope, ignoring" );
+				$builder->error( "</$name> encountered but there is no $name in scope, ignoring",
+					$sourceStart );
 				return;
 			}
 			$builder->generateImpliedEndTags( null, $sourceStart );
@@ -71,11 +72,12 @@ class InCell extends InsertionMode {
 		case 'thead':
 		case 'tr':
 			if ( !$stack->isInTableScope( $name ) ) {
-				$builder->error( "</$name> encountered but there is no $name in scope, ignoring" );
+				$builder->error( "</$name> encountered but there is no $name in scope, ignoring",
+					$sourceStart );
 				return;
 			}
 			$this->closeTheCell( $sourceStart )
-				->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
+				->endTag( $name, $sourceStart, $sourceLength );
 			break;
 
 		default:

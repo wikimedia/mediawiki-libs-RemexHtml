@@ -64,6 +64,13 @@ function traceDispatch( $text ) {
 	TreeBuilder\Parser::parseDocument( $text, [ 'traceDispatch' => true ] );
 }
 
+function trace( $text ) {
+	TreeBuilder\Parser::parseDocument( $text, [
+		'traceTreeMutation' => true,
+		'traceDispatch' => true,
+	] );
+}
+
 function tidyBodyViaDOM( $text ) {
 	$docText = "<!DOCTYPE html>\n<html><head></head><body>$text</body></html>";
 	$doc = TreeBuilder\Parser::parseDocument( $docText, [] );
@@ -89,6 +96,7 @@ function tidy( $text ) {
 	$treeBuilder = new TreeBuilder\TreeBuilder( $serializer, [] );
 	$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
 	$tokenizer = new Tokenizer\Tokenizer( $dispatcher, $text, $GLOBALS['tokenizerOptions'] );
+	$treeBuilder->registerTokenizer( $tokenizer );
 	$tokenizer->execute();
 	print $serializer->getResult() . "\n";
 }

@@ -125,8 +125,17 @@ class ForeignAttributes implements Attributes {
 		return $result;
 	}
 
+	public function key() {
+		$name = parent::key();
+		return isset( $this->table[$name] ) ? $this->table[$name] : $name;
+	}
+
 	public function count() {
 		return $this->unadjusted->count();
+	}
+
+	public function getIterator() {
+		return new \ArrayIterator( $this->getArrayCopy() );
 	}
 
 	public function createAttributeObjects() {
@@ -147,5 +156,9 @@ class ForeignAttributes implements Attributes {
 			$result[$name] = new Attribute( $name, $namespace, $prefix, $localName, $value );
 		}
 		return $result;
+	}
+
+	public function merge( Attributes $other ) {
+		throw new TreeBuilderError( __METHOD__ . ': unimplemented' );
 	}
 }

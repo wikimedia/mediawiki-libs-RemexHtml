@@ -1,6 +1,7 @@
 <?php
 
 namespace Wikimedia\RemexHtml\Serializer;
+use Wikimedia\RemexHtml\TreeBuilder\TreeBuilder;
 use Wikimedia\RemexHtml\TreeBuilder\TreeHandler;
 use Wikimedia\RemexHtml\TreeBuilder\Element;
 use Wikimedia\RemexHtml\Tokenizer\Attributes;
@@ -39,25 +40,24 @@ class Serializer implements TreeHandler {
 		$this->result .= $result;
 	}
 
-	public function characters( $parentElement, $refElement, $text, $start, $length,
+	public function characters( $preposition, $refElement, $text, $start, $length,
 		$sourceStart, $sourceLength
 	) {
 		$encoded = (string)$this->formatter->characters( $text, $start, $length );
 
-		if ( $parentElement !== null ) {
-			if ( $parentElement->userData === null ) {
-				$parent = $this->root;
-			} else {
-				$parent = $parentElement->userData->self;
-			}
-		} else {
+		if ( $preposition === TreeBuilder::ROOT ) {
 			$parent = $this->root;
+		} elseif ( $preposition === TreeBuilder::BEFORE ) {
+			$parent = $refElement->userData->parent;
+		} else {
+			$parent = $refElement->userData->self;
 		}
+
 		$children =& $parent->children;
 		$lastChildIndex = count( $children ) - 1;
 		$lastChild = $lastChildIndex >= 0 ? $children[$lastChildIndex] : null;
 
-		if ( $refElement !== null ) {
+		if ( $preposition === TreeBuilder::BEFORE ) {
 			// Insert before element
 			$refNode = $refElement->userData->self;
 			if ( $lastChild !== $refNode ) {
@@ -76,18 +76,15 @@ class Serializer implements TreeHandler {
 		}
 	}
 
-	public function insertElement( $parentElement, $refElement, Element $element, $void,
+	public function insertElement( $preposition, $refElement, Element $element, $void,
 		$sourceStart, $sourceLength
 	) {
-		if ( $parentElement !== null ) {
-			if ( $parentElement->userData === null ) {
-				// Fragment case
-				$parent = $this->root;
-			} else {
-				$parent = $parentElement->userData->self;
-			}
-		} else {
+		if ( $preposition === TreeBuilder::ROOT ) {
 			$parent = $this->root;
+		} elseif ( $preposition === TreeBuilder::BEFORE ) {
+			$parent = $refElement->userData->parent;
+		} else {
+			$parent = $refElement->userData->self;
 		}
 		$children =& $parent->children;
 		$lastChildIndex = count( $children ) - 1;
@@ -95,7 +92,7 @@ class Serializer implements TreeHandler {
 
 		$self = new SerializerNode( $element->namespace, $element->name, $element->attrs, $void );
 
-		if ( $refElement !== null ) {
+		if ( $preposition === TreeBuilder::BEFORE ) {
 			// Insert before element
 			$refNode = $refElement->userData->self;
 			if ( $lastChild !== $refNode ) {
@@ -112,8 +109,9 @@ class Serializer implements TreeHandler {
 	}
 
 	public function endTag( Element $element, $sourceStart, $sourceLength ) {
-		if ( !$element->userData ) {
-			throw new \Exception( var_export( $element, true ) );
+		if ( $element->htmlName === 'head' || $element->isVirtual ) {
+			// <head> elements are immortal
+			return;
 		}
 		$parent = $element->userData->parent;
 		$self = $element->userData->self;
@@ -124,7 +122,6 @@ class Serializer implements TreeHandler {
 				return;
 			}
 		}
-		throw new SerializerError( "unable to find an element which is ending" );
 	}
 
 	private function flatten( $parent, $selfIndex, $self ) {
@@ -150,22 +147,20 @@ class Serializer implements TreeHandler {
 		$this->result .= $this->formatter->doctype( $name, $public, $system );
 	}
 
-	public function comment( $parentElement, $refElement, $text, $sourceStart, $sourceLength ) {
+	public function comment( $preposition, $refElement, $text, $sourceStart, $sourceLength ) {
 		$encoded = $this->formatter->comment( $text );
-		if ( $parentElement !== null ) {
-			if ( $parentElement->userData === null ) {
-				$parent = $this->root;
-			} else {
-				$parent = $parentElement->userData->self;
-			}
-		} else {
+		if ( $preposition === TreeBuilder::ROOT ) {
 			$parent = $this->root;
+		} elseif ( $preposition === TreeBuilder::BEFORE ) {
+			$parent = $refElement->userData->parent;
+		} else {
+			$parent = $refElement->userData->self;
 		}
 		$children =& $parent->children;
 		$lastChildIndex = count( $children ) - 1;
 		$lastChild = $lastChildIndex >= 0 ? $children[$lastChildIndex] : null;
 
-		if ( $refElement !== null ) {
+		if ( $preposition === TreeBuilder::BEFORE ) {
 			// Insert before element
 			$refNode = $refElement->self;
 			if ( $lastChild !== $refNode ) {
@@ -190,7 +185,10 @@ class Serializer implements TreeHandler {
 	}
 
 	public function mergeAttributes( Element $element, Attributes $attrs, $sourceStart ) {
-		$element->userData->attrs->merge( $attrs );
+		$element->attrs->merge( $attrs );
+		if ( $element->userData instanceof SerializerNode ) {
+			$element->userData->self->attrs = $element->attrs;
+		}
 	}
 
 	public function reparentNode( Element $element, Element $newParent, $sourceStart ) {

@@ -15,15 +15,25 @@ class Parser {
 			'tokenizer' => [],
 			'domBuilder' => [],
 			'traceDispatch' => false,
+			'traceTreeMutation' => false,
 		];
 
 		$this->domBuilder = new DOMBuilder( $options['domBuilder'] );
-		$this->treeBuilder = new TreeBuilder( $this->domBuilder, $options['treeBuilder'] );
+		if ( $options['traceTreeMutation'] ) {
+			$treeHandler = new TreeMutationTracer( $this->domBuilder,
+				function ( $msg ) {
+					print "$msg\n";
+				}
+			);
+		} else {
+			$treeHandler = $this->domBuilder;
+		}
+		$this->treeBuilder = new TreeBuilder( $treeHandler, $options['treeBuilder'] );
 		$this->dispatcher = new Dispatcher( $this->treeBuilder );
 		if ( $options['traceDispatch'] ) {
 			$tokenHandler = new DispatchTracer( $text, $this->dispatcher,
 				function ( $msg ) {
-					print $msg;
+					print "$msg\n";
 				}
 			);
 		} else {

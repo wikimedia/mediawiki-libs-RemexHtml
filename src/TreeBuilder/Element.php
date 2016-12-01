@@ -10,6 +10,7 @@ class Element implements FormattingElement {
 	public $htmlName;
 	public $attrs;
 	public $attrObjects;
+	public $isVirtual;
 
 	public $nextScope;
 	public $prevAFE, $nextAFE, $nextNoah;
@@ -53,8 +54,12 @@ class Element implements FormattingElement {
 
 	public function isHtmlIntegration() {
 		if ( $this->namespace === HTMLData::NS_MATHML ) {
-			return isset( $this->attrs['encoding'] )
-				&& ( $encoding === 'text/html' || $encoding === 'application/xhtml+xml' );
+			if ( isset( $this->attrs['encoding'] ) ) {
+				$encoding = strtolower( $this->attrs['encoding'] );
+				return $encoding === 'text/html' || $encoding === 'application/xhtml+xml';
+			} else {
+				return false;
+			}
 		} elseif ( $this->namespace === HTMLData::NS_SVG ) {
 			return isset( self::$svgHtmlIntegration[$this->name] );
 		} else {
@@ -88,5 +93,9 @@ class Element implements FormattingElement {
 			$this->attrObjects = $result;
 		}
 		return $this->attrObjects;
+	}
+
+	public function getDebugTag() {
+		return $this->htmlName . '#' . substr( md5( spl_object_hash( $this ) ), 0, 8 );
 	}
 }

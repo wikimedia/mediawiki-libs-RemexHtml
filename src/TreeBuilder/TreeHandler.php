@@ -19,9 +19,13 @@ interface TreeHandler {
 	/**
 	 * Insert characters.
 	 *
-	 * @param Element|null $parent The parent element, or null for the root node
-	 * @param Element|null $refNode Insert before this sibling, or null to
-	 *   append to the end of the child node list.
+	 * @param integer $preposition The placement of the new node with respect
+	 *   to $ref. May be TreeBuilder::
+	 *    - BEFORE: insert as a sibling before the reference element
+	 *    - BELOW: append as the last child of the reference element
+	 *    - ROOT: append as the last child of the document node
+	 * @param Element|null $ref Insert before/below this element, or null if
+	 *   $preposition is ROOT.
 	 * @param string $text The text to insert is a substring of this string,
 	 *   with the start and length of the substring given by $start and
 	 *   $length. We do it this way to avoid unnecessary copying.
@@ -33,7 +37,7 @@ interface TreeHandler {
 	 * @param integer $sourceLength The length of the input which is consumed.
 	 *   The same caveats apply as for $sourceStart.
 	 */
-	function characters( $parent, $refNode, $text, $start, $length, $sourceStart, $sourceLength );
+	function characters( $preposition, $ref, $text, $start, $length, $sourceStart, $sourceLength );
 
 	/**
 	 * Insert an element. The element name and attributes are given in the
@@ -41,9 +45,13 @@ interface TreeHandler {
 	 * identifier to the userData property of the Element object, to identify
 	 * the element when it is used again in subsequent tree mutations.
 	 *
-	 * @param Element|null $parent The parent element, or null for the root node
-	 * @param Element|null $refNode Insert before this sibling, or null to
-	 *   append to the end of the child node list.
+	 * @param integer $preposition The placement of the new node with respect
+	 *   to $ref. May be TreeBuilder::
+	 *    - BEFORE: insert as a sibling before the reference element
+	 *    - BELOW: append as the last child of the reference element
+	 *    - ROOT: append as the last child of the document node
+	 * @param Element|null $ref Insert before/below this element, or null if
+	 *   $preposition is ROOT.
 	 * @param Element $element An object containing information about the new
 	 *   element. The same object will be used for $parent and $refNode in
 	 *   other calls as appropriate. The handler can set $element->userData to
@@ -58,7 +66,7 @@ interface TreeHandler {
 	 * @param integer $sourceStart The input position
 	 * @param integer $sourceLength The length of the input which is consumed
 	 */
-	function insertElement( $parent, $refNode, Element $element, $void,
+	function insertElement( $preposition, $ref, Element $element, $void,
 		$sourceStart, $sourceLength );
 
 	/**
@@ -89,14 +97,18 @@ interface TreeHandler {
 	/**
 	 * Insert a comment
 	 *
-	 * @param Element|null $parent The parent element, or null for the root node
-	 * @param Element|null $refNode Insert before this sibling, or null to
-	 *   append to the end of the child node list.
+	 * @param integer $preposition The placement of the new node with respect
+	 *   to $ref. May be TreeBuilder::
+	 *    - BEFORE: insert as a sibling before the reference element
+	 *    - BELOW: append as the last child of the reference element
+	 *    - ROOT: append as the last child of the document node
+	 * @param Element|null $ref Insert before/below this element, or null if
+	 *   $preposition is ROOT.
 	 * @param string $text The text of the comment
 	 * @param integer $sourceStart The input position
 	 * @param integer $sourceLength The length of the input which is consumed
 	 */
-	function comment( $parent, $refNode, $text, $sourceStart, $sourceLength );
+	function comment( $preposition, $ref, $text, $sourceStart, $sourceLength );
 
 	/**
 	 * A parse error

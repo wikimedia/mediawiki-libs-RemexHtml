@@ -9,4 +9,15 @@ namespace Wikimedia\RemexHtml\Tokenizer;
  * called PlainAttributes but really it is just an ArrayObject in disguise.
  */
 class PlainAttributes extends \ArrayObject implements Attributes  {
+	public function __construct( $data = [] ) {
+		parent::__construct( $data );
+	}
+
+	public function merge( Attributes $other ) {
+		foreach ( $other as $name => $value ) {
+			if ( !isset( $this[$name] ) ) {
+				$this[$name] = $value;
+			}
+		}
+	}
 }

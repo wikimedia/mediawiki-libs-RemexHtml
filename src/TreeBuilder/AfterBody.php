@@ -6,7 +6,7 @@ use Wikimedia\RemexHtml\Tokenizer\Attributes;
 class AfterBody extends InsertionMode {
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		list( $part1, $part2 ) = $this->splitInitialMatch(
-			true, "\t\n\f\r ", $text, $start, $length );
+			true, "\t\n\f\r ", $text, $start, $length, $sourceStart, $sourceLength );
 		list( $start, $length, $sourceStart, $sourceLength ) = $part1;
 		if ( $length ) {
 			$this->dispatcher->inBody->characters(
@@ -57,11 +57,11 @@ class AfterBody extends InsertionMode {
 	}
 
 	public function endDocument( $pos ) {
-		$builder->stopParsing( $pos );
+		$this->builder->stopParsing( $pos );
 	}
 
 	public function comment( $text, $sourceStart, $sourceLength ) {
-		$this->builder->comment( [ $this->builder->stack->item( 0 ), null ],
+		$this->builder->comment( [ TreeBuilder::BELOW, $this->builder->stack->item( 0 ) ],
 			$text, $sourceStart, $sourceLength );
 	}
 }

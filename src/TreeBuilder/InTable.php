@@ -80,7 +80,7 @@ class InTable extends InsertionMode {
 			break;
 
 		case 'table':
-			$this->error( 'unexpected <table> in table' );
+			$builder->error( 'unexpected <table> in table', $sourceStart );
 			if ( !$stack->isInTableScope( 'table' ) ) {
 				// Ignore
 				break;
@@ -97,7 +97,7 @@ class InTable extends InsertionMode {
 			break;
 
 		case 'form':
-			$builder->error( 'invalid form in table, ignoring', $sourcePos );
+			$builder->error( 'invalid form in table, ignoring', $sourceStart );
 			if ( $stack->hasTemplate() || $builder->formElement !== null ) {
 				// Ignore
 				break;
@@ -108,9 +108,9 @@ class InTable extends InsertionMode {
 			break;
 
 		case 'input':
-			if ( isset( $attrs['type'] ) && strncmp( $attrs['type'], 'hidden' ) === 0 ) {
+			if ( isset( $attrs['type'] ) && strcasecmp( $attrs['type'], 'hidden' ) === 0 ) {
 				$builder->error( 'begrudgingly accepting a hidden input in table mode',
-					$sourcePos );
+					$sourceStart );
 				$dispatcher->ack = true;
 				$builder->insertElement( $name, $attrs, true, $sourceStart, $sourceLength );
 				break;
@@ -134,7 +134,7 @@ class InTable extends InsertionMode {
 		switch ( $name ) {
 		case 'table':
 			if ( !$stack->isInTableScope( 'table' ) ) {
-				$builder->error( '</table> found but no table element in scope, ignoring' );
+				$builder->error( '</table> found but no table element in scope, ignoring', $sourceStart );
 				// Ignore
 				break;
 			}
@@ -153,12 +153,11 @@ class InTable extends InsertionMode {
 		case 'th':
 		case 'thead':
 		case 'tr':
-			$builder->error( 'ignoring invalid end tag inside table' );
+			$builder->error( 'ignoring invalid end tag inside table', $sourceStart );
 			break;
 
 		case 'template':
-			$dispatcher->inHead->startTag( $name, $attrs, $selfClose,
-				$sourceStart, $sourceLength );
+			$dispatcher->inHead->endTag( $name, $sourceStart, $sourceLength );
 			break;
 		}
 	}

@@ -23,7 +23,7 @@ class InCaption extends InsertionMode {
 			case 'thead':
 			case 'tr':
 				$builder->error( "start tag <$name> not allowed in caption", $sourceStart );
-				if ( !$stack->isInScope( 'caption' ) ) {
+				if ( !$stack->isInTableScope( 'caption' ) ) {
 					// Ignore
 					return;
 				}

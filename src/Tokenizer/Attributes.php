@@ -5,7 +5,7 @@ namespace Wikimedia\RemexHtml\Tokenizer;
 /**
  * Interface for attributes emitted by the tokenizer
  */
-interface Attributes extends \ArrayAccess {
+interface Attributes extends \ArrayAccess, \IteratorAggregate {
 	/**
 	 * Get the attributes as an array
 	 * @return array
@@ -20,4 +20,12 @@ interface Attributes extends \ArrayAccess {
 	 * attributes must be removed.
 	 */
 	function count();
+
+	/**
+	 * Add any attributes in the argument to $this, but if an attribute of the
+	 * same name already exists, do not overwrite it.
+	 *
+	 * @param Attributes $other
+	 */
+	function merge( Attributes $other );
 }

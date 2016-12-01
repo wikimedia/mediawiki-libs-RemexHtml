@@ -20,4 +20,17 @@ abstract class Stack {
 	abstract public function item( $idx );
 	abstract public function length();
 	abstract public function hasTemplate();
+
+	public function dump() {
+		$s = '';
+		for ( $i = 0; $i < $this->length(); $i++ ) {
+			$item = $this->item( $i );
+			$s .= "$i. " . $item->getDebugTag();
+			if ( $i === $this->length() - 1 && $item !== $this->current ) {
+				$s .= " CURRENT POINTER INCORRECT";
+			}
+			$s .= "\n";
+		}
+		return $s;
+	}
 }

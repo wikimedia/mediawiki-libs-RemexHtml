@@ -310,7 +310,7 @@ class CachingStack extends Stack {
 			throw new TreeBuilderError( __METHOD__ . ': element not in stack' );
 		}
 		$n = count( $this->elements );
-		for ( $i = $n - 1; $i > $eltIndex; $i++ ) {
+		for ( $i = $n - 1; $i > $eltIndex; $i-- ) {
 			$tempStack[] = $this->pop();
 		}
 		$this->pop();

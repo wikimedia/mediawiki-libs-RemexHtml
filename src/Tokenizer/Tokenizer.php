@@ -105,6 +105,12 @@ class Tokenizer {
 		$this->ignoreCharRefs = !empty( $options['ignoreCharRefs'] );
 		$this->ignoreNulls = !empty( $options['ignoreNulls'] );
 		$this->skipPreprocess = !empty( $options['skipPreprocess'] );
+
+		$version = explode( ' ', PCRE_VERSION );
+		if ( version_compare( $version[0], '8.36', '<' ) ) {
+			throw new TokenizerError( 'The script data regex requires PCRE 8.36 or later.' );
+			// Possibly 8.35 would work, but 8.34 fails the unit tests.
+		}
 	}
 
 	public function setEnableCdataCallback( $cb ) {
@@ -158,7 +164,7 @@ class Tokenizer {
 			return;
 		}
 
-		switch( $tagName ) {
+		switch ( $tagName ) {
 		case 'title':
 		case 'textarea':
 			$this->state = Tokenizer::STATE_RCDATA;

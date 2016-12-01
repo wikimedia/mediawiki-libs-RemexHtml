@@ -47,7 +47,7 @@ class InSelect extends InsertionMode {
 		case 'keygen':
 		case 'textarea':
 			$builder->error( "<$name> found inside a select element", $sourceStart );
-			if ( !$stack->inSelectScope( 'select' ) ) {
+			if ( !$stack->isInSelectScope( 'select' ) ) {
 				// Ignore
 				return;
 			}
@@ -106,7 +106,7 @@ class InSelect extends InsertionMode {
 			$dispatcher->inHead->endTag( $name, $sourceStart, $sourceLength );
 			break;
 		default:
-			$builder->error( "unexpected </$name> in select, ignoring" );
+			$builder->error( "unexpected </$name> in select, ignoring", $sourceStart );
 			break;
 		}
 	}

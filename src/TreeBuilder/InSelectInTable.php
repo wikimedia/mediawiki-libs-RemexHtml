@@ -59,9 +59,9 @@ class InSelectInTable extends InsertionMode {
 					$sourceStart );
 				return;
 			}
-			$builder->error( "unexpectd </$name> in select in table, closing select",
+			$builder->error( "unexpected </$name> in select in table, closing select",
 				$sourceStart );
-			$builder->popAllUpToName( 'select' );
+			$builder->popAllUpToName( 'select', $sourceStart, 0 );
 			$dispatcher->reset()
 				->endTag( $name, $sourceStart, $sourceLength );
 			break;

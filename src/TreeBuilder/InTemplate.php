@@ -83,7 +83,7 @@ class InTemplate extends InsertionMode {
 			 return;
 		 }
 
-		 $builder->error( "unexpected end of file in template", $sourceStart );
+		 $builder->error( "unexpected end of file in template", $pos );
 		 $builder->popAllUpToName( 'template', $pos, 0 );
 		 $builder->afe->clearToMarker();
 		 $dispatcher->templateModeStack->pop();

@@ -62,7 +62,7 @@ class InRow extends InsertionMode {
 		switch ( $name ) {
 		case 'tr':
 			if ( !$stack->isInTableScope( 'tr' ) ) {
-				$builder->error( '</tr> found but no tr element in scope' );
+				$builder->error( '</tr> found but no tr element in scope', $sourceStart );
 				// Ignore
 				return;
 			}

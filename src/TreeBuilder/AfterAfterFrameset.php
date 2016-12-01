@@ -30,14 +30,14 @@ class AfterAfterFrameset extends InsertionMode {
 	}
 
 	public function endTag( $name, $sourceStart, $sourceLength ) {
-		$builder->error( "unexpected end tag after after frameset", $sourceStart );
+		$this->builder->error( "unexpected end tag after after frameset", $sourceStart );
 	}
 
 	public function endDocument( $pos ) {
-		$builder->stopParsing( $pos );
+		$this->builder->stopParsing( $pos );
 	}
 
 	public function comment( $text, $sourceStart, $sourceLength ) {
-		$this->builder->comment( [ null, null ], $text, $sourceStart, $sourceLength );
+		$this->builder->comment( [ TreeBuilder::ROOT, null ], $text, $sourceStart, $sourceLength );
 	}
 }

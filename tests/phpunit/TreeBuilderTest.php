@@ -19,6 +19,7 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 		$args = [];
 		foreach ( $testFiles as $fileName ) {
 			$tests = $this->readFile( $fileName );
+
 			foreach ( $tests as $test ) {
 				if ( isset( $test['scripting'] ) ) {
 					$args[] = [ $test ];
@@ -58,7 +59,7 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 				'line' => $startLine
 			];
 
-			while ( true ) {
+			do {
 				$section = $this->readSection( $text, $pos, $lineNum );
 				if ( !$section ) {
 					break;
@@ -84,7 +85,7 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 					$test['scripting'] = false;
 					break;
 				}
-			}
+			} while ( !$section['end'] );
 			$tests[] = $test;
 		}
 		return $tests;
@@ -98,14 +99,20 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 		$startPos = $pos;
 		$name = $m[1];
 		$valuePos = $pos + strlen( $m[0] );
-		$endPos = strpos( $text, "\n\n", $valuePos - 1 );
+		if ( $name === 'data' ) {
+			$endPos = false;
+		} else {
+			$endPos = strpos( $text, "\n\n", $valuePos - 1 );
+		}
 		$hashPos = strpos( $text, "\n#", $valuePos - 1 );
+		$isEnd = false;
 		if ( $hashPos === false && $endPos === false ) {
 			$value = substr( $text, $valuePos );
 			$pos = strlen( $text );
 		} elseif ( $hashPos === false || ( $endPos !== false && $endPos < $hashPos ) ) {
 			$value = substr( $text, $valuePos, $endPos - $valuePos );
 			$pos = $endPos + strlen( "\n\n" );
+			$isEnd = true;
 		} else {
 			$value = substr( $text, $valuePos, $hashPos - $valuePos );
 			$pos = $hashPos + 1;
@@ -113,7 +120,8 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 		$result = [
 			'name' => $name,
 			'value' => $value,
-			'line' => $lineNum
+			'line' => $lineNum,
+			'end' => $isEnd,
 		];
 		if ( $pos >= strlen( $text ) ) {
 			$lineNum += substr_count( $text, "\n", $startPos );
@@ -160,9 +168,20 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 		$tokenizer->execute();
 		$result = $serializer->getResult();
 
+		// Normalize adjacent text nodes
+		do {
+			$prevResult = $result;
+			$result = preg_replace( '/^([ ]*)"([^"]*+)"\n\1"([^"]*+)"\n/m', "\\1\"\\2\\3\"\n", $result );
+		} while ( $prevResult !== $result );
+
+		// Format appropriately
 		$result = preg_replace( '/^/m', "| ", $result );
 		$result = str_replace( '\n', "\n", $result );
 
-		$this->assertEquals( $params['document'], $result, "{$params['file']}:{$params['line']}" );
+		// Normalize terminating line break
+		$result = rtrim( $result, "\n" );
+		$expected = rtrim( $params['document'], "\n" );
+
+		$this->assertEquals( $expected, $result, "{$params['file']}:{$params['line']}" );
 	}
 }

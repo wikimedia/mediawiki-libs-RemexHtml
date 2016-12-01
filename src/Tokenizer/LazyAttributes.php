@@ -64,4 +64,22 @@ class LazyAttributes implements Attributes {
 	public function count() {
 		return is_object( $this->data ) ? $this->data->count() : count( $this->data );
 	}
+
+	public function getIterator() {
+		if ( $this->attributes === null ) {
+			$this->init();
+		}
+		return new \ArrayIterator( $this->attributes );
+	}
+
+	public function merge( Attributes $other ) {
+		if ( $this->attributes === null ) {
+			$this->init();
+		}
+		foreach ( $other as $name => $value ) {
+			if ( !isset( $this->attributes[$name] ) ) {
+				$this->attributes[$name] = $value;
+			}
+		}
+	}
 }

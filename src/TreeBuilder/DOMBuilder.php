@@ -22,20 +22,30 @@ class DOMBuilder implements TreeHandler {
 	public function endDocument( $pos ) {
 	}
 
-	public function characters( $parent, $refElement, $text, $start, $length,
-		$sourceStart, $sourceLength
-	) {
-		$parentNode = $parent ? $parent->userData : $this->doc;
-		$refNode = $refElement ? $refElement->userData : null;
-		$node = $this->doc->createTextNode( substr( $text, $start, $length ) );
-		$parentNode->insertBefore( $node, $refNode );
+	private function insertNode( $preposition, $refElement, $node ) {
+		if ( $preposition === TreeBuilder::ROOT ) {
+			$parent = $this->doc;
+			$refNode = null;
+		} elseif ( $preposition === TreeBuilder::BEFORE ) {
+			$parent = $refElement->userData->parentNode;
+			$refNode = $refElement->userData;
+		} else {
+			$parent = $refElement->userData;
+			$refNode = null;
+		}
+		$parent->insertBefore( $node, $refNode );
 	}
 
-	public function insertElement( $parent, $refElement, Element $element, $void,
+	public function characters( $preposition, $refElement, $text, $start, $length,
 		$sourceStart, $sourceLength
 	) {
-		$parentNode = $parent ? $parent->userData : $this->doc;
-		$refNode = $refElement ? $refElement->userData : null;
+		$node = $this->doc->createTextNode( substr( $text, $start, $length ) );
+		$this->insertNode( $preposition, $refElement, $node );
+	}
+
+	public function insertElement( $preposition, $refElement, Element $element, $void,
+		$sourceStart, $sourceLength
+	) {
 		$node = $this->doc->createElementNS(
 			$element->namespace,
 			$element->name );
@@ -50,7 +60,7 @@ class DOMBuilder implements TreeHandler {
 				$node->setAttribute( $attr->localName, $attr->value );
 			}
 		}
-		$parentNode->insertBefore( $node, $refNode );
+		$this->insertNode( $preposition, $refElement, $node );
 		$element->userData = $node;
 	}
 
@@ -60,11 +70,9 @@ class DOMBuilder implements TreeHandler {
 	public function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
 	}
 
-	public function comment( $parent, $refElement, $text, $sourceStart, $sourceLength ) {
-		$parentNode = $parent ? $parent->userData : $this->doc;
-		$refNode = $refElement ? $refElement->userData : null;
+	public function comment( $preposition, $refElement, $text, $sourceStart, $sourceLength ) {
 		$node = $this->doc->createComment( $text );
-		$parentNode->insertBefore( $node, $refNode );
+		$this->insertNode( $preposition, $refElement, $node );
 	}
 
 	public function error( $text, $pos ) {

@@ -14,12 +14,12 @@ class TestFormatter implements Formatter {
 		if ( $public !== '' || $system !== '' ) {
 			$ret .= " \"$public\" \"$system\"";
 		}
-		$ret .= '>';
+		$ret .= ">\n";
 		return $ret;
 	}
 
 	function characters( $text, $start, $length ) {
-		return '"' . 
+		return '"' .
 			str_replace( "\n", "\\n", substr( $text, $start, $length ) ) .
 			"\"\n";
 	}
@@ -37,8 +37,8 @@ class TestFormatter implements Formatter {
 		$ret = "<$tagName>\n";
 		$sortedAttrs = $attrs->getArrayCopy();
 		ksort( $sortedAttrs );
-		foreach ( $sortedAttrs as $name => $value ) {
-			$ret .= "  $name=\"$value\"";
+		foreach ( $sortedAttrs as $attrName => $value ) {
+			$ret .= "  $attrName=\"$value\"";
 		}
 		if ( $contents !== null && $contents !== '' ) {
 			$contents = preg_replace( '/^/m', '  ', $contents );
@@ -53,6 +53,6 @@ class TestFormatter implements Formatter {
 	}
 
 	function comment( $text ) {
-		return "<!--$text-->\n";
+		return "<!-- $text -->\n";
 	}
 }

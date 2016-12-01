@@ -143,7 +143,7 @@ class InBody extends InsertionMode {
 			$builder->closePInButtonScope( $sourceStart );
 			$elt = $builder->insertElement( 'form', $attrs, false,
 				$sourceStart, $sourceLength );
-			if ( !$this->stack->hasTemplate() ) {
+			if ( !$stack->hasTemplate() ) {
 				$builder->formElement = $elt;
 			}
 			return;
@@ -580,7 +580,7 @@ class InBody extends InsertionMode {
 				$builder->error( "found </$name> when there are tags open which " .
 					"cannot be implicitly closed, closing them anyway", $sourceStart );
 			}
-			$builder->popAllUpToName( $name );
+			$builder->popAllUpToName( $name, $sourceStart, $sourceLength );
 			$builder->afe->clearToMarker();
 			break;
 

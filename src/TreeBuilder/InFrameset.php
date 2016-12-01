@@ -66,7 +66,7 @@ class InFrameset extends InsertionMode {
 		$stack = $builder->stack;
 
 		if ( $stack->current->htmlName !== 'html' ) {
-			$builder->error( "unexpected end of file in frameset mode", $sourceStart );
+			$builder->error( "unexpected end of file in frameset mode", $pos );
 		}
 
 		$builder->stopParsing( $pos );

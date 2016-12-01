@@ -7,9 +7,15 @@ use Wikimedia\RemexHtml\Tokenizer\PlainAttributes;
 use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
 
 class TreeBuilder {
+	// Quirks
 	const NO_QUIRKS = 0;
 	const LIMITED_QUIRKS = 1;
 	const QUIRKS = 2;
+
+	// Insertion placement
+	const BEFORE = 0;
+	const BELOW = 1;
+	const ROOT = 2;
 
 	// Configuration
 	public $isIframeSrcdoc;
@@ -85,7 +91,9 @@ class TreeBuilder {
 		$this->isFragment = true;
 		$this->fragmentContext = new Element( HTMLData::NS_HTML, $name,
 			new PlainAttributes );
+		$this->fragmentContext->isVirtual = true;
 		$html = new Element( HTMLData::NS_HTML, 'html', new PlainAttributes );
+		$html->isVirtual = true;
 		$this->stack->push( $html );
 	}
 
@@ -109,7 +117,7 @@ class TreeBuilder {
 	 */
 	public function adjustedCurrentNode() {
 		$current = $this->stack->current;
-		if ( $this->isFragment && $current->stackIndex === 0 ) {
+		if ( $this->isFragment && ( !$current || $current->stackIndex === 0 ) ) {
 			return $this->fragmentContext;
 		} else {
 			return $current;
@@ -121,28 +129,38 @@ class TreeBuilder {
 		if ( $target === null ) {
 			$target = $stack->current;
 		}
+		if ( $target === null ) {
+			return [ self::ROOT, null ];
+		}
+		if ( $target->isVirtual ) {
+			return [ self::ROOT, null ];
+		}
 		if ( !$this->fosterParenting ) {
-			return [ $target, null ];
+			return [ self::BELOW, $target ];
 		}
 		if ( !isset( self::$fosterTriggers[$target->htmlName] ) ) {
-			return [ $target, null ];
+			return [ self::BELOW, $target ];
 		}
 		$node = null;
 		for ( $idx = $this->stack->length() - 1; $idx >= 0; $idx-- ) {
 			$node = $this->stack->item( $idx );
 			if ( $node->htmlName === 'table' && $idx >= 1 ) {
-				return [ $this->stack->item( $idx - 1 ), $node ];
+				return [ self::BEFORE, $node ];
 			}
 			if ( $node->htmlName === 'template' ) {
-				return [ $node, null ];
+				return [ self::BELOW, $node ];
 			}
 		}
-		return [ $node, null ];
+		if ( $this->isFragment ) {
+			return [ self::ROOT, null ];
+		} else {
+			return [ self::BELOW, $node ];
+		}
 	}
 
 	public function insertCharacters( $text, $start, $length, $sourceStart, $sourceLength ) {
-		list( $parent, $before ) = $this->appropriatePlace();
-		$this->handler->characters( $parent, $before, $text, $start, $length,
+		list( $prep, $ref ) = $this->appropriatePlace();
+		$this->handler->characters( $prep, $ref, $text, $start, $length,
 			$sourceStart, $sourceLength );
 	}
 
@@ -154,9 +172,9 @@ class TreeBuilder {
 	public function insertForeign( $ns, $name, Attributes $attrs, $void,
 		$sourceStart, $sourceLength
 	) {
-		list( $parent, $before ) = $this->appropriatePlace();
+		list( $prep, $ref ) = $this->appropriatePlace();
 		$element = new Element( $ns, $name, $attrs );
-		$this->handler->insertElement( $parent, $before, $element, $void,
+		$this->handler->insertElement( $prep, $ref, $element, $void,
 			$sourceStart, $sourceLength );
 		if ( !$void ) {
 			$this->stack->push( $element );
@@ -180,8 +198,8 @@ class TreeBuilder {
 	}
 
 	public function comment( $place, $text, $sourceStart, $sourceLength ) {
-		list( $parent, $before ) = $place !== null ? $place : $this->appropriatePlace();
-		$this->handler->comment( $parent, $before, $text, $sourceStart, $sourceLength );
+		list( $prep, $ref ) = $place !== null ? $place : $this->appropriatePlace();
+		$this->handler->comment( $prep, $ref, $text, $sourceStart, $sourceLength );
 	}
 
 	public function error( $text, $pos ) {
@@ -191,7 +209,7 @@ class TreeBuilder {
 	}
 
 	public function mergeAttributes( Element $elt, Attributes $attrs, $sourceStart, $sourceLength ) {
-		if ( $attrs->count() ) {
+		if ( $attrs->count() && !$elt->isVirtual ) {
 			$this->handler->mergeAttributes( $elt, $attrs, $sourceStart, $sourceLength );
 		}
 	}
@@ -445,8 +463,8 @@ class TreeBuilder {
 			// Insert whatever last node ended up being in the previous step at
 			// the appropriate place for inserting a node, but using common
 			// ancestor as the override target. [14]
-			list( $parent, $refNode ) = $this->appropriatePlace( $ancestor );
-			$handler->insertElement( $parent, $refNode, $lastNode, false, $sourceStart, 0 );
+			list( $prep, $ref ) = $this->appropriatePlace( $ancestor );
+			$handler->insertElement( $prep, $ref, $lastNode, false, $sourceStart, 0 );
 
 			// Create an element for the token for which the formatting element
 			// was created, with furthest block as the intended parent. [15]
@@ -458,7 +476,7 @@ class TreeBuilder {
 			$handler->reparentChildren( $furthestBlock, $newElt2, $sourceStart );
 
 			// Append that new element to the furthest block. [17]
-			$handler->insertElement( $furthestBlock, null, $newElt2, false, $sourceStart, 0 );
+			$handler->insertElement( self::BELOW, $furthestBlock, $newElt2, false, $sourceStart, 0 );
 
 			// Remove the formatting element from the list of active formatting
 			// elements, and insert the new element into the list of active
@@ -530,7 +548,7 @@ class TreeBuilder {
 			// ignore the token, and abort these steps
 			if ( isset( HTMLData::$special[$node->htmlName] ) ) {
 				$this->error( "cannot implicitly close a special element <{$node->htmlName}>",
-					$sourceStart);
+					$sourceStart );
 				return;
 			}
 		}

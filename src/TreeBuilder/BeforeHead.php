@@ -27,6 +27,7 @@ class BeforeHead extends InsertionMode {
 		} elseif ( $name === 'head' ) {
 			$this->builder->headElement = $this->builder->insertElement(
 				$name, $attrs, false, $sourceStart, $sourceLength );
+			$this->dispatcher->switchMode( Dispatcher::IN_HEAD );
 		} else {
 			$this->builder->headElement = $this->builder->insertElement(
 				'head', new PlainAttributes, false, $sourceStart, 0 );

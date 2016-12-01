@@ -124,13 +124,13 @@ class InHead extends InsertionMode {
 			break;
 		case 'template':
 			if ( !$stack->hasTemplate() ) {
-				$this->error( 'found </template> but there is no open template, ignoring',
+				$builder->error( 'found </template> but there is no open template, ignoring',
 					$sourceStart );
 				return;
 			}
 			$builder->generateImpliedEndTags( false, $sourceStart );
 			if ( $stack->current->htmlName !== 'template' ) {
-				$this->error( 'found </template> when other tags are still open' );
+				$builder->error( 'found </template> when other tags are still open', $sourceStart );
 			}
 			$builder->popAllUpToName( 'template', $sourceStart, $sourceLength );
 			$builder->afe->clearToMarker();

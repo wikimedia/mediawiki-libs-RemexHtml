@@ -86,7 +86,7 @@ class InHeadNoscript extends InsertionMode {
 	}
 
 	public function endDocument( $pos ) {
-		$this->builder->error( "unexpected end-of-file in head in noscript" );
+		$this->builder->error( "unexpected end-of-file in head in noscript", $pos );
 		$this->builder->pop( $pos, 0 );
 		$this->dispatcher->switchMode( Dispatcher::IN_HEAD )
 			->endDocument( $pos );

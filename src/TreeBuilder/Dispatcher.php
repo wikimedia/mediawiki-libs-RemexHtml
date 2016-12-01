@@ -230,7 +230,7 @@ class Dispatcher implements TokenHandler {
 				return self::IN_FRAMESET;
 
 			case 'html':
-				if ( $builder->headElement ) {
+				if ( $builder->headElement === null ) {
 					return self::BEFORE_HEAD;
 				} else {
 					return self::AFTER_HEAD;

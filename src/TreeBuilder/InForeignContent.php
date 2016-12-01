@@ -52,6 +52,46 @@ class InForeignContent extends InsertionMode {
 		'var' => true,
 	];
 
+	private static $svgElementCase = [
+		'altglyph' => 'altGlyph',
+		'altglyphdef' => 'altGlyphDef',
+		'altglyphitem' => 'altGlyphItem',
+		'animatecolor' => 'animateColor',
+		'animatemotion' => 'animateMotion',
+		'animatetransform' => 'animateTransform',
+		'clippath' => 'clipPath',
+		'feblend' => 'feBlend',
+		'fecolormatrix' => 'feColorMatrix',
+		'fecomponenttransfer' => 'feComponentTransfer',
+		'fecomposite' => 'feComposite',
+		'feconvolvematrix' => 'feConvolveMatrix',
+		'fediffuselighting' => 'feDiffuseLighting',
+		'fedisplacementmap' => 'feDisplacementMap',
+		'fedistantlight' => 'feDistantLight',
+		'fedropshadow' => 'feDropShadow',
+		'feflood' => 'feFlood',
+		'fefunca' => 'feFuncA',
+		'fefuncb' => 'feFuncB',
+		'fefuncg' => 'feFuncG',
+		'fefuncr' => 'feFuncR',
+		'fegaussianblur' => 'feGaussianBlur',
+		'feimage' => 'feImage',
+		'femerge' => 'feMerge',
+		'femergenode' => 'feMergeNode',
+		'femorphology' => 'feMorphology',
+		'feoffset' => 'feOffset',
+		'fepointlight' => 'fePointLight',
+		'fespecularlighting' => 'feSpecularLighting',
+		'fespotlight' => 'feSpotLight',
+		'fetile' => 'feTile',
+		'feturbulence' => 'feTurbulence',
+		'foreignobject' => 'foreignObject',
+		'glyphref' => 'glyphRef',
+		'lineargradient' => 'linearGradient',
+		'radialgradient' => 'radialGradient',
+		'textpath' => 'textPath',
+	];
+
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		$builder = $this->builder;
 
@@ -127,6 +167,9 @@ class InForeignContent extends InsertionMode {
 			$attrs = new ForeignAttributes( $attrs, 'math' );
 		} elseif ( $acnNs === HTMLData::NS_SVG ) {
 			$attrs = new ForeignAttributes( $attrs, 'svg' );
+			if ( isset( self::$svgElementCase[$name] ) ) {
+				$name = self::$svgElementCase[$name];
+			}
 		} else {
 			$attrs = new ForeignAttributes( $attrs, 'other' );
 		}

@@ -11,14 +11,17 @@ class FastFormatter implements Formatter {
 		return "<!DOCTYPE html>\n";
 	}
 
+	function doctype( $name, $public, $system ) {
+	}
+
 	function characters( $text, $start, $length ) {
 		return substr( $text, $start, $length );
 	}
 
 	function element( $namespace, $name, Attributes $attrs, $contents ) {
 		$ret = "<$name";
-		foreach ( $attrs->getArrayCopy() as $name => $value ) {
-			$ret .= " $name=\"$value\"";
+		foreach ( $attrs->getArrayCopy() as $attrName => $value ) {
+			$ret .= " $attrName=\"$value\"";
 		}
 		if ( $contents === null ) {
 			$ret .= "/>";
