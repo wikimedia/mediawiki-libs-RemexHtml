@@ -1,6 +1,6 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\Tokenizer;
 
 class Attribute {
 	public $qualifiedName;

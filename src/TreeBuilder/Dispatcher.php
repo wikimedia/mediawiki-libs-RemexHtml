@@ -30,6 +30,8 @@ class Dispatcher implements TokenHandler {
 	const AFTER_AFTER_BODY = 22;
 	const AFTER_AFTER_FRAMESET = 23;
 	const IN_FOREIGN_CONTENT = 24;
+	const IN_PRE = 25;
+	const IN_TEXTAREA = 26;
 
 	protected static $handlerClasses = [
 		self::INITIAL => Initial::class,
@@ -55,7 +57,9 @@ class Dispatcher implements TokenHandler {
 		self::AFTER_FRAMESET => AfterFrameset::class,
 		self::AFTER_AFTER_BODY => AfterAfterBody::class,
 		self::AFTER_AFTER_FRAMESET => AfterAfterFrameset::class,
-		self::IN_FOREIGN_CONTENT => InForeignContent::class
+		self::IN_FOREIGN_CONTENT => InForeignContent::class,
+		self::IN_PRE => InPre::class,
+		self::IN_TEXTAREA => InTextarea::class,
 	];
 
 	// Public shortcuts for "using the rules for" actions
@@ -92,20 +96,6 @@ class Dispatcher implements TokenHandler {
 		$this->inForeign = $this->dispatchTable[self::IN_FOREIGN_CONTENT];
 
 		$this->switchMode( self::INITIAL );
-	}
-
-	/**
-	 * Set the fragment context of the dispatcher and tree builder
-	 *
-	 * @param string $namespace The namespace of the context element
-	 * @param string $name The name of the context element
-	 */
-	public function setFragmentContext( $namespace, $name ) {
-		$this->builder->setFragmentContext( $namespace, $name );
-		if ( $name === 'template' ) {
-			$this->templateModeStack->push( self::IN_TEMPLATE );
-		}
-		$this->reset();
 	}
 
 	public function switchMode( $mode ) {
@@ -174,13 +164,14 @@ class Dispatcher implements TokenHandler {
 					$node = $builder->fragmentContext;
 				}
 			}
+
 			switch ( $node->htmlName ) {
 			case 'select':
 				if ( $last ) {
 					return self::IN_SELECT;
 				}
 				for ( $ancestorIdx = $idx - 1; $ancestorIdx >= 1; $ancestorIdx-- ) {
-					$ancestor = $stack->item( $idx );
+					$ancestor = $stack->item( $ancestorIdx );
 					if ( $ancestor->htmlName === 'template' ) {
 						return self::IN_SELECT;
 					} elseif ( $ancestor->htmlName === 'table' ) {
@@ -241,8 +232,14 @@ class Dispatcher implements TokenHandler {
 		return self::IN_BODY;
 	}
 
-	public function startDocument() {
-		$this->builder->startDocument();
+	public function startDocument( $namespace, $name ) {
+		$this->builder->startDocument( $namespace, $name );
+		if ( $namespace !== null ) {
+			if ( $namespace === HTMLData::NS_HTML && $name === 'template' ) {
+				$this->templateModeStack->push( self::IN_TEMPLATE );
+			}
+			$this->reset();
+		}
 	}
 
 	public function endDocument( $pos ) {

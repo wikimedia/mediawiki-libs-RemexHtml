@@ -78,7 +78,7 @@ abstract class InsertionMode {
 				}
 			}
 
-			list( $start, $length, $sourceStart, $sourceLength ) = $part1;
+			list( $start, $length, $sourceStart, $sourceLength ) = $part2;
 			if ( $length ) {
 				$builder->error( "unexpected non-whitespace character", $sourceStart );
 				$start++;
@@ -94,9 +94,11 @@ abstract class InsertionMode {
 		$errorOffset = $sourceStart - $start;
 		while ( $length > 0 ) {
 			$validLength = strcspn( $text, "\0", $start, $length );
-			$callback( $text, $start, $validLength, $sourceStart, $sourceLength );
-			$start += $validLength;
-			$length -= $validLength;
+			if ( $validLength ) {
+				$callback( $text, $start, $validLength, $sourceStart, $sourceLength );
+				$start += $validLength;
+				$length -= $validLength;
+			}
 			if ( $length <= 0 ) {
 				break;
 			}

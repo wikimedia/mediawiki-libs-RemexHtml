@@ -11,8 +11,13 @@ namespace Wikimedia\RemexHtml\Tokenizer;
 interface TokenHandler {
 	/**
 	 * Called once at the start of the document (STATE_START)
+	 *
+	 * @param string|null $fragmentNamespace The fragment namespace, or null
+	 *   to run in document mode.
+	 * @param string|null $fragmentName The fragment tag name, or null to run
+	 *   in document mode.
 	 */
-	function startDocument();
+	function startDocument( $fragmentNamespace, $fragmentName );
 
 	/**
 	 * Called when the end of the input string is consumed

@@ -11,6 +11,20 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 		'html5lib/tree-construction'
 	];
 
+	private static $fileBlacklist = [
+		// Refers to a newer version of the HTML spec
+		'tree-construction/menuitem-element.dat',
+		'tree-construction/pending-spec-changes.dat',
+	];
+
+	private static $testBlacklist = [
+		// Refers to a newer version of the HTML spec
+		'tree-construction/main-element.dat:30',
+		'tree-construction/tests11.dat:137',
+		'tree-construction/ruby.dat:186',
+		'tree-construction/template.dat:1102',
+	];
+
 	public function provider() {
 		$testFiles = [];
 		foreach ( self::$testDirs as $testDir ) {
@@ -18,6 +32,9 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 		}
 		$args = [];
 		foreach ( $testFiles as $fileName ) {
+			if ( in_array( 'tree-construction/' . basename( $fileName ), self::$fileBlacklist ) ) {
+				continue;
+			}
 			$tests = $this->readFile( $fileName );
 
 			foreach ( $tests as $test ) {
@@ -86,7 +103,10 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 					break;
 				}
 			} while ( !$section['end'] );
-			$tests[] = $test;
+			
+			if ( !in_array( "$baseName:$startLine", self::$testBlacklist ) ) {
+				$tests[] = $test;
+			}
 		}
 		return $tests;
 	}
@@ -96,38 +116,52 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 			return false;
 		}
 
+		$sectionLineNum = $lineNum++;
 		$startPos = $pos;
 		$name = $m[1];
 		$valuePos = $pos + strlen( $m[0] );
-		if ( $name === 'data' ) {
-			$endPos = false;
-		} else {
-			$endPos = strpos( $text, "\n\n", $valuePos - 1 );
-		}
-		$hashPos = strpos( $text, "\n#", $valuePos - 1 );
+		$pos = $valuePos;
+		$value = '';
 		$isEnd = false;
-		if ( $hashPos === false && $endPos === false ) {
-			$value = substr( $text, $valuePos );
-			$pos = strlen( $text );
-		} elseif ( $hashPos === false || ( $endPos !== false && $endPos < $hashPos ) ) {
-			$value = substr( $text, $valuePos, $endPos - $valuePos );
-			$pos = $endPos + strlen( "\n\n" );
-			$isEnd = true;
-		} else {
-			$value = substr( $text, $valuePos, $hashPos - $valuePos );
-			$pos = $hashPos + 1;
+
+		while ( !$isEnd && $pos < strlen( $text ) ) {
+			$lineStart = $pos;
+			$lineLength = strcspn( $text, "\n", $pos );
+			$pos += $lineLength;
+			if ( $pos >= strlen( $text ) ) {
+				$isEnd = true;
+			} elseif ( $text[$pos] === "\n" ) {
+				$pos++;
+				$lineNum++;
+			}
+
+			$line = substr( $text, $lineStart, $lineLength );
+			if ( $name === 'data' ) {
+				// Double line breaks can appear in #data
+			} elseif ( $name === 'document' && preg_match( '/\s*"/A', $text, $m, 0, $pos ) ) {
+				// Line breaks in #document can be escaped with quotes
+			} elseif ( $line === '' ) {
+				$isEnd = true;
+				break;
+			}
+
+			if ( preg_match( '/^#([a-z-]*)$/', $line ) ) {
+				$pos = $lineStart;
+				$lineNum--;
+				break;
+			}
+			if ( $value !== '' ) {
+				$value .= "\n";
+			}
+			$value .= $line;
 		}
+
 		$result = [
 			'name' => $name,
 			'value' => $value,
-			'line' => $lineNum,
+			'line' => $sectionLineNum,
 			'end' => $isEnd,
 		];
-		if ( $pos >= strlen( $text ) ) {
-			$lineNum += substr_count( $text, "\n", $startPos );
-		} else {
-			$lineNum += substr_count( $text, "\n", $startPos, $pos - $startPos );
-		}
 		return $result;
 	}
 
@@ -145,6 +179,8 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 		$tokenizer = new Tokenizer\Tokenizer( $dispatcher, $params['data'], [] );
 		$treeBuilder->registerTokenizer( $tokenizer );
 
+		$tokenizerOptions = [];
+
 		if ( isset( $params['fragment'] ) ) {
 			$fragment = explode( ' ', $params['fragment'] );
 			if ( count( $fragment ) > 1 ) {
@@ -160,12 +196,11 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 				$ns = HTMLData::NS_HTML;
 				$name = $fragment[0];
 			}
-
-			$dispatcher->setFragmentContext( $ns, $name );
-			$tokenizer->setFragmentContext( $ns, $name );
+			$tokenizerOptions['fragmentNamespace'] = $ns;
+			$tokenizerOptions['fragmentName'] = $name;
 		}
 
-		$tokenizer->execute();
+		$tokenizer->execute( $tokenizerOptions );
 		$result = $serializer->getResult();
 
 		// Normalize adjacent text nodes
@@ -176,7 +211,7 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 
 		// Format appropriately
 		$result = preg_replace( '/^/m', "| ", $result );
-		$result = str_replace( '\n', "\n", $result );
+		$result = str_replace( '<EOL>', "\n", $result );
 
 		// Normalize terminating line break
 		$result = rtrim( $result, "\n" );

@@ -54,6 +54,7 @@ class TreeBuilder {
 		'optgroup' => true,
 		'p' => true,
 		'rb' => true,
+		'rp' => true,
 		'rt' => true,
 		'rtc' => true,
 	];
@@ -81,24 +82,17 @@ class TreeBuilder {
 		}
 	}
 
-	/**
-	 * Do not call this directly. Use Dispatcher::setFragmentContext().
-	 *
-	 * @param string $namespace The namespace of the context element
-	 * @param string $name The name of the context element
-	 */
-	public function setFragmentContext( $namespace, $name ) {
-		$this->isFragment = true;
-		$this->fragmentContext = new Element( HTMLData::NS_HTML, $name,
-			new PlainAttributes );
-		$this->fragmentContext->isVirtual = true;
-		$html = new Element( HTMLData::NS_HTML, 'html', new PlainAttributes );
-		$html->isVirtual = true;
-		$this->stack->push( $html );
-	}
-
-	public function startDocument() {
-		$this->handler->startDocument();
+	public function startDocument( $namespace, $name ) {
+		$this->handler->startDocument( $namespace, $name );
+		if ( $namespace !== null ) {
+			$this->isFragment = true;
+			$this->fragmentContext = new Element( $namespace, $name, new PlainAttributes );
+			$this->fragmentContext->isVirtual = true;
+			$html = new Element( HTMLData::NS_HTML, 'html', new PlainAttributes );
+			$html->isVirtual = true;
+			$this->stack->push( $html );
+			$this->handler->insertElement( self::ROOT, null, $html, false, 0, 0 );
+		}
 	}
 
 	public function registerTokenizer( Tokenizer $tokenizer ) {
@@ -132,9 +126,6 @@ class TreeBuilder {
 		if ( $target === null ) {
 			return [ self::ROOT, null ];
 		}
-		if ( $target->isVirtual ) {
-			return [ self::ROOT, null ];
-		}
 		if ( !$this->fosterParenting ) {
 			return [ self::BELOW, $target ];
 		}
@@ -151,11 +142,7 @@ class TreeBuilder {
 				return [ self::BELOW, $node ];
 			}
 		}
-		if ( $this->isFragment ) {
-			return [ self::ROOT, null ];
-		} else {
-			return [ self::BELOW, $node ];
-		}
+		return [ self::BELOW, $node ];
 	}
 
 	public function insertCharacters( $text, $start, $length, $sourceStart, $sourceLength ) {
@@ -282,6 +269,10 @@ class TreeBuilder {
 		} while ( $entry );
 	}
 
+	private function trace( $msg ) {
+		// print "[AAA] $msg\n";
+	}
+
 	/**
 	 * Run the "adoption agency algorithm" (AAA) for the given subject
 	 * tag name.
@@ -309,10 +300,14 @@ class TreeBuilder {
 			$this->pop( $sourceStart, $sourceLength );
 			return;
 		}
+		$this->trace( "AAA invoked on $subject" );
 
 		// Outer loop: If outer loop counter is greater than or
 		// equal to eight, then abort these steps. [2-4]
 		for ( $outer = 0; $outer < 8; $outer++ ) {
+			$this->trace( "Outer $outer" );
+			$this->trace( "AFE\n" . $afe->dump() . "STACK\n" . $stack->dump() );
+
 			// Let the formatting element be the last element in the list
 			// of active formatting elements that: is between the end of
 			// the list and the last scope marker in the list, if any, or
@@ -362,6 +357,7 @@ class TreeBuilder {
 			$furthestBlock = null;
 			$furthestBlockIndex = -1;
 			$stackLength = $stack->length();
+
 			for ( $i = $fmtEltIndex+1; $i < $stackLength; $i++ ) {
 				$item = $stack->item( $i );
 				if ( isset( HTMLData::$special[$item->namespace][$item->name] ) ) {
@@ -378,10 +374,13 @@ class TreeBuilder {
 			// formatting element from the list of active formatting
 			// elements. [10]
 			if ( !$furthestBlock ) {
+				$this->trace( "no furthest block" );
 				$this->popAllUpToElement( $fmtElt, $sourceStart, $sourceLength );
 				$afe->remove( $fmtElt );
 				return;
 			}
+
+			$this->trace( "furthestBlock = " . $furthestBlock->getDebugTag() );
 
 			// Let the common ancestor be the element immediately above the
 			// formatting element in the stack of open elements. [11]
@@ -398,6 +397,7 @@ class TreeBuilder {
 			$nodeIndex = $furthestBlockIndex;
 			$isAFE = false;
 			$stackRemovals = [];
+			$insertions = [];
 
 			// Inner loop
 			for ( $inner = 1; true; $inner++ ) {
@@ -413,6 +413,7 @@ class TreeBuilder {
 				if ( $node === $fmtElt ) {
 					break;
 				}
+				$this->trace( "inner $inner, {$node->getDebugTag()} is not fmtElt" );
 
 				// If the inner loop counter is greater than three and node
 				// is in the list of active formatting elements, then remove
@@ -441,7 +442,6 @@ class TreeBuilder {
 					$node->namespace, $node->name, $node->attrs );
 				$afe->replace( $node, $newElt );
 				$stack->replace( $node, $newElt );
-				$handler->endTag( $node );
 				$node = $newElt;
 
 				// If last node is the furthest block, then move the
@@ -454,7 +454,7 @@ class TreeBuilder {
 
 				// Insert last node into node, first removing it from its
 				// previous parent node if any. [13.9]
-				$handler->reparentNode( $lastNode, $node, $sourceStart );
+				$insertions[] = [ self::BELOW, $node, $lastNode ];
 
 				// Let last node be node. [13.10]
 				$lastNode = $node;
@@ -464,19 +464,25 @@ class TreeBuilder {
 			// the appropriate place for inserting a node, but using common
 			// ancestor as the override target. [14]
 			list( $prep, $ref ) = $this->appropriatePlace( $ancestor );
-			$handler->insertElement( $prep, $ref, $lastNode, false, $sourceStart, 0 );
+			$insertions[] = [ $prep, $ref, $lastNode ];
+
+			// Execute queued insertions in reverse order.
+			// This has the same effect but allows the handler to assume that
+			// elements are always in the tree.
+			for ( $i = count( $insertions ) - 1; $i >= 0; $i-- ) {
+				$ins = $insertions[$i];
+				$handler->insertElement( $ins[0], $ins[1], $ins[2], false, $sourceStart, 0 );
+			}
 
 			// Create an element for the token for which the formatting element
 			// was created, with furthest block as the intended parent. [15]
 			$newElt2 = new Element(
-				$fmtElt->namespace, $fmtElt->name, $fmtElt->attribs );
+				$fmtElt->namespace, $fmtElt->name, $fmtElt->attrs );
 
 			// Take all of the child nodes of the furthest block and append
 			// them to the element created in the last step. [16]
+			// Append the new element to the furthest block. [17]
 			$handler->reparentChildren( $furthestBlock, $newElt2, $sourceStart );
-
-			// Append that new element to the furthest block. [17]
-			$handler->insertElement( self::BELOW, $furthestBlock, $newElt2, false, $sourceStart, 0 );
 
 			// Remove the formatting element from the list of active formatting
 			// elements, and insert the new element into the list of active
@@ -489,12 +495,16 @@ class TreeBuilder {
 			// and insert the new element into the stack of open elements
 			// immediately below the position of the furthest block in that
 			// stack. [19]
+			$this->trace( "Removing " . $stack->length() . "-" . ( $furthestBlockIndex + 1 ) );
+			$this->trace( "Inserting the new element below $furthestBlockIndex" );
+			$this->trace( "Removing stack elements " .
+				implode( ', ', array_keys( $stackRemovals ) ) );
 
 			// Make a temporary stack with the elements we are going to push back in
 			$tempStack = [];
 
 			// Stash the elements up to the furthest block
-			for ( $index = $stack->length(); $index > $furthestBlockIndex; $index-- ) {
+			for ( $index = $stack->length() - 1; $index > $furthestBlockIndex; $index-- ) {
 				$tempStack[] = $stack->pop();
 			}
 			// Add the new element
@@ -504,38 +514,37 @@ class TreeBuilder {
 				$elt = $stack->pop();
 				// Drop elements previously marked for removal
 				if ( isset( $stackRemovals[$index] ) ) {
-					$handler->endTag( $elt, $sourcePos, 0 );
+					$this->trace( "ending marked node {$elt->getDebugTag()}" );
+					$handler->endTag( $elt, $sourceStart, 0 );
 				} else {
 					$tempStack[] = $elt;
 				}
 			}
 			// Remove the formatting element
 			$elt = $stack->pop();
-			$handler->endTag( $elt, $sourcePos, 0 );
+			$this->trace( "ending formatting element {$elt->getDebugTag()}" );
+			$handler->endTag( $elt, $sourceStart, 0 );
 			// Reinsert
 			foreach ( array_reverse( $tempStack ) as $elt ) {
 				$stack->push( $elt );
 			}
 		}
-
-		return;
 	}
 
 	public function anyOtherEndTag( $name, $sourceStart, $sourceLength ) {
 		$stack = $this->stack;
-		$max = $stack->length() - 1;
-		for ( $index = $max; $index >= 0; $index-- ) {
+		for ( $index = $stack->length() - 1; $index >= 0; $index-- ) {
 			$node = $stack->item( $index );
 			if ( $node->htmlName === $name ) {
 				$this->generateImpliedEndTags( $name, $sourceStart );
 				// If node is not the current node, then this is a parse error
-				if ( $index !== $max ) {
+				if ( $node !== $stack->current ) {
 					$this->error( 'end tag matched an element which was not the current node',
 						$sourceStart );
 				}
 				// Pop all the nodes from the current node up to node, including
 				// node, then stop these steps.
-				for ( $j = $max; $j > $index; $j-- ) {
+				for ( $j = $stack->length() - 1; $j > $index; $j-- ) {
 					$elt = $stack->pop();
 					$this->handler->endTag( $elt, $sourceStart, 0 );
 				}
@@ -546,7 +555,7 @@ class TreeBuilder {
 
 			// If node is in the special category, then this is a parse error;
 			// ignore the token, and abort these steps
-			if ( isset( HTMLData::$special[$node->htmlName] ) ) {
+			if ( isset( HTMLData::$special[$node->namespace][$node->name] ) ) {
 				$this->error( "cannot implicitly close a special element <{$node->htmlName}>",
 					$sourceStart );
 				return;

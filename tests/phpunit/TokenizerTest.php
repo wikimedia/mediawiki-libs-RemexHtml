@@ -120,7 +120,9 @@ class TokenizerTest extends \PHPUnit_Framework_TestCase {
 	public function testDefault( $state, $appropriateEndTag, $input, $expected ) {
 		$handler = new TestTokenHandler();
 		$tokenizer = new Tokenizer( $handler, $input, [] );
-		$tokenizer->execute( $this->convertState( $state ), $appropriateEndTag );
+		$tokenizer->execute( [
+			'state' => $this->convertState( $state ),
+			'appropriateEndTag' => $appropriateEndTag ] );
 		$output = $this->normalizeErrors( $handler->getTokens() );
 		$expected = $this->normalizeErrors( $expected );
 		$jsonOptions =  JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
@@ -133,7 +135,9 @@ class TokenizerTest extends \PHPUnit_Framework_TestCase {
 	public function testIgnoreErrors(  $state, $appropriateEndTag, $input, $expected ) {
 		$handler = new TestTokenHandler();
 		$tokenizer = new Tokenizer( $handler, $input, [ 'ignoreErrors' => true ] );
-		$tokenizer->execute( $this->convertState( $state ), $appropriateEndTag );
+		$tokenizer->execute( [
+			'state' => $this->convertState( $state ),
+			'appropriateEndTag' => $appropriateEndTag ] );
 		$output = $this->normalizeErrors( $handler->getTokens(), true );
 		$expected = $this->normalizeErrors( $expected, true );
 		$jsonOptions =  JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;

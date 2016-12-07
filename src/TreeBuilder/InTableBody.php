@@ -27,6 +27,7 @@ class InTableBody extends InsertionMode {
 		case 'tr':
 			$builder->clearStackBack( self::$tableBodyContext, $sourceStart );
 			$builder->insertElement( $name, $attrs, false, $sourceStart, $sourceLength );
+			$dispatcher->switchMode( Dispatcher::IN_ROW );
 			break;
 		case 'th':
 		case 'td':

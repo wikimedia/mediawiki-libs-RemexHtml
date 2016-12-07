@@ -68,7 +68,7 @@ class InTemplate extends InsertionMode {
 			break;
 
 		default:
-			$this->builder->error( "unexpected </$name> in template", $sourceStart );
+			$this->builder->error( "unexpected </$name> in template, ignoring", $sourceStart );
 			return;
 		}
 	}

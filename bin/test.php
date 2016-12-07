@@ -7,12 +7,13 @@ if ( PHP_SAPI !== 'cli' ) {
 
 require __DIR__ . '/../vendor/autoload.php';
 
+use Wikimedia\RemexHtml;
 use Wikimedia\RemexHtml\Tokenizer;
 use Wikimedia\RemexHtml\TreeBuilder;
 use Wikimedia\RemexHtml\Serializer;
 
 class NullHandler implements Tokenizer\TokenHandler {
-	function startDocument() {}
+	function startDocument( $fns, $fn ) {}
 	function endDocument( $pos ) {}
 	function error( $text, $pos ) {}
 	function characters( $text, $start, $length, $sourceStart, $sourceLength ) {}
@@ -24,7 +25,7 @@ class NullHandler implements Tokenizer\TokenHandler {
 }
 
 class NullTreeHandler implements TreeBuilder\TreeHandler {
-	function startDocument() {}
+	function startDocument( $fns, $fn ) {}
 	function endDocument( $pos ) {}
 	function characters( $parent, $refNode, $text, $start, $length, $sourceStart, $sourceLength ) {}
 	function insertElement( $parent, $refNode, TreeBuilder\Element $element, $void,
@@ -41,7 +42,7 @@ class NullTreeHandler implements TreeBuilder\TreeHandler {
 
 function reserialize( $text ) {
 	$handler = new Tokenizer\TokenSerializer;
-	$tokenizer = new Tokenizer\Tokenizer( $handler, $text, $GLOBALS['tokenizerOptions'] );
+	$tokenizer = new Tokenizer\Tokenizer( $handler, $text, [] );
 	$tokenizer->execute();
 	print $handler->getOutput() . "\n";
 	foreach ( $handler->getErrors() as $error ) {
@@ -49,26 +50,53 @@ function reserialize( $text ) {
 	}
 }
 
-function reseralizeScript( $text ) {
+function reserializeState( $text, $state, $endTag ) {
 	$handler = new Tokenizer\TokenSerializer;
-	$tokenizer = new Tokenizer\Tokenizer( $handler, $text, $GLOBALS['tokenizerOptions'] );
-	$tokenizer->switchState( Tokenizer\Tokenizer::STATE_SCRIPT_DATA, 'script' );
-	$tokenizer->execute( Tokenizer\Tokenizer::STATE_SCRIPT_DATA );
+	$tokenizer = new Tokenizer\Tokenizer( $handler, $text, [] );
+	$tokenizer->execute( [ 'state' => $state, 'appropriateEndTag' => $endTag ] );
 	print $handler->getOutput() . "\n";
 	foreach ( $handler->getErrors() as $error ) {
 		print "Error at {$error[1]}: {$error[0]}\n";
 	}
 }
 
+function reserializeScript( $text ) {
+	reserializeState( $text, Tokenizer\Tokenizer::STATE_SCRIPT_DATA, 'script' );
+}
+
+function reserializeXmp( $text ) {
+	reserializeState( $text, Tokenizer\Tokenizer::STATE_RCDATA, 'xmp' );
+}
+
 function traceDispatch( $text ) {
 	TreeBuilder\Parser::parseDocument( $text, [ 'traceDispatch' => true ] );
 }
 
-function trace( $text ) {
+function traceDOM( $text ) {
 	TreeBuilder\Parser::parseDocument( $text, [
 		'traceTreeMutation' => true,
 		'traceDispatch' => true,
 	] );
+}
+
+function trace( $text ) {
+	$traceCallback = function ( $msg ) {
+		print "$msg\n";
+	};
+	$formatter = new Serializer\FastFormatter;
+	$serializer = new Serializer\Serializer( $formatter );
+	$treeTracer = new TreeBuilder\TreeMutationTracer( $serializer, $traceCallback );
+	$treeBuilder = new TreeBuilder\TreeBuilder( $treeTracer, [] );
+	$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
+	$dispatchTracer = new TreeBuilder\DispatchTracer( $text, $dispatcher, $traceCallback );
+	$tokenizer = new Tokenizer\Tokenizer( $dispatchTracer, $text, [] );
+	$treeBuilder->registerTokenizer( $tokenizer );
+	$tokenizer->execute( [
+		// 'fragmentNamespace' => RemexHtml\HTMLData::NS_HTML,
+		// 'fragmentName' => 'html'
+	] );
+
+	print $serializer->getResult() . "\n";
 }
 
 function tidyBodyViaDOM( $text ) {
@@ -91,8 +119,11 @@ function tidyViaDOM( $text ) {
 }
 
 function tidy( $text ) {
+	$error = function ( $msg, $pos ) {
+		print "  *  [$pos] $msg\n";
+	};
 	$formatter = new Serializer\FastFormatter;
-	$serializer = new Serializer\Serializer( $formatter );
+	$serializer = new Serializer\Serializer( $formatter, $error );
 	$treeBuilder = new TreeBuilder\TreeBuilder( $serializer, [] );
 	$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
 	$tokenizer = new Tokenizer\Tokenizer( $dispatcher, $text, $GLOBALS['tokenizerOptions'] );

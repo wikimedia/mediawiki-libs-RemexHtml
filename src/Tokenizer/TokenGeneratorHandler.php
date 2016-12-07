@@ -8,8 +8,12 @@ namespace Wikimedia\RemexHtml\Tokenizer;
 class TokenGeneratorHandler implements TokenHandler {
 	public $tokens = [];
 
-	public function startDocument() {
-		$this->tokens[] = [ 'type' => 'startDocument' ];
+	public function startDocument( $fragmentNamespace, $fragmentName ) {
+		$this->tokens[] = [
+			'type' => 'startDocument',
+			'fragmentNamespace' => $fragmentNamespace,
+			'fragmentName' => $fragmentName
+		];
 	}
 
 	public function endDocument() {

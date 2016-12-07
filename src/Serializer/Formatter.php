@@ -4,7 +4,7 @@ namespace Wikimedia\RemexHtml\Serializer;
 use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 interface Formatter {
-	function startDocument();
+	function startDocument( $fragmentNamespace, $fragmentName );
 
 	function characters( $text, $start, $length );
 

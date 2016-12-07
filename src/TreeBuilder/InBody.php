@@ -9,12 +9,33 @@ use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
 class InBody extends InsertionMode {
 	static private $headingNames = [ 'h1' => true, 'h2' => true, 'h3' => true, 'h4' => true,
 		'h5' => true, 'h6' => true ];
+	static private $implicitClose = [
+		'dd' => true,
+		'dt' => true,
+		'li' => true,
+		'optgroup' => true,
+		'option' => true,
+		'p' => true,
+		'rb' => true,
+		'rp' => true,
+		'rt' => true,
+		'rtc' => true,
+		'tbody' => true,
+		'td' => true,
+		'tfoot' => true,
+		'th' => true,
+		'thead' => true,
+		'tr' => true,
+		'body' => true,
+		'html' => true,
+	];
 
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		$handleNonNull = function ( $text, $start, $length, $sourceStart, $sourceLength ) {
 			if ( strspn( $text, "\t\n\f\r ", $start, $length ) !== $length ) {
 				$this->builder->framesetOK = false;
 			}
+			$this->builder->reconstructAFE( $sourceStart );
 			$this->builder->insertCharacters( $text, $start, $length, $sourceStart, $sourceLength );
 		};
 		if ( !$this->builder->ignoreNulls ) {
@@ -134,6 +155,7 @@ class InBody extends InsertionMode {
 		case 'listing':
 			$builder->closePInButtonScope( $sourceStart );
 			$builder->framesetOK = false;
+			$textMode = Dispatcher::IN_PRE;
 			break;
 		case 'form':
 			if ( $builder->formElement !== null && !$stack->hasTemplate() ) {
@@ -152,11 +174,11 @@ class InBody extends InsertionMode {
 			for ( $idx = $stack->length() - 1; $idx >= 0; $idx-- ) {
 				$node = $stack->item( $idx );
 				$htmlName = $node->htmlName;
-				if ( $node->htmlName === 'li' ) {
+				if ( $htmlName === 'li' ) {
 					$builder->generateImpliedEndTagsAndPop( 'li', $sourceStart, 0 );
 					break;
 				}
-				if ( isset( HTMLData::$special[$htmlName] )
+				if ( isset( HTMLData::$special[$node->namespace][$node->name] )
 					&& $htmlName !== 'address' && $htmlName !== 'div' && $htmlName !== 'p'
 				) {
 					break;
@@ -174,7 +196,7 @@ class InBody extends InsertionMode {
 					$builder->generateImpliedEndTagsAndPop( $htmlName, $sourceStart, 0 );
 					break;
 				}
-				if ( isset( HTMLData::$special[$htmlName] )
+				if ( isset( HTMLData::$special[$node->namespace][$node->name] )
 					&& $htmlName !== 'address' && $htmlName !== 'div' && $htmlName !== 'p'
 				) {
 					break;
@@ -263,7 +285,7 @@ class InBody extends InsertionMode {
 			$builder->reconstructAFE( $sourceStart );
 			$dispatcher->ack = true;
 			$void = true;
-			if ( !isset( $attribs['type'] ) || strcasecmp( $attribs['type'], 'hidden' ) !== 0 ) {
+			if ( !isset( $attrs['type'] ) || strcasecmp( $attrs['type'], 'hidden' ) !== 0 ) {
 				$builder->framesetOK = false;
 			}
 			break;
@@ -285,7 +307,7 @@ class InBody extends InsertionMode {
 			return;
 		case 'textarea':
 			$tokenizerState = Tokenizer::STATE_RCDATA;
-			$textMode = Dispatcher::TEXT;
+			$textMode = Dispatcher::IN_TEXTAREA;
 			$builder->framesetOK = false;
 			break;
 		case 'xmp':
@@ -409,31 +431,22 @@ class InBody extends InsertionMode {
 
 		case 'body':
 			if ( !$stack->isInScope( 'body' ) ) {
-				$builder->error( 'end tag has no matching start tag in scope', $sourceStart );
+				$builder->error( '</body> has no matching start tag in scope', $sourceStart );
 				break;
 			}
-			$allowed = [
-				'dd' => true,
-				'dt' => true,
-				'li' => true,
-				'optgroup' => true,
-				'option' => true,
-				'p' => true,
-				'rb' => true,
-				'rp' => true,
-				'rt' => true,
-				'rtc' => true,
-				'tbody' => true,
-				'td' => true,
-				'tfoot' => true,
-				'th' => true,
-				'thead' => true,
-				'tr' => true,
-				'body' => true,
-				'html' => true,
-			];
-			$builder->checkUnclosed( $allowed, $sourceStart );
+			$builder->checkUnclosed( self::$implicitClose, $sourceStart );
 			$dispatcher->switchMode( Dispatcher::AFTER_BODY );
+			break;
+
+		case 'html':
+			if ( !$stack->isInScope( 'body' ) ) {
+				$builder->error( '</html> found in body mode but the body is not in scope',
+					$sourceStart );
+				break;
+			}
+			$builder->checkUnclosed( self::$implicitClose, $sourceStart );
+			$dispatcher->switchMode( Dispatcher::AFTER_BODY )
+				->endTag( $name, $sourceStart, $sourceLength );
 			break;
 
 		case 'address':
@@ -489,7 +502,9 @@ class InBody extends InsertionMode {
 					$builder->error( "found </form> when there are tags open " .
 						"which cannot be closed automatically", $sourceStart );
 					$stack->remove( $node );
-					$builder->handler->endTag( $node, $sourceStart, $sourceLength );
+					// FIXME cannot garbage collect in Serializer since children
+					// of the form are still in the stack
+					// $builder->handler->endTag( $node, $sourceStart, $sourceLength );
 				}
 			} else {
 				if ( !$stack->isInScope( 'form' ) ) {

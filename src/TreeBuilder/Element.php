@@ -9,7 +9,6 @@ class Element implements FormattingElement {
 	public $name;
 	public $htmlName;
 	public $attrs;
-	public $attrObjects;
 	public $isVirtual;
 
 	public $nextScope;
@@ -72,27 +71,11 @@ class Element implements FormattingElement {
 	 */
 	public function getNoahKey() {
 		if ( $this->noahKey === null ) {
-			$attrs = $this->attrs->getArrayCopy();
+			$attrs = $this->attrs->getValues();
 			ksort( $attrs );
 			$this->noahKey = serialize( [ $this->htmlName, $attrs ] );
 		}
 		return $this->noahKey;
-	}
-
-	/**
-	 * Get an array of objects representing the namespaced attributes
-	 */
-	public function getAttributeObjects() {
-		if ( $this->attrs instanceof ForeignAttributes ) {
-			$this->attrObjects = $this->attrs->createAttributeObjects();
-		} else {
-			$result = [];
-			foreach ( $this->attrs->getArrayCopy() as $name => $value ) {
-				$result[] = new Attribute( $name, null, null, $name, $value );
-			}
-			$this->attrObjects = $result;
-		}
-		return $this->attrObjects;
 	}
 
 	public function getDebugTag() {

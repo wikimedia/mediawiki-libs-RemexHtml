@@ -12,6 +12,7 @@ class LazyAttributes implements Attributes {
 	private $tokenizer;
 	private $data;
 	private $attributes;
+	private $attrObjects;
 
 	public function __construct( $data, callable $interpreter ) {
 		$this->interpreter = $interpreter;
@@ -54,11 +55,25 @@ class LazyAttributes implements Attributes {
 		unset( $this->attributes[$offset] );
 	}
 
-	public function getArrayCopy() {
+	public function getValues() {
 		if ( $this->attributes === null ) {
 			$this->init();
 		}
 		return $this->attributes;
+	}
+
+	public function getObjects() {
+		if ( $this->attrObjects === null ) {
+			if ( $this->attributes === null ) {
+				$this->init();
+			}
+			$result = [];
+			foreach ( $this->attributes as $name => $value ) {
+				$result[$name] = new Attribute( $name, null, null, $name, $value );
+			}
+			$this->attrObjects = $result;
+		}
+		return $this->attrObjects;		
 	}
 
 	public function count() {

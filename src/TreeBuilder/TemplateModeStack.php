@@ -16,6 +16,6 @@ class TemplateModeStack {
 	}
 
 	public function isEmpty() {
-		return (bool)$this->current;
+		return $this->current === null;
 	}
 }

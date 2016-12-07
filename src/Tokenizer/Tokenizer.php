@@ -18,6 +18,7 @@ class Tokenizer {
 	const STATE_SCRIPT_DATA = 5;
 	const STATE_PLAINTEXT = 6;
 	const STATE_EOF = 7;
+	const STATE_CURRENT = 8;
 
 	// Match indices for the data state regex
 	const MD_END_TAG_OPEN = 1;
@@ -73,6 +74,8 @@ class Tokenizer {
 	protected $pos;
 	protected $length;
 	protected $enableCdataCallback;
+	protected $fragmentNamespace;
+	protected $fragmentName;
 
 	/**
 	 * Constructor
@@ -120,14 +123,31 @@ class Tokenizer {
 	/**
 	 * Run the tokenizer on the whole input stream. This is the normal entry point.
 	 *
-	 * @param integer $state One of the STATE_* constants, a state in which to start.
-	 * @param string|null $appropriateEndTag The "appropriate end tag", which
-	 *   needs to be set if entering one of the raw text states.
+	 * @param array $options An associative array of options:
+	 *   - state : One of the STATE_* constants, a state in which to start.
+	 *   - appropriateEndTag : The "appropriate end tag", which needs to be set
+	 *     if entering one of the raw text states.
+	 *   - fragmentNamespace : The fragment namespace
+	 *   - fragmentName : The fragment tag name
 	 */
-	public function execute( $state = self::STATE_START, $appropriateEndTag = null ) {
-		$this->state = $state;
-		$this->appropriateEndTag = $appropriateEndTag;
+	public function execute( $options = [] ) {
+		if ( isset( $options['state'] ) ) {
+			$this->state = $options['state'];
+		} else {
+			$this->state = self::STATE_START;
+		}
+
+		if ( isset( $options['fragmentNamespace'] ) ) {
+			$this->setFragmentContext( $options['fragmentNamespace'], $options['fragmentName'] );
+		} else {
+			$this->fragmentNamespace = null;
+			$this->fragmentName = null;
+		}
+		$this->appropriateEndTag = isset( $options['appropriateEndTag'] ) ?
+			$options['appropriateEndTag'] : null;
 		$this->preprocess();
+		$this->listener->startDocument( $this->fragmentNamespace, $this->fragmentName );
+
 		$this->executeInternal( true );
 	}
 
@@ -160,6 +180,9 @@ class Tokenizer {
 	 * @param string $tagName The name of the context element
 	 */
 	public function setFragmentContext( $namespace, $tagName ) {
+		$this->fragmentNamespace = $namespace;
+		$this->fragmentName = $tagName;
+
 		if ( strval( $namespace ) !== '' && $namespace !== HTMLData::NS_HTML ) {
 			return;
 		}
@@ -201,6 +224,7 @@ class Tokenizer {
 	public function beginStepping() {
 		$this->state = self::STATE_START;
 		$this->preprocess();
+		$this->listener->startDocument( null, null );
 	}
 
 	/**
@@ -297,7 +321,6 @@ class Tokenizer {
 				$this->state = $this->plaintextState();
 				break;
 			case self::STATE_START:
-				$this->listener->startDocument();
 				$this->state = self::STATE_DATA;
 				break;
 			case self::STATE_EOF:
@@ -453,37 +476,55 @@ class Tokenizer {
 				}
 				$tagName = strtolower( $tagName );
 				$this->pos = $nextPos;
-				$attribs = $this->consumeAttribs();
-				$eof = !$this->emitAndConsumeAfterAttribs( $tagName, $attribs, $isEndTag, $startPos );
+				$nextState = $this->handleAttribsAndClose( self::STATE_DATA,
+					$tagName, $isEndTag, $startPos );
 				$nextPos = $this->pos;
-				if ( $eof ) {
-					$nextState = self::STATE_EOF;
+				if ( $nextState === self::STATE_EOF ) {
 					break;
 				}
 
 				// Respect any state switch imposed by the parser
 				$nextState = $this->state;
+
 			} elseif ( isset( $m[self::MD_COMMENT] ) && $m[self::MD_COMMENT][1] >= 0 ) {
 				// Comment
 				$this->interpretCommentMatches( $m );
 			} elseif ( isset( $m[self::MD_DOCTYPE] ) && $m[self::MD_DOCTYPE][1] >= 0 ) {
 				// DOCTYPE
 				$this->interpretDoctypeMatches( $m );
-			} elseif ( $isCdata ) {
+			} elseif ( isset( $m[self::MD_CDATA] ) && $m[self::MD_CDATA][1] >= 0 ) {
 				// CDATA
-				$this->pos += strlen( $m[self::MD_CDATA][0] );
-				$endPos = strpos( $this->text, ']]>', $this->pos );
-				if ( $endPos === false ) {
-					$this->emitCdataRange( $this->pos, $this->length - $this->pos,
-						$startPos, $this->length - $startPos );
-					$this->pos = $this->length;
-					$nextState = self::STATE_EOF;
-					break;
+				if ( $this->enableCdataCallback
+					&& call_user_func( $this->enableCdataCallback )
+				) {
+					$this->pos += strlen( $m[self::MD_CDATA][0] ) + 1;
+					$endPos = strpos( $this->text, ']]>', $this->pos );
+					if ( $endPos === false ) {
+						$this->emitCdataRange( $this->pos, $this->length - $this->pos,
+							$startPos, $this->length - $startPos );
+						$this->pos = $this->length;
+						$nextState = self::STATE_EOF;
+						break;
+					} else {
+						$outerEndPos = $endPos + strlen( ']]>' );
+						$this->emitCdataRange( $this->pos, $endPos - $this->pos,
+							$startPos, $outerEndPos - $startPos );
+						$nextPos = $outerEndPos;
+					}
 				} else {
-					$outerEndPos = $endPos + strlen( ']]>' );
-					$this->emitCdataRange( $this->pos, $endPos - $this->pos,
-						$startPos, $outerEndPos - $startPos );
-					$nextPos = $outerEndPos;
+					// Bogus comment
+					$this->error( "unexpected CDATA interpreted as bogus comment" );
+					$endPos = strpos( $this->text, '>', $this->pos );
+					$bogusPos = $this->pos + 2;
+					if ( $endPos === false ) {
+						$nextPos = $this->length;
+						$contents = substr( $this->text, $bogusPos );
+					} else {
+						$nextPos = $endPos + 1;
+						$contents = substr( $this->text, $bogusPos, $endPos - $bogusPos );
+					}
+					$contents = $this->handleNulls( $contents, $bogusPos );
+					$this->listener->comment( $contents, $this->pos, $endPos - $this->pos );
 				}
 			} elseif ( isset ( $m[self::MD_BOGUS_COMMENT] ) && $m[self::MD_BOGUS_COMMENT][1] >= 0 ) {
 				// Bogus comment
@@ -1016,63 +1057,36 @@ class Tokenizer {
 			return self::STATE_EOF;
 		}
 
-		$re = "~< # RCDATA/RAWTEXT less-than sign state
-			/     # RCDATA/RAWTEXT end tag open state
-			{$this->appropriateEndTag}  # ASCII letters
-			(?:
-				( [\t\n\f ]*/> ) |            # 1. Self-closing tag
-				( [\t\n\f ]*/ ) |             # 2. Broken self-closing tag
-				( [\t\n\f ]*> ) |             # 3. Emit end tag token
-				( [\t\n\f ]+ )                # 4. Attribute state
-			)
+		$re = "~</
+			{$this->appropriateEndTag}
+			# Assert that the end tag name state is exited appropriately,
+			# since the anything else case leads to the tag being treated as
+			# a literal
+			(?=[\t\n\f />])
 			~ix";
 
-		$count = preg_match( $re, $this->text, $m, PREG_OFFSET_CAPTURE, $this->pos );
+		do {
+			$count = preg_match( $re, $this->text, $m, PREG_OFFSET_CAPTURE, $this->pos );
 
-		if ( $count === false ) {
-			$this->throwPregError();
-		} elseif ( !$count ) {
-			// Text runs to end
-			$this->emitRawTextRange( $ignoreCharRefs, $this->pos, $this->length - $this->pos );
-			$this->pos = $this->length;
-			return self::STATE_EOF;
-		}
-		$startPos = $m[0][1];
-		$selfCloseMatch = isset( $m[1] ) ? $m[1][0] : '';
-		$brokenSelfCloseMatch = isset( $m[2] ) ? $m[2][0] : '';
-		$endTagMatch = isset( $m[3] ) ? $m[3][0] : '';
-
-		// Emit text before tag
-		$this->emitRawTextRange( $ignoreCharRefs, $this->pos, $startPos - $this->pos );
-
-		$matchLength = strlen( $m[0][0] );
-		$this->pos = $startPos + $matchLength;
-		if ( strlen( $selfCloseMatch ) ) {
-			// FIXME: unacknowledged self close needs handling?
-			$this->listener->endTag( $this->appropriateEndTag, $startPos, $matchLength );
-			return self::STATE_DATA;
-		} elseif ( strlen( $brokenSelfCloseMatch ) ) {
-			if ( $this->pos >= $this->length ) {
-				$this->error( 'unclosed RCDATA/RAWTEXT element', $startPos );
+			if ( $count === false ) {
+				$this->throwPregError();
+			} elseif ( !$count ) {
+				// Text runs to end
+				$this->emitRawTextRange( $ignoreCharRefs, $this->pos, $this->length - $this->pos );
+				$this->pos = $this->length;
 				return self::STATE_EOF;
-			} else {
-				$this->error( 'unexpected character' );
-				// Switch to the before attribute name state
 			}
-		} elseif ( strlen( $endTagMatch ) ) {
-			$this->listener->endTag( $this->appropriateEndTag, $startPos, $matchLength );
-			return self::STATE_DATA;
-		} // else whitespace, go to attribute state
+			$startPos = $m[0][1];
 
-		// Before attribute name state
-		$attribs = $this->consumeAttribs();
-		$eof = !$this->emitAndConsumeAfterAttribs( $this->appropriateEndTag, $attribs,
-			true, $startPos );
-		if ( $eof ) {
-			return self::STATE_EOF;
-		} else {
-			return self::STATE_DATA;
-		}
+			// Emit text before tag
+			$this->emitRawTextRange( $ignoreCharRefs, $this->pos, $startPos - $this->pos );
+
+			$matchLength = strlen( $m[0][0] );
+			$this->pos = $startPos + $matchLength;
+			$nextState = $this->handleAttribsAndClose( self::STATE_RCDATA,
+				$this->appropriateEndTag, true, $startPos );
+		} while ( $nextState === self::STATE_RCDATA );
+		return $nextState;
 	}
 
 	/**
@@ -1229,19 +1243,35 @@ class Tokenizer {
 	}
 
 	/**
-	 * With $this->pos set to the closing bracket, as produced by consumeAttribs(),
-	 * advance the position to past the end of the tag, and emit the relevant tag.
+	 * Consume attributes, and the closing bracket which follows attributes.
+	 * Emit the appropriate tag event, or in the case of broken attributes in
+	 * text states, emit characters.
 	 *
-	 * @param $tagName The normalized tag name
-	 * @param Attributes $attribs
+	 * @param integer $state The current state
+	 * @param string $tagName The normalized tag name
 	 * @param bool $isEndTag True if this is an end tag, false if it is a start tag
 	 * @param integer $startPos The input position of the start of the current tag.
+	 * @return integer The next state
 	 */
-	protected function emitAndConsumeAfterAttribs( $tagName, $attribs, $isEndTag, $startPos ) {
+	protected function handleAttribsAndClose( $state, $tagName, $isEndTag, $startPos ) {
+		$attribStartPos = $this->pos;
+		$attribs = $this->consumeAttribs();
 		$pos = $this->pos;
+
+		// Literal characters are emitted on EOF or "anything else" from the
+		// end tag substates of the text states.
+		// (spec ref 8.2.4 sections 11-19, 25-27)
+		$isDataState = $state === self::STATE_DATA;
+		$isLiteral = $attribStartPos === $pos && !$isDataState;
+
 		if ( $pos >= $this->length ) {
 			$this->error( 'unexpected end of file inside tag' );
-			return false;
+			if ( $isLiteral ) {
+				$this->listener->characters( $this->text,
+					$startPos, $this->length - $startPos,
+					$startPos, $this->length - $startPos );
+			}
+			return self::STATE_EOF;
 		}
 		if ( $isEndTag && !$this->ignoreErrors && $attribs->count() ) {
 			$this->error( 'end tag has an attribute' );
@@ -1253,6 +1283,11 @@ class Tokenizer {
 		} elseif ( $this->text[$pos] === '>' ) {
 			$pos++;
 			$selfClose = false;
+		} elseif ( $isLiteral ) {
+			$this->listener->characters( $this->text,
+				$startPos, $attribStartPos - $startPos,
+				$startPos, $attribStartPos - $startPos );
+			return $state;
 		} else {
 			$this->fatal( 'failed to find an already-matched ">"' );
 		}
@@ -1263,9 +1298,10 @@ class Tokenizer {
 			}
 			$this->listener->endTag( $tagName, $startPos, $pos - $startPos );
 		} else {
-			$this->listener->startTag( $tagName, $attribs, $selfClose, $startPos, $pos - $startPos );
+			$this->listener->startTag( $tagName, $attribs, $selfClose,
+				$startPos, $pos - $startPos );
 		}
-		return true;
+		return self::STATE_DATA;
 	}
 
 	/**
@@ -1297,7 +1333,12 @@ class Tokenizer {
 				.*?
 				(?:
 					$ |
-					( </ {$this->appropriateEndTag} ) |       # 1. Appropriate end tag
+					(
+						</ {$this->appropriateEndTag}
+						# If we hit the "anything else" case in the script data
+						# end tag name state, don't exit
+						(?= [\t\n\f />] )
+					) | # 1. Appropriate end tag
 					<!--
 					# Script data escaped dash dash state
 					# Hyphens at this point are consumed without a state transition
@@ -1315,7 +1356,7 @@ class Tokenizer {
 							# body to match zero characters. Repeating a zero-character
 							# match causes the repeat to terminate.
 							(?= --> ) |
-							(?= </ {$this->appropriateEndTag} ) |
+							(?= </ {$this->appropriateEndTag} [\t\n\f />] ) |
 							<script [\t\n\f />]
 							# Script data double escaped state
 							.*?
@@ -1336,32 +1377,30 @@ class Tokenizer {
 			~xsiA
 REGEX;
 
-		$count = preg_match( $re, $this->text, $m, 0, $this->pos );
-		if ( $count === false ) {
-			$this->throwPregError();
-		} elseif ( !$count ) {
-			$this->fatal( 'unexpected regex failure: this pattern can match zero characters' );
-		}
+		do {
+			$count = preg_match( $re, $this->text, $m, 0, $this->pos );
+			if ( $count === false ) {
+				$this->throwPregError();
+			} elseif ( !$count ) {
+				$this->fatal( 'unexpected regex failure: this pattern can match zero characters' );
+			}
 
-		if ( !isset( $m[1] ) || $m[1] === '' ) {
-			// EOF in script data state: no text node emitted
-			$this->pos = $this->length;
-			return self::STATE_EOF;
-		}
+			$startPos = $this->pos;
+			$matchLength = strlen( $m[0] );
+			$endTagLength = isset( $m[1] ) ? strlen( $m[1] ) : 0;
+			$textLength = $matchLength - $endTagLength;
+			$this->emitRawTextRange( true, $startPos, $textLength );
+			$this->pos = $startPos + $matchLength;
+			$tagStartPos = $startPos + $textLength;
 
-		$startPos = $this->pos;
-		$matchLength = strlen( $m[0] );
-		$textLength = $matchLength - strlen( $m[1] );
-		$this->emitRawTextRange( true, $startPos, $textLength );
-		$this->pos = $startPos + $matchLength;
-		$attribs = $this->consumeAttribs();
-		$eof = !$this->emitAndConsumeAfterAttribs( $this->appropriateEndTag, $attribs,
-			true, $startPos );
-		if ( $eof ) {
-			return self::STATE_EOF;
-		} else {
-			return self::STATE_DATA;
-		}
+			if ( $endTagLength ) {
+				$nextState = $this->handleAttribsAndClose( self::STATE_SCRIPT_DATA,
+					$this->appropriateEndTag, true, $tagStartPos );
+			} else {
+				$nextState = self::STATE_EOF;
+			}
+		} while ( $nextState === self::STATE_SCRIPT_DATA );
+		return $nextState;
 	}
 
 	/**

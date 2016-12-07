@@ -48,7 +48,7 @@ class TestTreeBuilderHandler implements TreeHandler {
 		return $this->errors;
 	}
 
-	public function startDocument() {
+	public function startDocument( $fns, $fn ) {
 	}
 
 	public function endDocument() {

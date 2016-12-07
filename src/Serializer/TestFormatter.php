@@ -5,7 +5,7 @@ use Wikimedia\RemexHtml\Tokenizer\Attributes;
 use Wikimedia\RemexHtml\HTMLData;
 
 class TestFormatter implements Formatter {
-	function startDocument() {
+	function startDocument( $fragmentNamespace, $fragmentName ) {
 		return '';
 	}
 
@@ -20,7 +20,7 @@ class TestFormatter implements Formatter {
 
 	function characters( $text, $start, $length ) {
 		return '"' .
-			str_replace( "\n", "\\n", substr( $text, $start, $length ) ) .
+			str_replace( "\n", "<EOL>", substr( $text, $start, $length ) ) .
 			"\"\n";
 	}
 
@@ -35,10 +35,14 @@ class TestFormatter implements Formatter {
 			$tagName = $name;
 		}
 		$ret = "<$tagName>\n";
-		$sortedAttrs = $attrs->getArrayCopy();
-		ksort( $sortedAttrs );
-		foreach ( $sortedAttrs as $attrName => $value ) {
-			$ret .= "  $attrName=\"$value\"";
+		$sortedAttrs = $attrs->getObjects();
+		ksort( $sortedAttrs, SORT_STRING );
+		foreach ( $sortedAttrs as $attrName => $attr ) {
+			if ( $attr->prefix !== null ) {
+				$ret .= "  {$attr->prefix} {$attr->localName}=\"{$attr->value}\"\n";
+			} else {
+				$ret .= "  $attrName=\"{$attr->value}\"\n";
+			}
 		}
 		if ( $contents !== null && $contents !== '' ) {
 			$contents = preg_replace( '/^/m', '  ', $contents );
@@ -46,7 +50,11 @@ class TestFormatter implements Formatter {
 			$contents = '';
 		}
 		if ( $namespace === HTMLData::NS_HTML && $name === 'template' ) {
-			$contents = "content\n" . preg_replace( '/^/m', '  ', $contents );
+			if ( $contents === '' ) {
+				$contents = "  content\n";
+			} else {
+				$contents = "  content\n" . preg_replace( '/^/m', '  ', $contents );
+			}
 		}
 		$ret .= $contents;
 		return $ret;

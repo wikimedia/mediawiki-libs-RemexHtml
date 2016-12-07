@@ -2,15 +2,17 @@
 
 namespace Wikimedia\RemexHtml\TreeBuilder;
 use Wikimedia\RemexHtml\HTMLData;
+use Wikimedia\RemexHtml\Tokenizer\Attribute;
 use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 class ForeignAttributes implements Attributes {
-	private $unadjusted;
-	private $table;
+	protected $unadjusted;
+	protected $table;
+	protected $attrObjects;
 
 	private static $adjustmentTables = [
 		'math' => [
-			'definitionurl' => ' definitionURL',
+			'definitionurl' => 'definitionURL',
 		],
 		'svg' => [
 			'attributename' => 'attributeName',
@@ -116,9 +118,9 @@ class ForeignAttributes implements Attributes {
 		throw new \Exception( "Setting foreign attributes is not supported" );
 	}
 
-	public function getArrayCopy() {
+	public function getValues() {
 		$result = [];
-		foreach ( $this->unadjusted->getArrayCopy() as $name => $value ) {
+		foreach ( $this->unadjusted->getValues() as $name => $value ) {
 			$name = isset( $this->table[$name] ) ? $this->table[$name] : $name;
 			$result[$name] = $value;
 		}
@@ -135,27 +137,33 @@ class ForeignAttributes implements Attributes {
 	}
 
 	public function getIterator() {
-		return new \ArrayIterator( $this->getArrayCopy() );
+		return new \ArrayIterator( $this->getValues() );
 	}
 
-	public function createAttributeObjects() {
-		$result = [];
-		foreach ( $this->unadjusted->getArrayCopy() as $name => $value ) {
-			if ( $name === 'xmlns' ) {
-				$prefix = null;
-				$namespace = HTMLData::NS_XMLNS;
-				$localName = $name;
-			} elseif ( isset( self::$namespaceMap[$name] ) ) {
-				$namespace = self::$namespaceMap[$name];
-				list( $prefix, $localName ) = explode( ':', $name, 2 );
-			} else {
-				$prefix = null;
-				$namespace = null;
-				$localName = $name;
+	public function getObjects() {
+		if ( $this->attrObjects === null ) {
+			$result = [];
+			foreach ( $this->unadjusted->getValues() as $name => $value ) {
+				if ( isset( $this->table[$name] ) ) {
+					$name = $this->table[$name];
+				}
+				if ( $name === 'xmlns' ) {
+					$prefix = null;
+					$namespace = HTMLData::NS_XMLNS;
+					$localName = $name;
+				} elseif ( isset( self::$namespaceMap[$name] ) ) {
+					$namespace = self::$namespaceMap[$name];
+					list( $prefix, $localName ) = explode( ':', $name, 2 );
+				} else {
+					$prefix = null;
+					$namespace = null;
+					$localName = $name;
+				}
+				$result[$name] = new Attribute( $name, $namespace, $prefix, $localName, $value );
 			}
-			$result[$name] = new Attribute( $name, $namespace, $prefix, $localName, $value );
+			$this->attrObjects = $result;
 		}
-		return $result;
+		return $this->attrObjects;
 	}
 
 	public function merge( Attributes $other ) {

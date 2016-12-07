@@ -17,7 +17,7 @@ class TokenSerializer implements TokenHandler {
 		return $this->errors;
 	}
 
-	public function startDocument() {
+	public function startDocument( $fns, $fn ) {
 		$this->output = '';
 	}
 
@@ -33,7 +33,7 @@ class TokenSerializer implements TokenHandler {
 	}
 
 	public function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
-		$attrs = $attrs->getArrayCopy();
+		$attrs = $attrs->getValues();
 		$this->output .= "<$name";
 		foreach ( $attrs as $name => $value ) {
 			$this->output .= " $name=\"" . str_replace( '"', '&quot;', $value ) . '"';

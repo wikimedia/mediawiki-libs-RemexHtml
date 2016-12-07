@@ -15,7 +15,7 @@ class DOMBuilder implements TreeHandler {
 		return $this->doc;
 	}
 
-	public function startDocument() {
+	public function startDocument( $fns, $fn ) {
 		$this->doc = new \DOMDocument;
 	}
 
@@ -36,16 +36,7 @@ class DOMBuilder implements TreeHandler {
 		$parent->insertBefore( $node, $refNode );
 	}
 
-	public function characters( $preposition, $refElement, $text, $start, $length,
-		$sourceStart, $sourceLength
-	) {
-		$node = $this->doc->createTextNode( substr( $text, $start, $length ) );
-		$this->insertNode( $preposition, $refElement, $node );
-	}
-
-	public function insertElement( $preposition, $refElement, Element $element, $void,
-		$sourceStart, $sourceLength
-	) {
+	private function createNode( Element $element ) {
 		$node = $this->doc->createElementNS(
 			$element->namespace,
 			$element->name );
@@ -60,8 +51,26 @@ class DOMBuilder implements TreeHandler {
 				$node->setAttribute( $attr->localName, $attr->value );
 			}
 		}
-		$this->insertNode( $preposition, $refElement, $node );
 		$element->userData = $node;
+		return $node;
+	}
+
+	public function characters( $preposition, $refElement, $text, $start, $length,
+		$sourceStart, $sourceLength
+	) {
+		$node = $this->doc->createTextNode( substr( $text, $start, $length ) );
+		$this->insertNode( $preposition, $refElement, $node );
+	}
+
+	public function insertElement( $preposition, $refElement, Element $element, $void,
+		$sourceStart, $sourceLength
+	) {
+		if ( $element->userData ) {
+			$node = $element->userData;
+		} else {
+			$node = $this->createNode( $element );
+		}
+		$this->insertNode( $preposition, $refElement, $node );
 	}
 
 	public function endTag( Element $element, $sourceStart, $sourceLength ) {
@@ -83,7 +92,7 @@ class DOMBuilder implements TreeHandler {
 
 	public function mergeAttributes( Element $element, Attributes $attrs, $sourceStart ) {
 		$node = $element->userData;
-		foreach ( $attrs->getArrayCopy() as $name => $value ) {
+		foreach ( $attrs->getValues() as $name => $value ) {
 			if ( !$node->hasAttribute( $name ) ) {
 				$node->setAttribute( $name, $value );
 			}
@@ -102,10 +111,13 @@ class DOMBuilder implements TreeHandler {
 	}
 
 	public function reparentChildren( Element $element, Element $newParent, $sourceStart ) {
+		$this->insertElement( TreeBuilder::BELOW, $element, $newParent, false, $sourceStart, 0 );
 		$node = $element->userData;
-		$newParentNode = $element->userData;
+		$newParentNode = $newParent->userData;
 		foreach ( $node->childNodes as $child ) {
-			$newParentNode->appendChild( $child );
+			if ( $child !== $newParentNode ) {
+				$newParentNode->appendChild( $child );
+			}
 		}
 	}
 }

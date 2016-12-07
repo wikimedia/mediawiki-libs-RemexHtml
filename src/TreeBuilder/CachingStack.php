@@ -29,9 +29,9 @@ class CachingStack extends Stack {
 	];
 
 	private static $svgBreakers = [
-		'foreignObject',
-		'desc',
-		'title'
+		'foreignObject' => true,
+		'desc' => true,
+		'title' => true
 	];
 
 	/**
@@ -390,5 +390,20 @@ class CachingStack extends Stack {
 
 	public function hasTemplate() {
 		return (bool)$this->templateCount;
+	}
+
+	public function dump() {
+		return parent::dump() .
+			$this->scopeDump( self::SCOPE_DEFAULT, 'In scope' ) .
+			$this->scopeDump( self::SCOPE_DEFAULT, 'In list scope' ) .
+			$this->scopeDump( self::SCOPE_DEFAULT, 'In button scope' ) .
+			$this->scopeDump( self::SCOPE_DEFAULT, 'In table scope' ) .
+			$this->scopeDump( self::SCOPE_DEFAULT, 'In select scope' ) . "\n";
+	}
+
+	private function scopeDump( $scopeId, $scopeName ) {
+		if ( count( $this->scopes[$scopeId] ) ) {
+			return "$scopeName: " . implode( ', ', array_keys( $this->scopes[$scopeId] ) ) . "\n";
+		}
 	}
 }

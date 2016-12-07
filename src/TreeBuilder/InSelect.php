@@ -31,7 +31,10 @@ class InSelect extends InsertionMode {
 			break;
 
 		case 'optgroup':
-			if ( in_array( $stack->current->htmlName, [ 'option', 'optgroup' ] ) ) {
+			if ( $stack->current->htmlName === 'option' ) {
+				$builder->pop( $sourceStart, 0 );
+			}
+			if ( $stack->current->htmlName === 'optgroup' ) {
 				$builder->pop( $sourceStart, 0 );
 			}
 			$builder->insertElement( 'optgroup', $attrs, false, $sourceStart, $sourceLength );

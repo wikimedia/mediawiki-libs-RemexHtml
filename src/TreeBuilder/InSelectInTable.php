@@ -23,10 +23,6 @@ class InSelectInTable extends InsertionMode {
 		case 'tr':
 		case 'td':
 		case 'th':
-			if ( !$stack->isInTableScope( $name ) ) {
-				$builder->error( "unexpected <$name> in select in table, ignoring", $sourceStart );
-				return;
-			}
 			$builder->error( "unexpected <$name> in select in table, closing select",
 				$sourceStart );
 			$builder->popAllUpToName( 'select', $sourceStart, 0 );

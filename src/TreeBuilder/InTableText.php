@@ -17,6 +17,18 @@ class InTableText extends InsertionMode {
 		}
 	}
 
+	public function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
+		$this->processPendingCharacters();
+		$this->dispatcher->restoreMode()
+			->doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength );
+	}
+
+	public function comment( $text, $sourceStart, $sourceLength ) {
+		$this->processPendingCharacters();
+		$this->dispatcher->restoreMode()
+			->comment( $text, $sourceStart, $sourceLength );
+	}
+
 	public function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
 		$this->processPendingCharacters();
 		$this->dispatcher->restoreMode()
@@ -40,7 +52,7 @@ class InTableText extends InsertionMode {
 		$allSpace = true;
 		foreach ( $builder->pendingTableCharacters as $token ) {
 			list( $text, $start, $length, $sourceStart, $sourceLength ) = $token;
-			if ( strcspn( $text, "\t\n\f\r ", $start, $length ) !== $length ) {
+			if ( strspn( $text, "\t\n\f\r ", $start, $length ) !== $length ) {
 				$allSpace = false;
 			}
 		}

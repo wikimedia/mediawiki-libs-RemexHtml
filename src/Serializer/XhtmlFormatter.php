@@ -12,7 +12,7 @@ class XhtmlFormatter implements Formatter {
 		$this->ignoreEntities = $options['ignoreEntities'];
 	}
 
-	function startDocument() {
+	function startDocument( $fragmentNamespace, $fragmentName ) {
 		return "<!DOCTYPE html>\n";
 	}
 
@@ -31,11 +31,11 @@ class XhtmlFormatter implements Formatter {
 	function element( $namespace, $name, Attributes $attrs, $contents ) {
 		$ret = "<$name";
 		if ( $this->ignoreEntities ) {
-			foreach ( $attrs->getArrayCopy() as $name => $value ) {
+			foreach ( $attrs->getValues() as $name => $value ) {
 				$ret .= " $name=\"$value\"";
 			}
 		} else {
-			foreach ( $attrs->getArrayCopy() as $name => $value ) {
+			foreach ( $attrs->getValues() as $name => $value ) {
 				$ret .= " $name=\"" .
 					strtr( $value, [
 						'"' => '&quot;',

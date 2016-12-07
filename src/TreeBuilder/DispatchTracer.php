@@ -48,8 +48,16 @@ class DispatchTracer implements TokenHandler {
 		}
 	}
 
-	public function startDocument() {
-		$this->wrap( __FUNCTION__, 0, 0, func_get_args() );
+	public function startDocument( $ns, $name ) {
+		$prevHandler = $this->getHandlerName();
+		$nsMsg = $ns === null ? 'NULL' : $ns;
+		$nameMsg = $name === null ? 'NULL' : $name;
+		$this->trace( "startDocument $prevHandler $nsMsg $nameMsg" );
+		$this->dispatcher->startDocument( $ns, $name );
+		$handler = $this->getHandlerName();
+		if ( $prevHandler !== $handler ) {
+			$this->trace( "$prevHandler -> $handler" );
+		}
 	}
 
 	public function endDocument( $pos ) {
@@ -57,7 +65,9 @@ class DispatchTracer implements TokenHandler {
 	}
 
 	public function error( $text, $pos ) {
-		$this->wrap( __FUNCTION__, $pos, 0, func_get_args() );
+		$handler = $this->getHandlerName();
+		$this->trace( "error $handler \"$text\"" );
+		$this->dispatcher->error( $text, $pos );
 	}
 
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {

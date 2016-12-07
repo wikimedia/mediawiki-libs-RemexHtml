@@ -7,8 +7,12 @@ class FastFormatter implements Formatter {
 	function __construct( $options = [] ) {
 	}
 
-	function startDocument() {
-		return "<!DOCTYPE html>\n";
+	function startDocument( $fragmentNamespace, $fragmentName ) {
+		if ( $fragmentNamespace === null ) {
+			return "<!DOCTYPE html>\n";
+		} else {
+			return '';
+		}
 	}
 
 	function doctype( $name, $public, $system ) {
@@ -20,7 +24,7 @@ class FastFormatter implements Formatter {
 
 	function element( $namespace, $name, Attributes $attrs, $contents ) {
 		$ret = "<$name";
-		foreach ( $attrs->getArrayCopy() as $attrName => $value ) {
+		foreach ( $attrs->getValues() as $attrName => $value ) {
 			$ret .= " $attrName=\"$value\"";
 		}
 		if ( $contents === null ) {

@@ -13,7 +13,7 @@ class TestTokenHandler implements TokenHandler {
 		return $this->tokens;
 	}
 
-	public function startDocument() {
+	public function startDocument( $fns, $fn ) {
 	}
 
 	public function endDocument( $pos ) {
@@ -28,7 +28,7 @@ class TestTokenHandler implements TokenHandler {
 	}
 
 	public function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
-		$attrArray = $attrs->getArrayCopy();
+		$attrArray = $attrs->getValues();
 		if ( $selfClose ) {
 			$this->tokens[] = [ 'StartTag', $name, $attrArray, $selfClose ];
 		} else {

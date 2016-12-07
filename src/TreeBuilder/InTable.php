@@ -97,12 +97,13 @@ class InTable extends InsertionMode {
 			break;
 
 		case 'form':
-			$builder->error( 'invalid form in table, ignoring', $sourceStart );
 			if ( $stack->hasTemplate() || $builder->formElement !== null ) {
+				$builder->error( 'invalid form in table, ignoring', $sourceStart );
 				// Ignore
 				break;
 			}
-			$elt = $builder->insertElement( 'form', $attrs, false,
+			$builder->error( 'invalid form in table, inserting void element', $sourceStart );
+			$elt = $builder->insertElement( 'form', $attrs, true,
 				$sourceStart, $sourceLength );
 			$builder->formElement = $elt;
 			break;
@@ -159,6 +160,11 @@ class InTable extends InsertionMode {
 		case 'template':
 			$dispatcher->inHead->endTag( $name, $sourceStart, $sourceLength );
 			break;
+
+		default:
+			$builder->fosterParenting = true;
+			$dispatcher->inBody->endTag( $name, $sourceStart, $sourceLength );
+			$builder->fosterParenting = false;
 		}
 	}
 

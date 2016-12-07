@@ -195,7 +195,9 @@ EOT;
 
 		$special = [];
 		foreach ( self::$special as $ns => $str ) {
-			$special[$ns] = array_map( 'trim', explode( ',', $str ) );
+			foreach ( explode( ',', $str ) as $name ) {
+				$special[$ns][trim( $name )] = true;
+			}
 		}
 		$encSpecial = var_export( $special, true );
 

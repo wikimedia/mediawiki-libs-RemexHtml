@@ -154,9 +154,9 @@ class ActiveFormattingElements {
 	 * Find the element $elt in the list and remove it.
 	 * Used when parsing <a> in body mode.
 	 *
-	 * @param Element $elt
+	 * @param FormattingElement $elt
 	 */
-	public function remove( Element $elt ) {
+	public function remove( FormattingElement $elt ) {
 		if ( $this->head !== $elt && !$elt->prevAFE ) {
 			throw new TreeBuilderError(
 				"Attempted to remove an element which is not in the AFE list" );
@@ -179,7 +179,9 @@ class ActiveFormattingElements {
 		// Clear pointers so that isInList() etc. will work
 		$elt->prevAFE = $elt->nextAFE = null;
 		// Update Noah list
-		$this->removeFromNoahList( $elt );
+		if ( $elt instanceof Element ) {
+			$this->removeFromNoahList( $elt );
+		}
 	}
 
 	private function addToNoahList( Element $elt ) {
@@ -287,7 +289,7 @@ class ActiveFormattingElements {
 	/**
 	 * Get a string representation of the AFE list, for debugging
 	 */
-	public function __toString() {
+	public function dump() {
 		$prev = null;
 		$s = '';
 		for ( $node = $this->head; $node; $prev = $node, $node = $node->nextAFE ) {

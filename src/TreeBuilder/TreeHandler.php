@@ -6,8 +6,13 @@ use Wikimedia\RemexHtml\Tokenizer\Attributes;
 interface TreeHandler {
 	/**
 	 * Called when parsing starts.
+	 *
+	 * @param string|null $fragmentNamespace The fragment namespace, or null
+	 *   to run in document mode.
+	 * @param string|null $fragmentName The fragment tag name, or null to run
+	 *   in document mode.
 	 */
-	function startDocument();
+	function startDocument( $fragmentNamespace, $fragmentName );
 
 	/**
 	 * Called when parsing stops.
@@ -131,17 +136,6 @@ interface TreeHandler {
 	 * @param integer $sourceStart The input position
 	 */
 	function mergeAttributes( Element $element, Attributes $attrs, $sourceStart );
-
-	/**
-	 * Insert an element as the last child of the specified new parent,
-	 * removing it from its old parent.
-	 *
-	 * @param Element $element The element to be moved
-	 * @param Element $newParent The new parent element
-	 * @param integer $sourceStart The location in the source at which this
-	 *   action was triggered.
-	 */
-	function reparentNode( Element $element, Element $newParent, $sourceStart );
 
 	/**
 	 * Remove a node from the tree, and all its children. This is only done

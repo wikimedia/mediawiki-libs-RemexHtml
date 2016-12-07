@@ -5,9 +5,10 @@ use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 class TreeMutationTracer implements TreeHandler {
 
-	public function __construct( TreeHandler $handler, $callback ) {
+	public function __construct( TreeHandler $handler, $callback, $verbosity = 0 ) {
 		$this->handler = $handler;
 		$this->callback = $callback;
+		$this->verbosity = $verbosity;
 	}
 
 	private function trace( $msg ) {
@@ -34,7 +35,19 @@ class TreeMutationTracer implements TreeHandler {
 		return isset( $names[$prep] ) ? $names[$prep] : '???';
 	}
 
-	public function startDocument() {
+	private function before() {
+		if ( $this->verbosity > 0 ) {
+			$this->trace( "Before: " . $this->handler->dump() . "\n" );
+		}
+	}
+
+	private function after() {
+		if ( $this->verbosity > 0 ) {
+			$this->trace( "After:  " . $this->handler->dump() . "\n" );
+		}
+	}
+
+	public function startDocument( $fns, $fn ) {
 		$this->trace( "startDocument" );
 		call_user_func_array( [ $this->handler, __FUNCTION__ ], func_get_args() );
 	}
@@ -57,7 +70,9 @@ class TreeMutationTracer implements TreeHandler {
 		$refTag = $this->getDebugTag( $refNode );
 
 		$this->trace( "characters \"$excerpt\", $prepName $refTag, start=$sourceStart" );
+		$this->before();
 		call_user_func_array( [ $this->handler, __FUNCTION__ ], func_get_args() );
+		$this->after();
 	}
 
 	public function insertElement( $preposition, $refNode, Element $element, $void,
@@ -68,13 +83,17 @@ class TreeMutationTracer implements TreeHandler {
 		$elementTag = $this->getDebugTag( $element );
 		$voidMsg = $void ? 'void' : '';
 		$this->trace( "insert $elementTag $voidMsg, $prepName $refTag, start=$sourceStart" );
+		$this->before();
 		call_user_func_array( [ $this->handler, __FUNCTION__ ], func_get_args() );
+		$this->after();
 	}
 
 	public function endTag( Element $element, $sourceStart, $sourceLength ) {
 		$elementTag = $this->getDebugTag( $element );
 		$this->trace( "end $elementTag, start=$sourceStart" );
+		$this->before();
 		call_user_func_array( [ $this->handler, __FUNCTION__ ], func_get_args() );
+		$this->after();
 	}
 
 	public function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
@@ -86,7 +105,9 @@ class TreeMutationTracer implements TreeHandler {
 		$quirksMsg = $quirksTypes[$quirks];
 		$this->trace( "doctype $name, public=\"$public\", system=\"$system\", " .
 			"$quirksMsg, start=$sourceStart" );
+		$this->before();
 		call_user_func_array( [ $this->handler, __FUNCTION__ ], func_get_args() );
+		$this->after();
 	}
 
 	public function comment( $preposition, $refNode, $text, $sourceStart, $sourceLength ) {
@@ -95,7 +116,9 @@ class TreeMutationTracer implements TreeHandler {
 		$excerpt = $this->excerpt( $text );
 
 		$this->trace( "comment \"$excerpt\", $prepName $refTag, start=$sourceStart" );
+		$this->before();
 		call_user_func_array( [ $this->handler, __FUNCTION__ ], func_get_args() );
+		$this->after();
 	}
 
 	public function error( $text, $pos ) {
@@ -106,6 +129,7 @@ class TreeMutationTracer implements TreeHandler {
 	public function mergeAttributes( Element $element, Attributes $attrs, $sourceStart ) {
 		$elementTag = $this->getDebugTag( $element );
 		$this->trace( "merge $elementTag, start=$sourceStart" );
+		$this->before();
 		call_user_func_array( [ $this->handler, __FUNCTION__ ], func_get_args() );
 	}
 
@@ -113,19 +137,25 @@ class TreeMutationTracer implements TreeHandler {
 		$elementTag = $this->getDebugTag( $element );
 		$newParentTag = $this->getDebugTag( $newParent );
 		$this->trace( "reparent $elementTag under $newParentTag, start=$sourceStart" );
+		$this->before();
 		call_user_func_array( [ $this->handler, __FUNCTION__ ], func_get_args() );
+		$this->after();
 	}
 
 	public function removeNode( Element $element, $sourceStart ) {
 		$elementTag = $this->getDebugTag( $element );
 		$this->trace( "remove $elementTag, start=$sourceStart" );
+		$this->before();
 		call_user_func_array( [ $this->handler, __FUNCTION__ ], func_get_args() );
+		$this->after();
 	}
 
 	public function reparentChildren( Element $element, Element $newParent, $sourceStart ) {
 		$elementTag = $this->getDebugTag( $element );
 		$newParentTag = $this->getDebugTag( $newParent );
-		$this->trace( "reparentChildren $elementTag under $newParent, start=$sourceStart" );
+		$this->trace( "reparent children of $elementTag under $newParentTag, start=$sourceStart" );
+		$this->before();
 		call_user_func_array( [ $this->handler, __FUNCTION__ ], func_get_args() );
+		$this->after();
 	}
 }

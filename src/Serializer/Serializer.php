@@ -8,10 +8,12 @@ use Wikimedia\RemexHtml\Tokenizer\Attributes;
 use Wikimedia\RemexHtml\Tokenizer\PlainAttributes;
 
 class Serializer implements TreeHandler {
-	private $accumulators;
+	private $root;
 	private $errorCallback;
-	private $numAccums = 1;
 	private $formatter;
+	private $nodes = [];
+	private $nextNodeId = 0;
+	private $isFragment;
 
 	public function __construct( Formatter $formatter, $errorCallback = null ) {
 		$this->formatter = $formatter;
@@ -22,22 +24,28 @@ class Serializer implements TreeHandler {
 		return $this->result;
 	}
 
-	public function startDocument() {
-		$this->root = new SerializerNode( '', '', new PlainAttributes, false );
-		$this->result = $this->formatter->startDocument();
+	public function startDocument( $fragmentNamespace, $fragmentName ) {
+		$this->root = new SerializerNode( 0, 0, '', '', new PlainAttributes, false );
+		$this->nodes = [ $this->root ];
+		$this->nextNodeId = 1;
+		$this->isFragment = $fragmentNamespace !== null;
+		$this->result = $this->formatter->startDocument( $fragmentNamespace, $fragmentName );
 	}
 
 	public function endDocument( $pos ) {
-		$result = '';
-		foreach ( $this->root->children as $childIndex => $child ) {
+		if ( $this->isFragment ) {
+			$root = $this->root->children[0];
+		} else {
+			$root = $this->root;
+		}
+		foreach ( $root->children as $childIndex => $child ) {
 			if ( is_string( $child ) ) {
-				$result .= $child;
+				$this->result .= $child;
 			} else {
-				$this->flatten( $this->root, $childIndex, $child );
-				$result .= $this->root->children[$childIndex];
+				$this->result .= $this->stringify( $child );
 			}
 		}
-		$this->result .= $result;
+		$this->root = null;
 	}
 
 	public function characters( $preposition, $refElement, $text, $start, $length,
@@ -48,9 +56,9 @@ class Serializer implements TreeHandler {
 		if ( $preposition === TreeBuilder::ROOT ) {
 			$parent = $this->root;
 		} elseif ( $preposition === TreeBuilder::BEFORE ) {
-			$parent = $refElement->userData->parent;
+			$parent = $this->nodes[$refElement->userData->parentId];
 		} else {
-			$parent = $refElement->userData->self;
+			$parent = $refElement->userData;
 		}
 
 		$children =& $parent->children;
@@ -59,7 +67,7 @@ class Serializer implements TreeHandler {
 
 		if ( $preposition === TreeBuilder::BEFORE ) {
 			// Insert before element
-			$refNode = $refElement->userData->self;
+			$refNode = $refElement->userData;
 			if ( $lastChild !== $refNode ) {
 				$refIndex = array_search( $refNode, $children, true );
 				throw new SerializerError( "invalid insert position $refIndex/$lastChildIndex" );
@@ -82,19 +90,38 @@ class Serializer implements TreeHandler {
 		if ( $preposition === TreeBuilder::ROOT ) {
 			$parent = $this->root;
 		} elseif ( $preposition === TreeBuilder::BEFORE ) {
-			$parent = $refElement->userData->parent;
+			$parent = $this->nodes[$refElement->userData->parentId];
 		} else {
-			$parent = $refElement->userData->self;
+			$parent = $refElement->userData;
 		}
 		$children =& $parent->children;
 		$lastChildIndex = count( $children ) - 1;
 		$lastChild = $lastChildIndex >= 0 ? $children[$lastChildIndex] : null;
 
-		$self = new SerializerNode( $element->namespace, $element->name, $element->attrs, $void );
+		if ( $element->userData ) {
+			// This element has already been inserted, this is a reparenting operation
+			$self = $element->userData;
+			$oldParent = $this->nodes[$self->parentId];
+			$oldChildren =& $oldParent->children;
+			$oldChildIndex = array_search( $self, $oldChildren, true );
+			if ( $oldChildIndex === false ) {
+				throw new SerializerError( "cannot find node to reparent: " .
+					$element->getDebugTag() );
+			}
+			// Remove from the old parent, update parent pointer
+			$oldChildren[$oldChildIndex] = '';
+			$self->parentId = $parent->id;
+		} else {
+			// Inserting an element which has not been seen before
+			$id = $this->nextNodeId++;
+			$self = new SerializerNode( $id, $parent->id, $element->namespace,
+				$element->name, $element->attrs, $void );
+			$this->nodes[$id] = $element->userData = $self;
+		}
 
 		if ( $preposition === TreeBuilder::BEFORE ) {
 			// Insert before element
-			$refNode = $refElement->userData->self;
+			$refNode = $refElement->userData;
 			if ( $lastChild !== $refNode ) {
 				$refIndex = array_search( $refNode, $children, true );
 				throw new SerializerError( "invalid insert position $refIndex/$lastChildIndex" );
@@ -103,9 +130,8 @@ class Serializer implements TreeHandler {
 			$children[$lastChildIndex + 1] = $refNode;
 		} else {
 			// Append to the list of children
-			$parent->children[] = $self;
+			$children[] = $self;
 		}
-		$element->userData = new SerializerData( $parent, $self );
 	}
 
 	public function endTag( Element $element, $sourceStart, $sourceLength ) {
@@ -113,34 +139,39 @@ class Serializer implements TreeHandler {
 			// <head> elements are immortal
 			return;
 		}
-		$parent = $element->userData->parent;
-		$self = $element->userData->self;
+		$self = $element->userData;
+		if ( !isset( $this->nodes[$self->parentId] ) ) {
+			// The parent was ended before the child!
+			// @todo check if this still happens during html5lib tests, remove if not
+			return;
+		}
+		$parent = $this->nodes[$self->parentId];
 		$children =& $parent->children;
 		for ( $index = count( $children ) - 1; $index >= 0; $index-- ) {
 			if ( $children[$index] === $self ) {
-				$this->flatten( $parent, $index, $self );
+				unset( $this->nodes[$self->id] );
+				$children[$index] = $this->stringify( $self );
 				return;
 			}
 		}
+		// Ignore requests to end non-existent elements (this happens sometimes)
 	}
 
-	private function flatten( $parent, $selfIndex, $self ) {
-		if ( $self->void ) {
+	private function stringify( SerializerNode $node ) {
+		if ( $node->void ) {
 			$contents = null;
 		} else {
 			$contents = '';
-			foreach ( $self->children as $childIndex => $child ) {
+			foreach ( $node->children as $childIndex => $child ) {
 				if ( is_string( $child ) ) {
 					$contents .= $child;
 				} else {
-					$this->flatten( $self, $childIndex, $child );
-					$contents .= $self->children[$childIndex];
+					$contents .= $this->stringify( $child );
 				}
 			}
 		}
-		$encoded = $this->formatter->element( $self->namespace, $self->name,
-			$self->attrs, $contents );
-		$parent->children[$selfIndex] = $encoded;
+		return $this->formatter->element( $node->namespace, $node->name,
+			$node->attrs, $contents );
 	}
 
 	public function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
@@ -152,9 +183,9 @@ class Serializer implements TreeHandler {
 		if ( $preposition === TreeBuilder::ROOT ) {
 			$parent = $this->root;
 		} elseif ( $preposition === TreeBuilder::BEFORE ) {
-			$parent = $refElement->userData->parent;
+			$parent = $this->nodes[$refElement->userData->parentId];
 		} else {
-			$parent = $refElement->userData->self;
+			$parent = $refElement->userData;
 		}
 		$children =& $parent->children;
 		$lastChildIndex = count( $children ) - 1;
@@ -162,7 +193,7 @@ class Serializer implements TreeHandler {
 
 		if ( $preposition === TreeBuilder::BEFORE ) {
 			// Insert before element
-			$refNode = $refElement->self;
+			$refNode = $refElement->userData;
 			if ( $lastChild !== $refNode ) {
 				throw new SerializerError( "invalid insert position" );
 			}
@@ -187,28 +218,13 @@ class Serializer implements TreeHandler {
 	public function mergeAttributes( Element $element, Attributes $attrs, $sourceStart ) {
 		$element->attrs->merge( $attrs );
 		if ( $element->userData instanceof SerializerNode ) {
-			$element->userData->self->attrs = $element->attrs;
+			$element->userData->attrs = $element->attrs;
 		}
-	}
-
-	public function reparentNode( Element $element, Element $newParent, $sourceStart ) {
-		$parent = $element->userData->parent;
-		$self = $element->userData->self;
-		$children =& $parent->children;
-		for ( $index = count( $children ) - 1; $index >= 0; $index-- ) {
-			if ( $children[$index] === $self ) {
-				$children[$index] = '';
-				$newParent->userData->self->children[] = $self;
-				$self->parent = $newParent->userData->self;
-				return;
-			}
-		}
-		throw new SerializerError( "cannot find element to reparent" );
 	}
 
 	public function removeNode( Element $element, $sourceStart ) {
-		$parent = $element->userData->parent;
-		$self = $element->userData->self;
+		$self = $element->userData;
+		$parent = $this->nodes[$self->parentId];
 		$children =& $parent->children;
 		for ( $index = count( $children ) - 1; $index >= 0; $index-- ) {
 			if ( $children[$index] === $self ) {
@@ -220,9 +236,22 @@ class Serializer implements TreeHandler {
 	}
 
 	public function reparentChildren( Element $element, Element $newParent, $sourceStart ) {
-		$self = $element->userData->self;
-		$newParentNode = $newParent->userData->self;
-		$newParentNode->children = $self->children;
+		$self = $element->userData;
+		$children = $self->children;
 		$self->children = [];
+		$this->insertElement( TreeBuilder::BELOW, $element, $newParent, false, $sourceStart, 0 );
+		$newParentNode = $newParent->userData;
+		$newParentId = $newParentNode->id;
+		foreach ( $children as $child ) {
+			if ( is_object( $child ) ) {
+				$child->parentId = $newParentId;
+			}
+		}
+		$newParentNode->children = $children;
+	}
+
+	public function dump() {
+		$s = $this->stringify( $this->root );
+		return substr( $s, 2, -3 ) . "\n";
 	}
 }
