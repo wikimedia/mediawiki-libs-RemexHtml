@@ -177,7 +177,6 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 		] );
 		$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
 		$tokenizer = new Tokenizer\Tokenizer( $dispatcher, $params['data'], [] );
-		$treeBuilder->registerTokenizer( $tokenizer );
 
 		$tokenizerOptions = [];
 

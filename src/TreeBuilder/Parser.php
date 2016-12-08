@@ -40,7 +40,6 @@ class Parser {
 			$tokenHandler = $this->dispatcher;
 		}
 		$this->tokenizer = new Tokenizer( $tokenHandler, $text, $options['tokenizer'] );
-		$this->treeBuilder->registerTokenizer( $this->tokenizer );
 	}
 
 	public static function parseDocument( $text, $options ) {

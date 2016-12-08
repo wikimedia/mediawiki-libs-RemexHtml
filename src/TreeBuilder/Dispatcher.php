@@ -4,6 +4,7 @@ namespace RemexHtml\TreeBuilder;
 use RemexHtml\HTMLData;
 use RemexHtml\Tokenizer\Attributes;
 use RemexHtml\Tokenizer\TokenHandler;
+use RemexHtml\Tokenizer\Tokenizer;
 
 /**
  * This is the approximate equivalent of the "tree construction dispatcher" in
@@ -126,20 +127,6 @@ class Dispatcher implements TokenHandler {
 	public function __construct( TreeBuilder $builder ) {
 		$this->builder = $builder;
 		$this->templateModeStack = new TemplateModeStack;
-
-		$this->dispatchTable = [];
-		foreach ( self::$handlerClasses as $mode => $class ) {
-			$this->dispatchTable[$mode] = new $class( $builder, $this );
-		}
-
-		$this->inHead = $this->dispatchTable[self::IN_HEAD];
-		$this->inBody = $this->dispatchTable[self::IN_BODY];
-		$this->inTable = $this->dispatchTable[self::IN_TABLE];
-		$this->inSelect = $this->dispatchTable[self::IN_SELECT];
-		$this->inTemplate = $this->dispatchTable[self::IN_TEMPLATE];
-		$this->inForeign = $this->dispatchTable[self::IN_FOREIGN_CONTENT];
-
-		$this->switchMode( self::INITIAL );
 	}
 
 	/**
@@ -305,8 +292,22 @@ class Dispatcher implements TokenHandler {
 		return self::IN_BODY;
 	}
 
-	public function startDocument( $namespace, $name ) {
-		$this->builder->startDocument( $namespace, $name );
+	public function startDocument( Tokenizer $tokenizer, $namespace, $name ) {
+		$this->dispatchTable = [];
+		foreach ( self::$handlerClasses as $mode => $class ) {
+			$this->dispatchTable[$mode] = new $class( $this->builder, $this );
+		}
+
+		$this->inHead = $this->dispatchTable[self::IN_HEAD];
+		$this->inBody = $this->dispatchTable[self::IN_BODY];
+		$this->inTable = $this->dispatchTable[self::IN_TABLE];
+		$this->inSelect = $this->dispatchTable[self::IN_SELECT];
+		$this->inTemplate = $this->dispatchTable[self::IN_TEMPLATE];
+		$this->inForeign = $this->dispatchTable[self::IN_FOREIGN_CONTENT];
+
+		$this->switchMode( self::INITIAL );
+
+		$this->builder->startDocument( $tokenizer, $namespace, $name );
 		if ( $namespace !== null ) {
 			if ( $namespace === HTMLData::NS_HTML && $name === 'template' ) {
 				$this->templateModeStack->push( self::IN_TEMPLATE );
@@ -317,6 +318,17 @@ class Dispatcher implements TokenHandler {
 
 	public function endDocument( $pos ) {
 		$this->handler->endDocument( $pos );
+
+		// All references to insertion modes must be explicitly released, since
+		// they have a circular reference back to $this
+		$this->dispatchTable = [];
+		$this->handler = null;
+		$this->inHead = null;
+		$this->inBody = null;
+		$this->inTable = null;
+		$this->inSelect = null;
+		$this->inTemplate = null;
+		$this->inForeign = null;
 	}
 
 	public function error( $text, $pos ) {

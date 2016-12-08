@@ -13,7 +13,7 @@ class TestTokenHandler implements TokenHandler {
 		return $this->tokens;
 	}
 
-	public function startDocument( $fns, $fn ) {
+	public function startDocument( Tokenizer $tokenizer, $fns, $fn ) {
 	}
 
 	public function endDocument( $pos ) {

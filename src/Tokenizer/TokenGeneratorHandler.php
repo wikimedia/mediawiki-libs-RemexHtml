@@ -8,7 +8,7 @@ namespace RemexHtml\Tokenizer;
 class TokenGeneratorHandler implements TokenHandler {
 	public $tokens = [];
 
-	public function startDocument( $fragmentNamespace, $fragmentName ) {
+	public function startDocument( Tokenizer $tokenizer, $fragmentNamespace, $fragmentName ) {
 		$this->tokens[] = [
 			'type' => 'startDocument',
 			'fragmentNamespace' => $fragmentNamespace,

@@ -17,7 +17,7 @@ class TokenSerializer implements TokenHandler {
 		return $this->errors;
 	}
 
-	public function startDocument( $fns, $fn ) {
+	public function startDocument( Tokenizer $tokenizer, $fns, $fn ) {
 		$this->output = '';
 	}
 

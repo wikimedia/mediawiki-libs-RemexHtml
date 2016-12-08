@@ -13,7 +13,7 @@ use RemexHtml\TreeBuilder;
 use RemexHtml\Serializer;
 
 class NullHandler implements Tokenizer\TokenHandler {
-	function startDocument( $fns, $fn ) {}
+	function startDocument( Tokenizer\Tokenizer $t, $fns, $fn ) {}
 	function endDocument( $pos ) {}
 	function error( $text, $pos ) {}
 	function characters( $text, $start, $length, $sourceStart, $sourceLength ) {}
@@ -89,13 +89,28 @@ function trace( $text ) {
 	$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
 	$dispatchTracer = new TreeBuilder\DispatchTracer( $text, $dispatcher, $traceCallback );
 	$tokenizer = new Tokenizer\Tokenizer( $dispatchTracer, $text, [] );
-	$treeBuilder->registerTokenizer( $tokenizer );
 	$tokenizer->execute( [
 		// 'fragmentNamespace' => RemexHtml\HTMLData::NS_HTML,
 		// 'fragmentName' => 'html'
 	] );
 
 	print $serializer->getResult() . "\n";
+}
+
+function traceDestruct( $text ) {
+	$traceCallback = function ( $msg ) {
+		print "$msg\n";
+	};
+	$destructTracer = new TreeBuilder\DestructTracer( $traceCallback );
+	$treeTracer = new TreeBuilder\TreeMutationTracer( $destructTracer, $traceCallback );
+	$treeBuilder = new TreeBuilder\TreeBuilder( $treeTracer, [] );
+	$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
+	$dispatchTracer = new TreeBuilder\DispatchTracer( $text, $dispatcher, $traceCallback );
+	$tokenizer = new Tokenizer\Tokenizer( $dispatchTracer, $text, [] );
+	$tokenizer->execute( [
+		// 'fragmentNamespace' => RemexHtml\HTMLData::NS_HTML,
+		// 'fragmentName' => 'html'
+	] );
 }
 
 function tidyBodyViaDOM( $text ) {
@@ -126,7 +141,6 @@ function tidy( $text ) {
 	$treeBuilder = new TreeBuilder\TreeBuilder( $serializer, [] );
 	$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
 	$tokenizer = new Tokenizer\Tokenizer( $dispatcher, $text, $GLOBALS['tokenizerOptions'] );
-	$treeBuilder->registerTokenizer( $tokenizer );
 	$tokenizer->execute();
 	print $serializer->getResult() . "\n";
 }

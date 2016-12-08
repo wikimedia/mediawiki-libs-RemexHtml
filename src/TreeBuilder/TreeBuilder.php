@@ -93,7 +93,15 @@ class TreeBuilder {
 		}
 	}
 
-	public function startDocument( $namespace, $name ) {
+	public function startDocument( Tokenizer $tokenizer, $namespace, $name ) {
+		$tokenizer->setEnableCdataCallback(
+			function () {
+				$acn = $this->adjustedCurrentNode();
+				return $acn && $acn->namespace !== HTMLData::NS_HTML;
+			}
+		);
+		$this->tokenizer = $tokenizer;
+
 		$this->handler->startDocument( $namespace, $name );
 		if ( $namespace !== null ) {
 			$this->isFragment = true;
@@ -104,16 +112,6 @@ class TreeBuilder {
 			$this->stack->push( $html );
 			$this->handler->insertElement( self::ROOT, null, $html, false, 0, 0 );
 		}
-	}
-
-	public function registerTokenizer( Tokenizer $tokenizer ) {
-		$tokenizer->setEnableCdataCallback(
-			function () {
-				$acn = $this->adjustedCurrentNode();
-				return $acn && $acn->namespace !== HTMLData::NS_HTML;
-			}
-		);
-		$this->tokenizer = $tokenizer;
 	}
 
 	/**
@@ -680,5 +678,11 @@ class TreeBuilder {
 			}
 		}
 		$this->handler->endDocument( $pos );
+
+		$this->afe = new ActiveFormattingElements;
+		$this->headElement = null;
+		$this->formElement = null;
+		$this->tokenizer->setEnableCdataCallback( null );
+		$this->tokenizer = null;
 	}
 }

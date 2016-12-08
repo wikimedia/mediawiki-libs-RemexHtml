@@ -146,7 +146,7 @@ class Tokenizer {
 		$this->appropriateEndTag = isset( $options['appropriateEndTag'] ) ?
 			$options['appropriateEndTag'] : null;
 		$this->preprocess();
-		$this->listener->startDocument( $this->fragmentNamespace, $this->fragmentName );
+		$this->listener->startDocument( $this, $this->fragmentNamespace, $this->fragmentName );
 
 		$this->executeInternal( true );
 	}
@@ -224,7 +224,7 @@ class Tokenizer {
 	public function beginStepping() {
 		$this->state = self::STATE_START;
 		$this->preprocess();
-		$this->listener->startDocument( null, null );
+		$this->listener->startDocument( $this, null, null );
 	}
 
 	/**

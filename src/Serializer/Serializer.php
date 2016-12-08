@@ -92,6 +92,8 @@ class Serializer implements TreeHandler {
 			}
 		}
 		$this->root = null;
+		$this->nodes = [];
+		$this->nextNodeId = 0;
 	}
 
 	public function characters( $preposition, $refElement, $text, $start, $length,
@@ -162,6 +164,16 @@ class Serializer implements TreeHandler {
 			$id = $this->nextNodeId++;
 			$self = new SerializerNode( $id, $parent->id, $element->namespace,
 				$element->name, $element->attrs, $void );
+
+			/*
+			$self->tracer = new \RemexHtml\TreeBuilder\DestructTracerNode(
+				function ( $msg ) {
+					print "$msg\n";
+				},
+				$element->getDebugTag()
+			);
+			 */
+
 			$this->nodes[$id] = $element->userData = $self;
 		}
 

@@ -2,6 +2,7 @@
 
 namespace RemexHtml\TreeBuilder;
 use RemexHtml\Tokenizer\TokenHandler;
+use RemexHtml\Tokenizer\Tokenizer;
 use RemexHtml\Tokenizer\Attributes;
 
 /**
@@ -45,7 +46,8 @@ class DispatchTracer implements TokenHandler {
 	}
 
 	private function getHandlerName() {
-		$name = get_class( $this->dispatcher->getHandler() );
+		$handler = $this->dispatcher->getHandler();
+		$name = $handler ? get_class( $handler ) : 'NULL';
 		$slashPos = strrpos( $name, '\\' );
 		if ( $slashPos === false ) {
 			return $name;
@@ -54,12 +56,12 @@ class DispatchTracer implements TokenHandler {
 		}
 	}
 
-	public function startDocument( $ns, $name ) {
+	public function startDocument( Tokenizer $tokenizer, $ns, $name ) {
 		$prevHandler = $this->getHandlerName();
 		$nsMsg = $ns === null ? 'NULL' : $ns;
 		$nameMsg = $name === null ? 'NULL' : $name;
 		$this->trace( "startDocument $prevHandler $nsMsg $nameMsg" );
-		$this->dispatcher->startDocument( $ns, $name );
+		$this->dispatcher->startDocument( $tokenizer, $ns, $name );
 		$handler = $this->getHandlerName();
 		if ( $prevHandler !== $handler ) {
 			$this->trace( "$prevHandler -> $handler" );
