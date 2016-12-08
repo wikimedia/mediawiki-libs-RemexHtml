@@ -1,6 +1,6 @@
 <?php
 
-namespace Wikimedia\RemexHtml\Tokenizer;
+namespace RemexHtml\Tokenizer;
 
 /**
  * An Attributes implementation which is a simple array proxy.

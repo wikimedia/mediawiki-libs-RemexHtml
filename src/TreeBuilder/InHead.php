@@ -1,9 +1,12 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
-use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\Tokenizer\Attributes;
+use RemexHtml\Tokenizer\Tokenizer;
 
+/**
+ * The "in head" insertion mode
+ */
 class InHead extends InsertionMode {
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		// Split and insert whitespace

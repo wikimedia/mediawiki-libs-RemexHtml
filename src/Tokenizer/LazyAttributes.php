@@ -1,6 +1,6 @@
 <?php
 
-namespace Wikimedia\RemexHtml\Tokenizer;
+namespace RemexHtml\Tokenizer;
 
 /**
  * An Attributes implementation which defers interpretation of regex match
@@ -73,7 +73,7 @@ class LazyAttributes implements Attributes {
 			}
 			$this->attrObjects = $result;
 		}
-		return $this->attrObjects;		
+		return $this->attrObjects;
 	}
 
 	public function count() {

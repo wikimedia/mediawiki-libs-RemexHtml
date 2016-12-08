@@ -1,8 +1,11 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\Tokenizer\Attributes;
 
+/**
+ * The "after body" insertion mode
+ */
 class AfterBody extends InsertionMode {
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		list( $part1, $part2 ) = $this->splitInitialMatch(
@@ -61,7 +64,7 @@ class AfterBody extends InsertionMode {
 	}
 
 	public function comment( $text, $sourceStart, $sourceLength ) {
-		$this->builder->comment( [ TreeBuilder::BELOW, $this->builder->stack->item( 0 ) ],
+		$this->builder->comment( [ TreeBuilder::UNDER, $this->builder->stack->item( 0 ) ],
 			$text, $sourceStart, $sourceLength );
 	}
 }

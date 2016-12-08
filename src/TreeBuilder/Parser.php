@@ -1,7 +1,7 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\Tokenizer\Tokenizer;
 
 class Parser {
 	protected $domBuilder;

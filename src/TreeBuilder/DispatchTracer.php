@@ -1,15 +1,21 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Tokenizer\TokenHandler;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\Tokenizer\TokenHandler;
+use RemexHtml\Tokenizer\Attributes;
 
+/**
+ * This is a debugging helper class which calls a callback function with a
+ * descriptive message each time a token event comes from the Tokenizer. The
+ * messages include information about the current state and transitions of the
+ * Dispatcher which is the next stage in the pipeline.
+ */
 class DispatchTracer implements TokenHandler {
 	private $input;
 	private $dispatcher;
 	private $callback;
 
-	function __construct( $input, Dispatcher $dispatcher, $callback ) {
+	function __construct( $input, Dispatcher $dispatcher, callable $callback ) {
 		$this->input = $input;
 		$this->dispatcher = $dispatcher;
 		$this->callback = $callback;

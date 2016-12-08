@@ -1,8 +1,11 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\Tokenizer\Attributes;
 
+/**
+ * The "in table text" insertion mode
+ */
 class InTableText extends InsertionMode {
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		$handleNonNull = function ( $text, $start, $length, $sourceStart, $sourceLength ) {
@@ -47,6 +50,10 @@ class InTableText extends InsertionMode {
 			->endDocument( $pos );
 	}
 
+	/**
+	 * Common code for the "anything else" case. Process the pending table
+	 * character tokens.
+	 */
 	protected function processPendingCharacters() {
 		$builder = $this->builder;
 		$allSpace = true;

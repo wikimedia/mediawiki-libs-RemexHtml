@@ -1,24 +1,51 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\Tokenizer\Attributes;
 
+/**
+ * This is a debugging helper class which calls the supplied callback function
+ * each time there is a TreeHandler event, giving a descriptive message. It
+ * then forwards the event through to the supplied handler.
+ */
 class TreeMutationTracer implements TreeHandler {
 
-	public function __construct( TreeHandler $handler, $callback, $verbosity = 0 ) {
+	/**
+	 * Constructor.
+	 *
+	 * @param TreeHandler $handler The next pipeline stage
+	 * @param callable $callback The message output function
+	 * @param integer $verbosity Set to non-zero to call dump() on the handler
+	 *   before and after each event.
+	 */
+	public function __construct( TreeHandler $handler, callable $callback, $verbosity = 0 ) {
 		$this->handler = $handler;
 		$this->callback = $callback;
 		$this->verbosity = $verbosity;
 	}
 
+	/**
+	 * Send a message
+	 */
 	private function trace( $msg ) {
 		call_user_func( $this->callback, "[Tree] $msg" );
 	}
 
+	/**
+	 * Get a debug tag for an element or null
+	 *
+	 * @param Element|null $element
+	 */
 	private function getDebugTag( $element ) {
 		return $element ? $element->getDebugTag() : '';
 	}
 
+	/**
+	 * Get a short excerpt of some text
+	 *
+	 * @param string $text
+	 * @return string
+	 */
 	private function excerpt( $text ) {
 		if ( strlen( $text ) > 20 ) {
 			$text = substr( $text, 0, 20 ) . '...';
@@ -26,21 +53,30 @@ class TreeMutationTracer implements TreeHandler {
 		return str_replace( "\n", "\\n", $text );
 	}
 
+	/**
+	 * Get a readable version of the TreeBuilder preposition constants
+	 */
 	private function getPrepositionName( $prep ) {
 		$names = [
 			TreeBuilder::BEFORE => 'before',
-			TreeBuilder::BELOW => 'below',
-			TreeBuilder::ROOT => 'append root'
+			TreeBuilder::UNDER => 'under',
+			TreeBuilder::ROOT => 'under root'
 		];
 		return isset( $names[$prep] ) ? $names[$prep] : '???';
 	}
 
+	/**
+	 * A helper called before the underlying handler is called.
+	 */
 	private function before() {
 		if ( $this->verbosity > 0 ) {
 			$this->trace( "Before: " . $this->handler->dump() . "\n" );
 		}
 	}
 
+	/**
+	 * A helper called after the underlying handler is called.
+	 */
 	private function after() {
 		if ( $this->verbosity > 0 ) {
 			$this->trace( "After:  " . $this->handler->dump() . "\n" );
@@ -52,11 +88,6 @@ class TreeMutationTracer implements TreeHandler {
 		call_user_func_array( [ $this->handler, __FUNCTION__ ], func_get_args() );
 	}
 
-	/**
-	 * Called when parsing stops.
-	 *
-	 * @param integer $pos The input string length, i.e. the past-the-end position.
-	 */
 	public function endDocument( $pos ) {
 		$this->trace( "endDocument $pos" );
 		call_user_func_array( [ $this->handler, __FUNCTION__ ], func_get_args() );
@@ -131,15 +162,6 @@ class TreeMutationTracer implements TreeHandler {
 		$this->trace( "merge $elementTag, start=$sourceStart" );
 		$this->before();
 		call_user_func_array( [ $this->handler, __FUNCTION__ ], func_get_args() );
-	}
-
-	public function reparentNode( Element $element, Element $newParent, $sourceStart ) {
-		$elementTag = $this->getDebugTag( $element );
-		$newParentTag = $this->getDebugTag( $newParent );
-		$this->trace( "reparent $elementTag under $newParentTag, start=$sourceStart" );
-		$this->before();
-		call_user_func_array( [ $this->handler, __FUNCTION__ ], func_get_args() );
-		$this->after();
 	}
 
 	public function removeNode( Element $element, $sourceStart ) {

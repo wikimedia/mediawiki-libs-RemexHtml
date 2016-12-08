@@ -1,8 +1,12 @@
 <?php
 
-namespace Wikimedia\RemexHtml\Serializer;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
+namespace RemexHtml\Serializer;
+use RemexHtml\Tokenizer\Attributes;
 
+/**
+ * A formatter suitable for pre-sanitized input with ignoreEntities enabled
+ * in the Tokenizer.
+ */
 class FastFormatter implements Formatter {
 	function __construct( $options = [] ) {
 	}

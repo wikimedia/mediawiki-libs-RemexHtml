@@ -7,10 +7,10 @@ if ( PHP_SAPI !== 'cli' ) {
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use Wikimedia\RemexHtml;
-use Wikimedia\RemexHtml\Tokenizer;
-use Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Serializer;
+use RemexHtml;
+use RemexHtml\Tokenizer;
+use RemexHtml\TreeBuilder;
+use RemexHtml\Serializer;
 
 class NullHandler implements Tokenizer\TokenHandler {
 	function startDocument( $fns, $fn ) {}
@@ -35,7 +35,6 @@ class NullTreeHandler implements TreeBuilder\TreeHandler {
 	function comment( $parent, $refNode, $text, $sourceStart, $sourceLength ) {}
 	function error( $text, $pos ) {}
 	function mergeAttributes( TreeBuilder\Element $element, Tokenizer\Attributes $attrs, $sourceStart ) {}
-	function reparentNode( TreeBuilder\Element $element, TreeBuilder\Element $newParent, $sourceStart ) {}
 	function removeNode( TreeBuilder\Element $element, $sourceStart ) {}
 	function reparentChildren( TreeBuilder\Element $element, TreeBuilder\Element $newParent, $sourceStart ) {}
 }

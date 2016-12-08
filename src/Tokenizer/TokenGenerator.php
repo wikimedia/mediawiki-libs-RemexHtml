@@ -1,6 +1,6 @@
 <?php
 
-namespace Wikimedia\RemexHtml\Tokenizer;
+namespace RemexHtml\Tokenizer;
 
 /**
  * This class provides a convenient iterative view of the token stream,

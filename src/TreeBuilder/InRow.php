@@ -1,8 +1,11 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\Tokenizer\Attributes;
 
+/**
+ * The "in row" insertion mode
+ */
 class InRow extends InsertionMode {
 	private static $tableRowContext = [
 		'tr' => true,

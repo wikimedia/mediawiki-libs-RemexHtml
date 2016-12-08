@@ -1,9 +1,14 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\HTMLData;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\HTMLData;
+use RemexHtml\Tokenizer\Attributes;
 
+/**
+ * An implementation of the "stack of open elements" which includes a cache of
+ * elements currently in the various kinds of scope. It presumably has good
+ * worst-case performance at the expense of somewhat slower updates.
+ */
 class CachingStack extends Stack {
 	const SCOPE_DEFAULT = 0;
 	const SCOPE_LIST = 1;

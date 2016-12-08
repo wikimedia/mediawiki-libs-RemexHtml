@@ -1,8 +1,11 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\Tokenizer\Attributes;
 
+/**
+ * The "in column group" insertion mode
+ */
 class InColumnGroup extends InsertionMode {
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		list( $part1, $part2 ) = $this->splitInitialMatch(

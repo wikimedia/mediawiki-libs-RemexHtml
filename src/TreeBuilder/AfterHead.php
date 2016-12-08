@@ -1,9 +1,12 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
-use Wikimedia\RemexHtml\Tokenizer\PlainAttributes;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\Tokenizer\Attributes;
+use RemexHtml\Tokenizer\PlainAttributes;
 
+/**
+ * The "after head" insertion mode
+ */
 class AfterHead extends InsertionMode {
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		$builder = $this->builder;

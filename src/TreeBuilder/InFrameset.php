@@ -1,8 +1,11 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\Tokenizer\Attributes;
 
+/**
+ * The "in frameset" insertion mode
+ */
 class InFrameset extends InsertionMode {
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		$this->handleFramesetWhitespace( false, $text, $start, $length, $sourceStart, $sourceLength );

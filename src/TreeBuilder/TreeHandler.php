@@ -1,7 +1,7 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\Tokenizer\Attributes;
 
 interface TreeHandler {
 	/**
@@ -27,7 +27,7 @@ interface TreeHandler {
 	 * @param integer $preposition The placement of the new node with respect
 	 *   to $ref. May be TreeBuilder::
 	 *    - BEFORE: insert as a sibling before the reference element
-	 *    - BELOW: append as the last child of the reference element
+	 *    - UNDER: append as the last child of the reference element
 	 *    - ROOT: append as the last child of the document node
 	 * @param Element|null $ref Insert before/below this element, or null if
 	 *   $preposition is ROOT.
@@ -53,7 +53,7 @@ interface TreeHandler {
 	 * @param integer $preposition The placement of the new node with respect
 	 *   to $ref. May be TreeBuilder::
 	 *    - BEFORE: insert as a sibling before the reference element
-	 *    - BELOW: append as the last child of the reference element
+	 *    - UNDER: append as the last child of the reference element
 	 *    - ROOT: append as the last child of the document node
 	 * @param Element|null $ref Insert before/below this element, or null if
 	 *   $preposition is ROOT.
@@ -105,7 +105,7 @@ interface TreeHandler {
 	 * @param integer $preposition The placement of the new node with respect
 	 *   to $ref. May be TreeBuilder::
 	 *    - BEFORE: insert as a sibling before the reference element
-	 *    - BELOW: append as the last child of the reference element
+	 *    - UNDER: append as the last child of the reference element
 	 *    - ROOT: append as the last child of the document node
 	 * @param Element|null $ref Insert before/below this element, or null if
 	 *   $preposition is ROOT.
@@ -151,7 +151,7 @@ interface TreeHandler {
 	/**
 	 * Take all children of a given parent $element, and insert them as
 	 * children of $newParent, removing them from their original parent in the
-	 * process.
+	 * process. Insert $newParent as now the only child of $element.
 	 *
 	 * @param Element $element The old parent element
 	 * @param Element $newParent The new parent element

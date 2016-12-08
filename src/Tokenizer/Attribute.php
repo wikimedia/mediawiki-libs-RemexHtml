@@ -1,7 +1,10 @@
 <?php
 
-namespace Wikimedia\RemexHtml\Tokenizer;
+namespace RemexHtml\Tokenizer;
 
+/**
+ * A namespaced attribute, as returned by Attributes::getObjects()
+ */
 class Attribute {
 	public $qualifiedName;
 	public $namespaceURI;

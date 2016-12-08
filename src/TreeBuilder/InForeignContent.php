@@ -1,10 +1,21 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\HTMLData;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\HTMLData;
+use RemexHtml\Tokenizer\Attributes;
 
+/**
+ * The rules for parsing tokens in foreign content.
+ *
+ * This is not referred to as an insertion mode in the spec, but is
+ * sufficiently similar to one that we can inherit from InsertionMode here.
+ */
 class InForeignContent extends InsertionMode {
+	/**
+	 * The list of tag names which unconditionally generate a parse error when
+	 * seen in foreign content.
+	 * @var bool[string]
+	 */
 	private static $notAllowed = [
 		'b' => true,
 		'big' => true,
@@ -52,6 +63,10 @@ class InForeignContent extends InsertionMode {
 		'var' => true,
 	];
 
+	/**
+	 * The table for correcting the tag names of SVG elements, given in the
+	 * "Any other start tag" section of the spec.
+	 */
 	private static $svgElementCase = [
 		'altglyph' => 'altGlyph',
 		'altglyphdef' => 'altGlyphDef',

@@ -1,11 +1,22 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\HTMLData;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
-use Wikimedia\RemexHtml\Tokenizer\PlainAttributes;
-use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\HTMLData;
+use RemexHtml\Tokenizer\Attributes;
+use RemexHtml\Tokenizer\PlainAttributes;
+use RemexHtml\Tokenizer\Tokenizer;
 
+/**
+ * TreeBuilder is the receiver of events from the InsertionMode subclasses,
+ * and is responsible for forwarding events on to the TreeHandler, which is
+ * responsible for constructing a DOM.
+ *
+ * TreeBuilder contains most of the state referred to by the "tree construction"
+ * part of the HTML spec which is not handled elsewhere, such as the stack of
+ * open elements and the list of active formatting elements.
+ *
+ * Miscellaneous helpers for InsertionMode subclasses are also in this class.
+ */
 class TreeBuilder {
 	// Quirks
 	const NO_QUIRKS = 0;
@@ -14,7 +25,7 @@ class TreeBuilder {
 
 	// Insertion placement
 	const BEFORE = 0;
-	const BELOW = 1;
+	const UNDER = 1;
 	const ROOT = 2;
 
 	// Configuration
@@ -127,10 +138,10 @@ class TreeBuilder {
 			return [ self::ROOT, null ];
 		}
 		if ( !$this->fosterParenting ) {
-			return [ self::BELOW, $target ];
+			return [ self::UNDER, $target ];
 		}
 		if ( !isset( self::$fosterTriggers[$target->htmlName] ) ) {
-			return [ self::BELOW, $target ];
+			return [ self::UNDER, $target ];
 		}
 		$node = null;
 		for ( $idx = $this->stack->length() - 1; $idx >= 0; $idx-- ) {
@@ -139,10 +150,10 @@ class TreeBuilder {
 				return [ self::BEFORE, $node ];
 			}
 			if ( $node->htmlName === 'template' ) {
-				return [ self::BELOW, $node ];
+				return [ self::UNDER, $node ];
 			}
 		}
-		return [ self::BELOW, $node ];
+		return [ self::UNDER, $node ];
 	}
 
 	public function insertCharacters( $text, $start, $length, $sourceStart, $sourceLength ) {
@@ -454,7 +465,7 @@ class TreeBuilder {
 
 				// Insert last node into node, first removing it from its
 				// previous parent node if any. [13.9]
-				$insertions[] = [ self::BELOW, $node, $lastNode ];
+				$insertions[] = [ self::UNDER, $node, $lastNode ];
 
 				// Let last node be node. [13.10]
 				$lastNode = $node;

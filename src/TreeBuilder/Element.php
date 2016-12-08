@@ -1,22 +1,82 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\HTMLData;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\HTMLData;
+use RemexHtml\Tokenizer\Attributes;
 
+/**
+ * Storage for all the state that TreeBuilder needs to associate with each
+ * element. These objects should be freed once they fall out of TreeBuilder's
+ * data structures (the stack etc.).
+ *
+ * These objects are also used to communicate information about elements with
+ * downstream clients.
+ */
 class Element implements FormattingElement {
+	/**
+	 * The namespace. This will be the HTML namespace for elements that are not
+	 * in foreign content, even if there is a prefix.
+	 * @var string
+	 */
 	public $namespace;
+
+	/**
+	 * The tag name, usually exactly as it appeared in the source document.
+	 * This is not strictly a local name, since it still contains a colon for
+	 * prefixed elements. In foreign content, it is effectively a local name.
+	 * It is suitable for use as a serialized tag name.
+	 * @var string
+	 */
 	public $name;
+
+	/**
+	 * This is an internal designation of the type of the element, which is
+	 * equal to the tag name when the element is in the HTML namespace, and is
+	 * some other string when the element is not in the HTML namespace.
+	 * @var string
+	 */
 	public $htmlName;
+
+	/**
+	 * @var Attributes
+	 */
 	public $attrs;
+
+	/**
+	 * This is true if the element was created by the TreeBuilder either as a
+	 * fragment context node, or as a synthetic <html> element to be used as
+	 * the top-level element in fragment parsing.
+	 * @var bool
+	 */
 	public $isVirtual;
 
+	/**
+	 * Internal to CachingStack. A link in the scope list.
+	 */
 	public $nextScope;
+
+	/**
+	 * Internal to ActiveFormattingElements.
+	 */
 	public $prevAFE, $nextAFE, $nextNoah;
+
+	/**
+	 * The cache for getNoahKey()
+	 */
 	private $noahKey;
 
+	/**
+	 * This member variable can be written to by the TreeHandler, to store any
+	 * state associated with the element (such as a DOM node). It is not used
+	 * by TreeBuilder.
+	 */
 	public $userData;
 
+	/**
+	 * The element types in the MathML namespace which are MathML text
+	 * integration points.
+	 * @var string[bool]
+	 */
 	private static $mathmlIntegration = [
 		'mi' => true,
 		'mo' => true,
@@ -25,12 +85,24 @@ class Element implements FormattingElement {
 		'mtext' => true
 	];
 
+	/**
+	 * The element types in the SVG namespace which are SVG text integration
+	 * points.
+	 * @var string[bool]
+	 */
 	private static $svgHtmlIntegration = [
 		'foreignObject' => true,
 		'desc' => true,
 		'title' => true
 	];
 
+	/**
+	 * Constructor.
+	 *
+	 * @param string $namespace
+	 * @param string $name
+	 * @param Attributes $attrs
+	 */
 	public function __construct( $namespace, $name, Attributes $attrs ) {
 		$this->namespace = $namespace;
 		$this->name = $name;
@@ -46,11 +118,19 @@ class Element implements FormattingElement {
 		$this->attrs = $attrs;
 	}
 
+	/**
+	 * Is the element a MathML text integration point?
+	 *
+	 * @return bool
+	 */
 	public function isMathmlTextIntegration() {
 		return $this->namespace === HTMLData::NS_MATHML
 			&& isset( self::$mathmlIntegration[$this->name] );
 	}
 
+	/**
+	 * Is the element an HTML integration point?
+	 */
 	public function isHtmlIntegration() {
 		if ( $this->namespace === HTMLData::NS_MATHML ) {
 			if ( isset( $this->attrs['encoding'] ) ) {
@@ -68,6 +148,8 @@ class Element implements FormattingElement {
 
 	/**
 	 * Get a string key for the Noah's Ark algorithm
+	 *
+	 * @return string
 	 */
 	public function getNoahKey() {
 		if ( $this->noahKey === null ) {
@@ -78,6 +160,9 @@ class Element implements FormattingElement {
 		return $this->noahKey;
 	}
 
+	/**
+	 * Get a string identifying the element, for use in debugging.
+	 */
 	public function getDebugTag() {
 		return $this->htmlName . '#' . substr( md5( spl_object_hash( $this ) ), 0, 8 );
 	}

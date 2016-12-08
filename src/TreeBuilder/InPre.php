@@ -1,11 +1,13 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\Tokenizer\Attributes;
 
 /**
  * This is not a tree builder state in the spec. I added it to handle the
- * "next token" references in pre/listing
+ * "next token" references in pre/listing. The specified mode for parsing the
+ * pre/listing is saved before entering this mode. This mode checks if the
+ * first token is a newline, and then switches to the correct mode regardless.
  */
 class InPre extends InsertionMode {
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {

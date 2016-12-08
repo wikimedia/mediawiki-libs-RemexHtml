@@ -1,16 +1,26 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\Tokenizer\Attributes;
 
+/**
+ * A TreeHandler which constructs a DOMDocument
+ */
 class DOMBuilder implements TreeHandler {
 	private $doc;
 	private $errorCallback;
 
+	/**
+	 * @param callable|null $errorCallback A function which is called on parse errors
+	 */
 	public function __construct( $errorCallback = null ) {
 		$this->errorCallback = $errorCallback;
 	}
 
+	/**
+	 * Get the constructed document
+	 * @return DOMDocument
+	 */
 	public function getDocument() {
 		return $this->doc;
 	}
@@ -99,19 +109,13 @@ class DOMBuilder implements TreeHandler {
 		}
 	}
 
-	public function reparentNode( Element $element, Element $newParent, $sourceStart ) {
-		$node = $element->userData;
-		$newParentNode = $newParent->userData;
-		$newParentNode->appendChild( $node );
-	}
-
 	public function removeNode( Element $element, $sourceStart ) {
 		$node = $element->userData;
 		$node->parent->removeChild( $node );
 	}
 
 	public function reparentChildren( Element $element, Element $newParent, $sourceStart ) {
-		$this->insertElement( TreeBuilder::BELOW, $element, $newParent, false, $sourceStart, 0 );
+		$this->insertElement( TreeBuilder::UNDER, $element, $newParent, false, $sourceStart, 0 );
 		$node = $element->userData;
 		$newParentNode = $newParent->userData;
 		foreach ( $node->childNodes as $child ) {

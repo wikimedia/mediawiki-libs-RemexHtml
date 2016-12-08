@@ -1,6 +1,6 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
+namespace RemexHtml\TreeBuilder;
 
 class TreeBuilderError extends \Exception {
 }

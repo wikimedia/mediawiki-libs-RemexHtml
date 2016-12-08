@@ -1,14 +1,25 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\HTMLData;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
-use Wikimedia\RemexHtml\Tokenizer\PlainAttributes;
-use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\HTMLData;
+use RemexHtml\Tokenizer\Attributes;
+use RemexHtml\Tokenizer\PlainAttributes;
+use RemexHtml\Tokenizer\Tokenizer;
 
+/**
+ * The "in body" insertion mode.
+ */
 class InBody extends InsertionMode {
+	/**
+	 * The tag names h1-h6, which are referred to at a couple of points.
+	 */
 	static private $headingNames = [ 'h1' => true, 'h2' => true, 'h3' => true, 'h4' => true,
 		'h5' => true, 'h6' => true ];
+
+	/**
+	 * The tag names which can be closed by </body> or </html> without causing
+	 * an error.
+	 */
 	static private $implicitClose = [
 		'dd' => true,
 		'dt' => true,

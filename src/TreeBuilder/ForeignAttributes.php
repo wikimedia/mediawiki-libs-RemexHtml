@@ -1,15 +1,22 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\HTMLData;
-use Wikimedia\RemexHtml\Tokenizer\Attribute;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\HTMLData;
+use RemexHtml\Tokenizer\Attribute;
+use RemexHtml\Tokenizer\Attributes;
 
+/**
+ * An Attributes class for storing attributes on foreign elements, which may
+ * have namespaces. Features lazy adjustment of attribute name case.
+ */
 class ForeignAttributes implements Attributes {
 	protected $unadjusted;
 	protected $table;
 	protected $attrObjects;
 
+	/**
+	 * Adjustment tables for the case of attributes on MathML and SVG elements
+	 */
 	private static $adjustmentTables = [
 		'math' => [
 			'definitionurl' => 'definitionURL',
@@ -81,6 +88,10 @@ class ForeignAttributes implements Attributes {
 		'other' => [],
 	];
 
+	/**
+	 * The potentially namespaced attributes, and the namespaces they belong to.
+	 * Excepting xmlns since it is very special.
+	 */
 	private static $namespaceMap = [
 		'xlink:actuate' => HTMLData::NS_XLINK,
 		'xlink:arcrole' => HTMLData::NS_XLINK,
@@ -95,6 +106,10 @@ class ForeignAttributes implements Attributes {
 		'xmlns:xlink' => HTMLData::NS_XMLNS,
 	];
 
+	/**
+	 * @param Attributes $unadjusted The unadjusted attributes from the Tokenizer
+	 * @param string $type The element type, which may be "math", "svg" or "other".
+	 */
 	public function __construct( Attributes $unadjusted, $type ) {
 		$this->unadjusted = $unadjusted;
 		$this->table = self::$adjustmentTables[$type];
@@ -111,11 +126,11 @@ class ForeignAttributes implements Attributes {
 	}
 
 	public function offsetSet( $offset, $value ) {
-		throw new \Exception( "Setting foreign attributes is not supported" );
+		throw new TreeBuilderError( "Setting foreign attributes is not supported" );
 	}
 
 	public function offsetUnset( $offset ) {
-		throw new \Exception( "Setting foreign attributes is not supported" );
+		throw new TreeBuilderError( "Setting foreign attributes is not supported" );
 	}
 
 	public function getValues() {

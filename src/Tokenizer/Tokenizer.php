@@ -1,7 +1,7 @@
 <?php
 
-namespace Wikimedia\RemexHtml\Tokenizer;
-use Wikimedia\RemexHtml\HTMLData;
+namespace RemexHtml\Tokenizer;
+use RemexHtml\HTMLData;
 
 /**
  * HTML 5 tokenizer

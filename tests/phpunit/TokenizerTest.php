@@ -1,6 +1,6 @@
 <?php
 
-namespace Wikimedia\RemexHtml\Tokenizer;
+namespace RemexHtml\Tokenizer;
 
 class TokenizerTest extends \PHPUnit_Framework_TestCase {
 	private static $skippedFiles = [

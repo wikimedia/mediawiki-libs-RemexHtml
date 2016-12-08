@@ -1,6 +1,6 @@
 <?php
 
-namespace Wikimedia\RemexHtml\Tokenizer;
+namespace RemexHtml\Tokenizer;
 
 /**
  * Interface for attributes emitted by the tokenizer

@@ -1,8 +1,8 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
-use Wikimedia\RemexHtml\Tokenizer\TokenHandler;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\Tokenizer\Attributes;
+use RemexHtml\Tokenizer\TokenHandler;
 
 abstract class InsertionMode {
 	const SELF_CLOSE_ERROR = 'unacknowledged self closing tag';

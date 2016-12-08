@@ -1,11 +1,11 @@
 <?php
 
-namespace Wikimedia\RemexHtml;
+namespace RemexHtml;
 
 /**
  * Generate HTMLData.php. This can be executed e.g. with
  *
- * echo 'Wikimedia\RemexHtml\GenerateDataFiles::run()' | hhvm bin/test.php
+ * echo 'RemexHtml\GenerateDataFiles::run()' | hhvm bin/test.php
  */
 class GenerateDataFiles {
 	const NS_HTML = 'http://www.w3.org/1999/xhtml';
@@ -208,7 +208,7 @@ EOT;
  * This data file is machine generated, see GenerateDataFiles.php
  */
 
-namespace Wikimedia\RemexHtml;
+namespace RemexHtml;
 
 class HTMLData {
 	const NS_HTML = 'http://www.w3.org/1999/xhtml';

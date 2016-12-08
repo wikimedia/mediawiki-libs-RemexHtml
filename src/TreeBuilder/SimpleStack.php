@@ -1,10 +1,21 @@
 <?php
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\HTMLData;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\HTMLData;
 
+/**
+ * An implementation of the "stack of open elements" which, unlike CachingStack,
+ * iterates through the stack in order to answer queries about which elements
+ * are in scope. This is presumably faster for best case input.
+ */
 class SimpleStack extends Stack {
 	private $elements;
 
+	/**
+	 * A 2-d array giving the element types which break a scope region for the
+	 * default scope, i.e. the one for phrases of the form "has an X element
+	 * in scope".
+	 * @var bool[string][string]
+	 */
 	private static $defaultScope = [
 		HTMLData::NS_HTML => [
 			'applet' => true,
@@ -32,6 +43,10 @@ class SimpleStack extends Stack {
 		],
 	];
 
+	/**
+	 * The element types which break the table scope.
+	 * @var bool[string][string]
+	 */
 	private static $tableScope = [
 		HTMLData::NS_HTML => [
 			'html' => true,
@@ -40,7 +55,16 @@ class SimpleStack extends Stack {
 		]
 	];
 
+	/**
+	 * The element types which break the list scope. This is lazy-initialised.
+	 * @var bool[string][string]
+	 */
 	private static $listScope;
+
+	/**
+	 * The element types which break the button scope. This is lazy-initialised.
+	 * @var bool[string][string]
+	 */
 	private static $buttonScope;
 
 	public function push( Element $elt ) {

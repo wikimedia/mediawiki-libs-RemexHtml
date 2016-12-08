@@ -1,25 +1,71 @@
 <?php
 
-namespace Wikimedia\RemexHtml\Serializer;
-use Wikimedia\RemexHtml\TreeBuilder\TreeBuilder;
-use Wikimedia\RemexHtml\TreeBuilder\TreeHandler;
-use Wikimedia\RemexHtml\TreeBuilder\Element;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
-use Wikimedia\RemexHtml\Tokenizer\PlainAttributes;
+namespace RemexHtml\Serializer;
+use RemexHtml\TreeBuilder\TreeBuilder;
+use RemexHtml\TreeBuilder\TreeHandler;
+use RemexHtml\TreeBuilder\Element;
+use RemexHtml\Tokenizer\Attributes;
+use RemexHtml\Tokenizer\PlainAttributes;
 
+/**
+ * A TreeHandler which builds a serialized representation of a document, by
+ * encoding elements when the end tags are seen. This is faster than building
+ * a DOM and then serializing it, even if you use DOMDocument::saveHTML().
+ */
 class Serializer implements TreeHandler {
+	/**
+	 * A node corresponding to the Document
+	 * @var SerializerNode
+	 */
 	private $root;
+
+	/**
+	 * The error callback
+	 */
 	private $errorCallback;
+
+	/**
+	 * The Formatter implementation
+	 *
+	 * @var Formatter
+	 */
 	private $formatter;
+
+	/**
+	 * All active SerializerNode objects in an array, so that they can be
+	 * referred to by integer indexes. This is a way to emulate weak references,
+	 * to avoid circular references, allowing nodes to be freed.
+	 *
+	 * @var SerializerNode[integer]
+	 */
 	private $nodes = [];
+
+	/**
+	 * The next key into $nodes which will be created
+	 */
 	private $nextNodeId = 0;
+
+	/**
+	 * True if we are parsing a fragment. The children of the <html> element
+	 * will be serialized, instead of the whole document.
+	 */
 	private $isFragment;
 
+	/**
+	 * Constructor
+	 *
+	 * @param Formatter $formatter
+	 * @param callable|null $errorCallback A function which is called with the
+	 *   details of each parse error
+	 */
 	public function __construct( Formatter $formatter, $errorCallback = null ) {
 		$this->formatter = $formatter;
 		$this->errorCallback = $errorCallback;
 	}
 
+	/**
+	 * Get the final string. This can only be called after endDocument() is received.
+	 */
 	public function getResult() {
 		return $this->result;
 	}
@@ -140,11 +186,6 @@ class Serializer implements TreeHandler {
 			return;
 		}
 		$self = $element->userData;
-		if ( !isset( $this->nodes[$self->parentId] ) ) {
-			// The parent was ended before the child!
-			// @todo check if this still happens during html5lib tests, remove if not
-			return;
-		}
 		$parent = $this->nodes[$self->parentId];
 		$children =& $parent->children;
 		for ( $index = count( $children ) - 1; $index >= 0; $index-- ) {
@@ -157,6 +198,12 @@ class Serializer implements TreeHandler {
 		// Ignore requests to end non-existent elements (this happens sometimes)
 	}
 
+	/**
+	 * Serialize a specific node
+	 *
+	 * @param SerializerNode $node
+	 * @return string
+	 */
 	private function stringify( SerializerNode $node ) {
 		if ( $node->void ) {
 			$contents = null;
@@ -239,7 +286,7 @@ class Serializer implements TreeHandler {
 		$self = $element->userData;
 		$children = $self->children;
 		$self->children = [];
-		$this->insertElement( TreeBuilder::BELOW, $element, $newParent, false, $sourceStart, 0 );
+		$this->insertElement( TreeBuilder::UNDER, $element, $newParent, false, $sourceStart, 0 );
 		$newParentNode = $newParent->userData;
 		$newParentId = $newParentNode->id;
 		foreach ( $children as $child ) {
@@ -250,6 +297,12 @@ class Serializer implements TreeHandler {
 		$newParentNode->children = $children;
 	}
 
+	/**
+	 * Get a text representation of the current state of the serializer, for
+	 * debugging.
+	 *
+	 * @return string
+	 */
 	public function dump() {
 		$s = $this->stringify( $this->root );
 		return substr( $s, 2, -3 ) . "\n";

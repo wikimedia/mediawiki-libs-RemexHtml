@@ -1,9 +1,14 @@
 <?php
 
-namespace Wikimedia\RemexHtml\Serializer;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
-use Wikimedia\RemexHtml\HTMLData;
+namespace RemexHtml\Serializer;
+use RemexHtml\Tokenizer\Attributes;
+use RemexHtml\HTMLData;
 
+/**
+ * A Formatter which is used to format documents in (almost) the way they
+ * appear in the html5lib tests. A little bit of post-processing is required
+ * in the PHPUnit test.
+ */
 class TestFormatter implements Formatter {
 	function startDocument( $fragmentNamespace, $fragmentName ) {
 		return '';

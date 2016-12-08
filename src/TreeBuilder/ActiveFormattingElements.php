@@ -1,7 +1,10 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
+namespace RemexHtml\TreeBuilder;
 
+/**
+ * The list of active formatting elements
+ */
 class ActiveFormattingElements {
 	/** The last (most recent) element in the list */
 	private $tail;
@@ -29,6 +32,10 @@ class ActiveFormattingElements {
 	 */
 	private $noahTableStack = [ [] ];
 
+	/**
+	 * Manually unlink the doubly-linked list, since otherwise, it is not freed
+	 * due to reference cycles.
+	 */
 	public function __destruct() {
 		for ( $node = $this->head; $node; $node = $next ) {
 			$next = $node->nextAFE;
@@ -37,6 +44,9 @@ class ActiveFormattingElements {
 		$this->head = $this->tail = $this->noahTableStack = null;
 	}
 
+	/**
+	 * Insert a marker
+	 */
 	public function insertMarker() {
 		$elt = new Marker( 'marker' );
 		if ( $this->tail ) {
@@ -184,6 +194,12 @@ class ActiveFormattingElements {
 		}
 	}
 
+	/**
+	 * Add an element to a bucket of elements which are alike for the purposes
+	 * of the Noah's Ark clause.
+	 *
+	 * @param Element $elt
+	 */
 	private function addToNoahList( Element $elt ) {
 		$noahKey = $elt->getNoahKey();
 		$table =& $this->noahTableStack[ count( $this->noahTableStack ) - 1 ];
@@ -198,6 +214,11 @@ class ActiveFormattingElements {
 		}
 	}
 
+	/**
+	 * Remove an element from its Noah's Ark bucket.
+	 *
+	 * @param Element $elt
+	 */
 	private function removeFromNoahList( Element $elt ) {
 		$table =& $this->noahTableStack[ count( $this->noahTableStack ) - 1 ];
 		$key = $elt->getNoahKey();

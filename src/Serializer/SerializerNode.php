@@ -1,6 +1,6 @@
 <?php
 
-namespace Wikimedia\RemexHtml\Serializer;
+namespace RemexHtml\Serializer;
 
 class SerializerNode {
 	public $id;

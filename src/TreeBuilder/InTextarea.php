@@ -1,11 +1,13 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\Tokenizer\Attributes;
 
 /**
  * This is not a tree builder state in the spec. I added it to handle the
- * "next token" references in textarea.
+ * "next token" references in textarea. If the first token is a newline, it is
+ * ignored. Then we switch the dispatcher to the "text" mode regardless, which
+ * is the correct mode for parsing textarea elements.
  */
 class InTextarea extends InsertionMode {
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {

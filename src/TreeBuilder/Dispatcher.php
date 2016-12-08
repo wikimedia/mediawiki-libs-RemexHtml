@@ -1,11 +1,23 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\HTMLData;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
-use Wikimedia\RemexHtml\Tokenizer\TokenHandler;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\HTMLData;
+use RemexHtml\Tokenizer\Attributes;
+use RemexHtml\Tokenizer\TokenHandler;
 
+/**
+ * This is the approximate equivalent of the "tree construction dispatcher" in
+ * the spec. It receives token events and distributes them to the appropriate
+ * insertion mode class. It also implements some things specific to the
+ * dispatcher state:
+ *   - "Reset the insertion mode appropriately"
+ *   - The stack of template insertion modes
+ *   - The "original insertion mode"
+ */
 class Dispatcher implements TokenHandler {
+	/**
+	 * The insertion mode indexes
+	 */
 	const INITIAL = 1;
 	const BEFORE_HTML = 2;
 	const BEFORE_HEAD = 3;
@@ -33,6 +45,9 @@ class Dispatcher implements TokenHandler {
 	const IN_PRE = 25;
 	const IN_TEXTAREA = 26;
 
+	/**
+	 * The handler class for each insertion mode
+	 */
 	protected static $handlerClasses = [
 		self::INITIAL => Initial::class,
 		self::BEFORE_HTML => BeforeHtml::class,
@@ -70,15 +85,44 @@ class Dispatcher implements TokenHandler {
 	public $inTemplate;
 	public $inForeign;
 
+	/// @var TreeBuilder
 	protected $builder;
+
+	/**
+	 * The InsertionMode object for the current insertion mode in HTML content
+	 */
 	protected $handler;
+
+	/**
+	 * An array mapping insertion mode indexes to InsertionMode objects
+	 */
 	protected $dispatchTable;
+
+	/**
+	 * The insertion mode index
+	 */
 	protected $mode;
+
+	/**
+	 * The "original insertion mode" index
+	 */
 	protected $originalMode;
 
+	/**
+	 * The insertion mode sets this to true to acknowledge the tag's
+	 * self-closing flag.
+	 */
 	public $ack;
+
+	/**
+	 * The stack of template insertion modes
+	 * @var TemplateModeStack
+	 */
 	public $templateModeStack;
 
+	/**
+	 * @param TreeBuilder $builder
+	 */
 	public function __construct( TreeBuilder $builder ) {
 		$this->builder = $builder;
 		$this->templateModeStack = new TemplateModeStack;
@@ -98,17 +142,36 @@ class Dispatcher implements TokenHandler {
 		$this->switchMode( self::INITIAL );
 	}
 
+	/**
+	 * Switch the insertion mode, and return the new handler
+	 *
+	 * @param integer $mode
+	 * @return InsertionMode
+	 */
 	public function switchMode( $mode ) {
 		$this->mode = $mode;
 		return $this->handler = $this->dispatchTable[$mode];
 	}
 
+	/**
+	 * Let the original insertion mode be the current insertion mode, and
+	 * switch the insertion mode to some new value. Return the new handler.
+	 *
+	 * @param integer $mode
+	 * @return InsertionMode
+	 */
 	public function switchAndSave( $mode ) {
 		$this->originalMode = $this->mode;
 		$this->mode = $mode;
 		return $this->handler = $this->dispatchTable[$mode];
 	}
 
+	/**
+	 * Switch the insertion mode to the original insertion mode and return the
+	 * new handler.
+	 *
+	 * @return InsertionMode
+	 */
 	public function restoreMode() {
 		if ( $this->originalMode === null ) {
 			throw new TreeBuilderError( "original insertion mode is not set" );
@@ -133,6 +196,8 @@ class Dispatcher implements TokenHandler {
 	/**
 	 * True if we are in a table mode, for the purposes of switching to
 	 * IN_SELECT_IN_TABLE as opposed to IN_SELECT.
+	 *
+	 * @return bool
 	 */
 	public function isInTableMode() {
 		static $tableModes = [
@@ -145,13 +210,21 @@ class Dispatcher implements TokenHandler {
 	}
 
 	/**
-	 * Reset the insertion mode appropriately
+	 * Reset the insertion mode appropriately, and return the new handler.
+	 *
+	 * @return InsertionMode
 	 */
 	public function reset() {
 		return $this->switchMode( $this->getAppropriateMode() );
 	}
 
-	private function getAppropriateMode() {
+	/**
+	 * Get the insertion mode index which is switched to when we reset the
+	 * insertion mode appropriately.
+	 *
+	 * @return integer
+	 */
+	protected function getAppropriateMode() {
 		$builder = $this->builder;
 		$stack = $builder->stack;
 		$last = false;

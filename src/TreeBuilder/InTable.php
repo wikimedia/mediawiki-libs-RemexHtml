@@ -1,10 +1,16 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
-use Wikimedia\RemexHtml\Tokenizer\PlainAttributes;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\Tokenizer\Attributes;
+use RemexHtml\Tokenizer\PlainAttributes;
 
+/**
+ * The "in table" insertion mode
+ */
 class InTable extends InsertionMode {
+	/**
+	 * The tag names that are cleared when we "clear the stack back to a table context"
+	 */
 	private static $tableContext = [
 		'table' => true,
 		'template' => true,

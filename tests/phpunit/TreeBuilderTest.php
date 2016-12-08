@@ -1,10 +1,10 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\HTMLData;
-use Wikimedia\RemexHtml\Tokenizer;
-use Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\Serializer;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\HTMLData;
+use RemexHtml\Tokenizer;
+use RemexHtml\TreeBuilder;
+use RemexHtml\Serializer;
 
 class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 	private static $testDirs = [

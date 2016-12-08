@@ -1,10 +1,18 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
-use Wikimedia\RemexHtml\HTMLData;
-use Wikimedia\RemexHtml\Tokenizer\Attributes;
+namespace RemexHtml\TreeBuilder;
+use RemexHtml\HTMLData;
+use RemexHtml\Tokenizer\Attributes;
 
+/**
+ * The "initial" insertion mode
+ */
 class Initial extends InsertionMode {
+	/**
+	 * The doctypes listed in the spec which are allowed without generating a
+	 * parse error. A 2-d array where each row gives the doctype name, the
+	 * public identifier and the system identifier.
+	 */
 	private static $allowedDoctypes = [
 		[ 'html', '-//W3C//DTD HTML 4.0//EN', null ],
 		[ 'html', '-//W3C//DTD HTML 4.0//EN', 'http://www.w3.org/TR/REC-html40/strict.dtd' ],

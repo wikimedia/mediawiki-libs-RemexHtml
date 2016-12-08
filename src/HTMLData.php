@@ -4,7 +4,7 @@
  * This data file is machine generated, see GenerateDataFiles.php
  */
 
-namespace Wikimedia\RemexHtml;
+namespace RemexHtml;
 
 class HTMLData {
 	const NS_HTML = 'http://www.w3.org/1999/xhtml';

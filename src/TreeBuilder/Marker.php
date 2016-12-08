@@ -1,6 +1,6 @@
 <?php
 
-namespace Wikimedia\RemexHtml\TreeBuilder;
+namespace RemexHtml\TreeBuilder;
 
 /**
  * A pseudo-element used as a marker or bookmark in the list of active formatting elements
