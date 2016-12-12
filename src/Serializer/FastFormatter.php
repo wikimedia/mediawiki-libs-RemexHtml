@@ -33,6 +33,10 @@ class FastFormatter implements Formatter {
 		}
 		if ( $contents === null ) {
 			$ret .= "/>";
+		} elseif ( isset( $contents[0] ) && $contents[0] === "\n"
+			&& in_array( $name, [ 'pre', 'textarea', 'listing' ] )
+		) {
+			$ret .= ">\n$contents</$name>";
 		} else {
 			$ret .= ">$contents</$name>";
 		}
