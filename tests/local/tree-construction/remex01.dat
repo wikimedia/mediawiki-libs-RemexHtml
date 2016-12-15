@@ -1,0 +1,13 @@
+#data
+<pre><!doctype html>
+x</pre>
+#errors
+[0] missing doctype
+[5] unexpected doctype
+#document
+| <html>
+|   <head>
+|   <body>
+|     <pre>
+|       "
+x"

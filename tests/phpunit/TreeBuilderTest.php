@@ -8,7 +8,8 @@ use RemexHtml\Serializer;
 
 class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 	private static $testDirs = [
-		'html5lib/tree-construction'
+		'html5lib/tree-construction',
+		'local/tree-construction',
 	];
 
 	private static $fileBlacklist = [
