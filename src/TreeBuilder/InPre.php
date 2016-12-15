@@ -37,4 +37,14 @@ class InPre extends InsertionMode {
 		$this->dispatcher->restoreMode()
 			->endTag( $name, $sourceStart, $sourceLength );
 	}
+
+	public function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
+		$this->dispatcher->restoreMode()
+			->doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength );
+	}
+
+	public function comment( $text, $sourceStart, $sourceLength ) {
+		$this->dispatcher->restoreMode()
+			->comment( $text, $sourceStart, $sourceLength );
+	}
 }

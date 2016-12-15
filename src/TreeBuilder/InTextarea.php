@@ -38,4 +38,14 @@ class InTextarea extends InsertionMode {
 		$this->dispatcher->switchMode( Dispatcher::TEXT )
 			->endTag( $name, $sourceStart, $sourceLength );
 	}
+
+	public function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
+		$this->dispatcher->switchMode( Dispatcher::TEXT )
+			->doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength );
+	}
+
+	public function comment( $text, $sourceStart, $sourceLength ) {
+		$this->dispatcher->switchMode( Dispatcher::TEXT )
+			->comment( $text, $sourceStart, $sourceLength );
+	}
 }

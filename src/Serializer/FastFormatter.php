@@ -22,13 +22,14 @@ class FastFormatter implements Formatter {
 	function doctype( $name, $public, $system ) {
 	}
 
-	function characters( $text, $start, $length ) {
+	function characters( SerializerNode $parent, $text, $start, $length ) {
 		return substr( $text, $start, $length );
 	}
 
-	function element( $namespace, $name, Attributes $attrs, $contents ) {
+	function element( SerializerNode $parent, SerializerNode $node, $contents ) {
+		$name = $node->name;
 		$ret = "<$name";
-		foreach ( $attrs->getValues() as $attrName => $value ) {
+		foreach ( $node->attrs->getValues() as $attrName => $value ) {
 			$ret .= " $attrName=\"$value\"";
 		}
 		if ( $contents === null ) {
@@ -43,7 +44,7 @@ class FastFormatter implements Formatter {
 		return $ret;
 	}
 
-	function comment( $text ) {
+	function comment( SerializerNode $parent, $text ) {
 		return "<!--$text-->";
 	}
 }

@@ -88,7 +88,7 @@ class Serializer implements TreeHandler {
 			if ( is_string( $child ) ) {
 				$this->result .= $child;
 			} else {
-				$this->result .= $this->stringify( $child );
+				$this->result .= $this->stringify( $root, $child );
 			}
 		}
 		$this->root = null;
@@ -99,8 +99,6 @@ class Serializer implements TreeHandler {
 	public function characters( $preposition, $refElement, $text, $start, $length,
 		$sourceStart, $sourceLength
 	) {
-		$encoded = (string)$this->formatter->characters( $text, $start, $length );
-
 		if ( $preposition === TreeBuilder::ROOT ) {
 			$parent = $this->root;
 		} elseif ( $preposition === TreeBuilder::BEFORE ) {
@@ -108,6 +106,7 @@ class Serializer implements TreeHandler {
 		} else {
 			$parent = $refElement->userData;
 		}
+		$encoded = (string)$this->formatter->characters( $parent, $text, $start, $length );
 
 		$children =& $parent->children;
 		$lastChildIndex = count( $children ) - 1;
@@ -193,7 +192,7 @@ class Serializer implements TreeHandler {
 		for ( $index = count( $children ) - 1; $index >= 0; $index-- ) {
 			if ( $children[$index] === $self ) {
 				unset( $this->nodes[$self->id] );
-				$children[$index] = $this->stringify( $self );
+				$children[$index] = $this->stringify( $parent, $self );
 				return;
 			}
 		}
@@ -203,10 +202,11 @@ class Serializer implements TreeHandler {
 	/**
 	 * Serialize a specific node
 	 *
-	 * @param SerializerNode $node
+	 * @param SerializerNode $parent The parent of $node
+	 * @param SerializerNode $node The node to serialize
 	 * @return string
 	 */
-	private function stringify( SerializerNode $node ) {
+	private function stringify( SerializerNode $parent, SerializerNode $node ) {
 		if ( $node->void ) {
 			$contents = null;
 		} else {
@@ -215,12 +215,11 @@ class Serializer implements TreeHandler {
 				if ( is_string( $child ) ) {
 					$contents .= $child;
 				} else {
-					$contents .= $this->stringify( $child );
+					$contents .= $this->stringify( $node, $child );
 				}
 			}
 		}
-		return $this->formatter->element( $node->namespace, $node->name,
-			$node->attrs, $contents );
+		return $this->formatter->element( $parent, $node, $contents );
 	}
 
 	public function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
@@ -228,7 +227,6 @@ class Serializer implements TreeHandler {
 	}
 
 	public function comment( $preposition, $refElement, $text, $sourceStart, $sourceLength ) {
-		$encoded = $this->formatter->comment( $text );
 		if ( $preposition === TreeBuilder::ROOT ) {
 			$parent = $this->root;
 		} elseif ( $preposition === TreeBuilder::BEFORE ) {
@@ -236,6 +234,7 @@ class Serializer implements TreeHandler {
 		} else {
 			$parent = $refElement->userData;
 		}
+		$encoded = $this->formatter->comment( $parent, $text );
 		$children =& $parent->children;
 		$lastChildIndex = count( $children ) - 1;
 		$lastChild = $lastChildIndex >= 0 ? $children[$lastChildIndex] : null;
@@ -306,7 +305,7 @@ class Serializer implements TreeHandler {
 	 * @return string
 	 */
 	public function dump() {
-		$s = $this->stringify( $this->root );
+		$s = $this->stringify( $this->root, $this->root );
 		return substr( $s, 2, -3 ) . "\n";
 	}
 }

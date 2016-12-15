@@ -4,11 +4,11 @@ namespace RemexHtml\Serializer;
 use RemexHtml\Tokenizer\Attributes;
 
 class XhtmlFormatter implements Formatter {
-	function startDocument( $fragmentNamespace, $fragmentName ) {
+	public function startDocument( $fragmentNamespace, $fragmentName ) {
 		return "<!DOCTYPE html>\n";
 	}
 
-	function characters( $text, $start, $length ) {
+	public function characters( SerializerNode $parent, $text, $start, $length ) {
 		$text = substr( $text, $start, $length );
 		return strtr( $text, [
 			'<' => '&lt;',
@@ -16,17 +16,18 @@ class XhtmlFormatter implements Formatter {
 			'&' => '&amp;' ] );
 	}
 
-	function element( $namespace, $name, Attributes $attrs, $contents ) {
+	public function element( SerializerNode $parent, SerializerNode $node, $contents ) {
+		$name = $node->name;
 		$ret = "<$name";
-		foreach ( $attrs->getValues() as $name => $value ) {
-			$ret .= " $name=\"" .
+		foreach ( $node->attrs->getValues() as $attrName => $value ) {
+			$ret .= " $attrName=\"" .
 				strtr( $value, [
 					'"' => '&quot;',
 					'&' => '&amp;',
-				] );
+				] ) . "\"";
 		}
 		if ( $contents === null ) {
-			$ret .= "/>";
+			$ret .= " />";
 		} elseif ( isset( $contents[0] ) && $contents[0] === "\n"
 			&& in_array( $name, [ 'pre', 'textarea', 'listing' ] )
 		) {
@@ -37,7 +38,11 @@ class XhtmlFormatter implements Formatter {
 		return $ret;
 	}
 
-	function comment( $text ) {
+	public function comment( SerializerNode $parent, $text ) {
 		return "<!--$text-->";
+	}
+
+	public function doctype( $name, $public, $system ) {
+		return '';
 	}
 }

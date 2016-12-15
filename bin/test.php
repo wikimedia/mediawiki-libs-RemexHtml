@@ -82,7 +82,7 @@ function trace( $text ) {
 	$traceCallback = function ( $msg ) {
 		print "$msg\n";
 	};
-	$formatter = new Serializer\FastFormatter;
+	$formatter = new Serializer\HtmlFormatter;
 	$serializer = new Serializer\Serializer( $formatter );
 	$treeTracer = new TreeBuilder\TreeMutationTracer( $serializer, $traceCallback );
 	$treeBuilder = new TreeBuilder\TreeBuilder( $treeTracer, [] );
@@ -136,7 +136,7 @@ function tidy( $text ) {
 	$error = function ( $msg, $pos ) {
 		print "  *  [$pos] $msg\n";
 	};
-	$formatter = new Serializer\FastFormatter;
+	$formatter = new Serializer\HtmlFormatter;
 	$serializer = new Serializer\Serializer( $formatter, $error );
 	$treeBuilder = new TreeBuilder\TreeBuilder( $serializer, [] );
 	$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
@@ -186,16 +186,34 @@ function benchmarkDOM( $text ) {
 	print "$time\n";
 }
 
-function benchmarkTidy( $text ) {
+function benchmarkTidyFast( $text ) {
+	$n = 100;
 	$time = -microtime( true );
-	$formatter = new Serializer\FastFormatter;
-	$serializer = new Serializer\Serializer( $formatter );
-	$treeBuilder = new TreeBuilder\TreeBuilder( $serializer, [] );
-	$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
-	$tokenizer = new Tokenizer\Tokenizer( $dispatcher, $text, $GLOBALS['tokenizerOptions'] );
-	$tokenizer->execute();
+	for ( $i = 0; $i < $n; $i++ ) {
+		$formatter = new Serializer\FastFormatter;
+		$serializer = new Serializer\Serializer( $formatter );
+		$treeBuilder = new TreeBuilder\TreeBuilder( $serializer, [] );
+		$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
+		$tokenizer = new Tokenizer\Tokenizer( $dispatcher, $text, $GLOBALS['tokenizerOptions'] );
+		$tokenizer->execute();
+	}
 	$time += microtime( true );
-	print "$time\n";
+	print ( $time / $n ) . "\n";
+}
+
+function benchmarkTidySlow( $text ) {
+	$n = 100;
+	$time = -microtime( true );
+	for ( $i = 0; $i < $n; $i++ ) {
+		$formatter = new Serializer\HtmlFormatter;
+		$serializer = new Serializer\Serializer( $formatter );
+		$treeBuilder = new TreeBuilder\TreeBuilder( $serializer, [] );
+		$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
+		$tokenizer = new Tokenizer\Tokenizer( $dispatcher, $text, [] );
+		$tokenizer->execute();
+	}
+	$time += microtime( true );
+	print ( $time / $n ) . "\n";
 }
 
 function generate( $text ) {

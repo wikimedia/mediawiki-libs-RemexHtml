@@ -25,31 +25,42 @@ interface Formatter {
 	/**
 	 * Encode the given character substring
 	 *
+	 * @param SerializerNode $parent The parent of the text node (at creation time)
 	 * @param string $text
 	 * @param integer $start The offset within $text
 	 * @param integer $length The number of bytes within $text
 	 * @return string
 	 */
-	function characters( $text, $start, $length );
+	function characters( SerializerNode $parent, $text, $start, $length );
 
 	/**
 	 * Encode the given element
 	 *
-	 * @param string $namespace The namespace
-	 * @param string $name The tag name
-	 * @param Attributes $attrs The attributes
-	 * @param string|null The previously-encoded contents, or null for a void
-	 *   element. Void elements can be serialized as self-closing tags.
-	 *   Occasionally a self-closing tag is technically required for safe
-	 *   round-tripping.
+	 * @param SerializerNode $parent The parent of the node (when it is closed)
+	 * @param SerializerNode $node The element to encode
+	 * @param string|null $contents The previously-encoded contents, or null
+	 *   for a void element. Void elements can be serialized as self-closing
+	 *   tags.
 	 * @return string
 	 */
-	function element( $namespace, $name, Attributes $attrs, $contents );
+	function element( SerializerNode $parent, SerializerNode $node, $contents );
 
 	/**
 	 * Encode a comment
+	 * @param SerializerNode $parent The parent of the node (at creation time)
 	 * @param string $text The inner text of the comment
 	 * @return string
 	 */
-	function comment( $text );
+	function comment( SerializerNode $parent, $text );
+
+	/**
+	 * Encode a doctype. This event occurs when the source document has a doctype,
+	 * it can return an empty string if the formatter wants to use its own doctype.
+	 *
+	 * @param string $name The doctype name, usually "html"
+	 * @param string $public The PUBLIC identifier
+	 * @param string $system The SYSTEM identifier
+	 * @return string
+	 */
+	function doctype( $name, $public, $system );
 }

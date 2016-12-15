@@ -23,13 +23,15 @@ class TestFormatter implements Formatter {
 		return $ret;
 	}
 
-	function characters( $text, $start, $length ) {
+	function characters( SerializerNode $parent, $text, $start, $length ) {
 		return '"' .
 			str_replace( "\n", "<EOL>", substr( $text, $start, $length ) ) .
 			"\"\n";
 	}
 
-	function element( $namespace, $name, Attributes $attrs, $contents ) {
+	function element( SerializerNode $parent, SerializerNode $node, $contents ) {
+		$namespace = $node->namespace;
+		$name = $node->name;
 		if ( $namespace === HTMLData::NS_HTML ) {
 			$tagName = $name;
 		} elseif ( $namespace === HTMLData::NS_SVG ) {
@@ -40,7 +42,7 @@ class TestFormatter implements Formatter {
 			$tagName = $name;
 		}
 		$ret = "<$tagName>\n";
-		$sortedAttrs = $attrs->getObjects();
+		$sortedAttrs = $node->attrs->getObjects();
 		ksort( $sortedAttrs, SORT_STRING );
 		foreach ( $sortedAttrs as $attrName => $attr ) {
 			if ( $attr->prefix !== null ) {
@@ -65,7 +67,7 @@ class TestFormatter implements Formatter {
 		return $ret;
 	}
 
-	function comment( $text ) {
+	function comment( SerializerNode $parent, $text ) {
 		return "<!-- $text -->\n";
 	}
 }
