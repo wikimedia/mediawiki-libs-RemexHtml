@@ -44,6 +44,12 @@ class InSelect extends InsertionMode {
 			break;
 
 		case 'select':
+			if ( !$stack->isInSelectScope( 'select' ) ) {
+				$builder->error( "<select> found in select mode but no select element is in " .
+					"scope, ignoring", $sourceStart );
+				return;
+			}
+
 			$builder->error( "<select> found inside a select element", $sourceStart );
 			$builder->popAllUpToName( 'select', $sourceStart, $sourceLength );
 			$dispatcher->reset();

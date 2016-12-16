@@ -15,15 +15,9 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 	private static $fileBlacklist = [
 		// Refers to a newer version of the HTML spec
 		'tree-construction/menuitem-element.dat',
-		'tree-construction/pending-spec-changes.dat',
 	];
 
 	private static $testBlacklist = [
-		// Refers to a newer version of the HTML spec
-		'tree-construction/main-element.dat:30',
-		'tree-construction/tests11.dat:137',
-		'tree-construction/ruby.dat:186',
-		'tree-construction/template.dat:1102',
 	];
 
 	public function provider() {

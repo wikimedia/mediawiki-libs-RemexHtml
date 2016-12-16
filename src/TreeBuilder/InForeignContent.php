@@ -42,7 +42,7 @@ class InForeignContent extends InsertionMode {
 		'img' => true,
 		'li' => true,
 		'listing' => true,
-		'main' => true,
+		'menu' => true,
 		'meta' => true,
 		'nobr' => true,
 		'ol' => true,

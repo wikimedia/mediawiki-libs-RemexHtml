@@ -16,6 +16,8 @@ use RemexHtml\Tokenizer\Tokenizer;
  * open elements and the list of active formatting elements.
  *
  * Miscellaneous helpers for InsertionMode subclasses are also in this class.
+ *
+ * https://www.w3.org/TR/2016/REC-html51-20161101/syntax.html
  */
 class TreeBuilder {
 	// Quirks
@@ -68,6 +70,27 @@ class TreeBuilder {
 		'rp' => true,
 		'rt' => true,
 		'rtc' => true,
+	];
+
+	private static $thoroughlyImpliedEndTags = [
+		'caption' => true,
+		'colgroup' => true,
+		'dd' => true,
+		'dt' => true,
+		'li' => true,
+		'optgroup' => true,
+		'option' => true,
+		'p' => true,
+		'rb' => true,
+		'rp' => true,
+		'rt' => true,
+		'rtc' => true,
+		'tbody' => true,
+		'td' => true,
+		'tfoot' => true,
+		'th' => true,
+		'thead' => true,
+		'tr' => true
 	];
 
 	public function __construct( TreeHandler $handler, $options = [] ) {
@@ -286,8 +309,6 @@ class TreeBuilder {
 	 * Run the "adoption agency algorithm" (AAA) for the given subject
 	 * tag name.
 	 * @author C. Scott Ananian, Tim Starling
-	 *
-	 * https://www.w3.org/TR/2014/REC-html5-20141028/syntax.html#adoption-agency-algorithm
 	 *
 	 * @param string $subject The subject tag name.
 	 * @param integer $sourceStart
@@ -584,6 +605,21 @@ class TreeBuilder {
 		while ( $current && $current->htmlName !== $name &&
 		  isset( self::$impliedEndTags[$current->htmlName] )
 		) {
+			$popped = $stack->pop();
+			$this->handler->endTag( $popped, $pos, 0 );
+			$current = $stack->current;
+		}
+	}
+	
+	/**
+	 * Generate all implied end tags thoroughly. This was introduced in
+	 * HTML 5.1 in order to expand the set of elements which can be implicitly
+	 * closed by a </template>.
+	 */
+	public function generateImpliedEndTagsThoroughly( $pos ) {
+		$stack = $this->stack;
+		$current = $stack->current;
+		while ( $current && isset( self::$thoroughlyImpliedEndTags[$current->htmlName] ) ) {
 			$popped = $stack->pop();
 			$this->handler->endTag( $popped, $pos, 0 );
 			$current = $stack->current;

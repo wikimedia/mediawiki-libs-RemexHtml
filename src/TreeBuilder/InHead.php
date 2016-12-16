@@ -131,7 +131,7 @@ class InHead extends InsertionMode {
 					$sourceStart );
 				return;
 			}
-			$builder->generateImpliedEndTags( false, $sourceStart );
+			$builder->generateImpliedEndTagsThoroughly( $sourceStart );
 			if ( $stack->current->htmlName !== 'template' ) {
 				$builder->error( 'found </template> when other tags are still open', $sourceStart );
 			}

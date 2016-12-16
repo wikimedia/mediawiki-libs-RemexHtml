@@ -64,8 +64,8 @@ EOT;
 	 */
 	private static $quirkyPublicPrefixes = [
 		"+//Silmaril//dtd html Pro v0r11 19970101//",
-		"-//AdvaSoft Ltd//DTD HTML 3.0 asWedit + extensions//",
 		"-//AS//DTD HTML 3.0 asWedit + extensions//",
+		"-//AdvaSoft Ltd//DTD HTML 3.0 asWedit + extensions//",
 		"-//IETF//DTD HTML 2.0 Level 1//",
 		"-//IETF//DTD HTML 2.0 Level 2//",
 		"-//IETF//DTD HTML 2.0 Strict Level 1//",
@@ -121,15 +121,15 @@ EOT;
 	];
 
 	private static $special = [
-		self::NS_HTML => 'address, applet, area, article, aside, base, basefont,
-			bgsound, blockquote, body, br, button, caption, center, col, colgroup,
-			dd, details, dir, div, dl, dt, embed, fieldset, figcaption, figure,
-			footer, form, frame, frameset, h1, h2, h3, h4, h5, h6, head, header,
-			hgroup, hr, html, iframe, img, input, isindex, li, link, listing,
-			main, marquee, meta, nav, noembed, noframes, noscript, object, ol,
-			p, param, plaintext, pre, script, section, select, source, style,
-			summary, table, tbody, td, template, textarea, tfoot, th, thead,
-			title, tr, track, ul, wbr, xmp',
+		self::NS_HTML => 'address, applet, area, article, aside, base,
+			basefont, bgsound, blockquote, body, br, button, caption, center,
+			col, colgroup, dd, details, dir, div, dl, dt, embed, fieldset,
+			figcaption, figure, footer, form, frame, frameset, h1, h2, h3, h4,
+			h5, h6, head, header, hr, html, iframe, img, input, li, link,
+			listing, main, marquee, menu, menuitem, meta, nav, noembed,
+			noframes, noscript, object, ol, p, param, plaintext, pre, script,
+			section, select, source, style, summary, table, tbody, td, template,
+			textarea, tfoot, th, thead, title, tr, track, ul, wbr, xmp',
 		self::NS_MATHML => 'mi, mo, mn, ms, mtext, annotation-xml',
 		self::NS_SVG => 'foreignObject, desc, title',
 	];
@@ -150,7 +150,7 @@ EOT;
 
 		if ( $entitiesJson === false ) {
 			throw new \Exception( "Please download entities.json from " .
-				"https://www.w3.org/TR/2014/REC-html5-20141028/entities.json" );
+				"https://www.w3.org/TR/2016/REC-html51-20161101/entities.json" );
 		}
 
 		$entities = (array)json_decode( $entitiesJson );

@@ -69,7 +69,10 @@ class InCaption extends InsertionMode {
 					'caption in scope, ignoring', $sourceStart );
 				return;
 			}
-			$builder->error( '</table> found in caption, closing caption', $sourceStart );
+			$builder->generateImpliedEndTags( false, $sourceStart );
+			if ( $stack->current->htmlName !== 'caption' ) {
+				$builder->error( '</table> found in caption, closing caption', $sourceStart );
+			}
 			$builder->popAllUpToName( 'caption', $sourceStart, 0 );
 			$builder->afe->clearToMarker();
 			$dispatcher->switchMode( Dispatcher::IN_TABLE )

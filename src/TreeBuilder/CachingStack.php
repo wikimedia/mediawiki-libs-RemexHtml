@@ -91,6 +91,7 @@ class CachingStack extends Stack {
 		'listing' => self::SCOPE_DEFAULT,
 		'main' => self::SCOPE_DEFAULT,
 		'marquee' => self::SCOPE_DEFAULT,
+		'menu' => self::SCOPE_DEFAULT,
 		'nav' => self::SCOPE_DEFAULT,
 		'nobr' => self::SCOPE_DEFAULT,
 		'object' => self::SCOPE_DEFAULT,

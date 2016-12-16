@@ -292,6 +292,19 @@ class Dispatcher implements TokenHandler {
 		return self::IN_BODY;
 	}
 
+	/**
+	 * If the stack of open elements is empty, return null, otherwise return
+	 * the adjusted current node.
+	 */
+	protected function dispatcherCurrentNode() {
+		$current = $this->builder->stack->current;
+		if ( $current && $current->stackIndex === 0 && $this->builder->isFragment ) {
+			return $this->builder->fragmentContext;
+		} else {
+			return $current;
+		}
+	}
+
 	public function startDocument( Tokenizer $tokenizer, $namespace, $name ) {
 		$this->dispatchTable = [];
 		foreach ( self::$handlerClasses as $mode => $class ) {
@@ -336,7 +349,7 @@ class Dispatcher implements TokenHandler {
 	}
 
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
-		$current = $this->builder->adjustedCurrentNode();
+		$current = $this->dispatcherCurrentNode();
 		if ( !$current
 			|| $current->namespace === HTMLData::NS_HTML
 			|| $current->isMathmlTextIntegration()
@@ -351,7 +364,7 @@ class Dispatcher implements TokenHandler {
 
 	public function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
 		$this->ack = false;
-		$current = $this->builder->adjustedCurrentNode();
+		$current = $this->dispatcherCurrentNode();
 		if ( !$current
 			|| $current->namespace === HTMLData::NS_HTML
 			|| ( $current->isMathmlTextIntegration()
@@ -374,7 +387,7 @@ class Dispatcher implements TokenHandler {
 	}
 
 	public function endTag( $name, $sourceStart, $sourceLength ) {
-		$current = $this->builder->adjustedCurrentNode();
+		$current = $this->dispatcherCurrentNode();
 		if ( !$current || $current->namespace === HTMLData::NS_HTML ) {
 			$this->handler->endTag( $name, $sourceStart, $sourceLength );
 		} else {
@@ -383,7 +396,7 @@ class Dispatcher implements TokenHandler {
 	}
 
 	public function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
-		$current = $this->builder->adjustedCurrentNode();
+		$current = $this->dispatcherCurrentNode();
 		if ( !$current || $current->namespace === HTMLData::NS_HTML ) {
 			$this->handler->doctype( $name, $public, $system, $quirks,
 				$sourceStart, $sourceLength );
@@ -394,7 +407,7 @@ class Dispatcher implements TokenHandler {
 	}
 
 	public function comment( $text, $sourceStart, $sourceLength ) {
-		$current = $this->builder->adjustedCurrentNode();
+		$current = $this->dispatcherCurrentNode();
 		if ( !$current || $current->namespace === HTMLData::NS_HTML ) {
 			$this->handler->comment( $text, $sourceStart, $sourceLength );
 		} else {

@@ -6,8 +6,8 @@ use RemexHtml\HTMLData;
 /**
  * HTML 5 tokenizer
  *
- * Based on the W3C recommendation as published 28 October 2014:
- * http://www.w3.org/TR/2014/REC-html5-20141028/
+ * Based on the W3C recommendation as published 01 November 2016:
+ * https://www.w3.org/TR/2016/REC-html51-20161101/
  */
 class Tokenizer {
 	// States

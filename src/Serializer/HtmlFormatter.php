@@ -24,11 +24,12 @@ class HtmlFormatter implements Formatter {
 		'input' => true,
 		'keygen' => true,
 		'link' => true,
+		'menuitem' => true,
 		'meta' => true,
 		'param' => true,
 		'source' => true,
 		'track' => true,
-		'wbr' => true
+		'wbr' => true,
 	];
 
 	/**

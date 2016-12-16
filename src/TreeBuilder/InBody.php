@@ -131,7 +131,6 @@ class InBody extends InsertionMode {
 		case 'blockquote':
 		case 'center':
 		case 'details':
-		case 'dialog':
 		case 'dir':
 		case 'div':
 		case 'dl':
@@ -140,8 +139,8 @@ class InBody extends InsertionMode {
 		case 'figure':
 		case 'footer':
 		case 'header':
-		case 'hgroup':
 		case 'main':
+		case 'menu':
 		case 'nav':
 		case 'ol':
 		case 'p':
@@ -300,6 +299,7 @@ class InBody extends InsertionMode {
 				$builder->framesetOK = false;
 			}
 			break;
+		case 'menuitem':
 		case 'param':
 		case 'source':
 		case 'track':
@@ -360,7 +360,6 @@ class InBody extends InsertionMode {
 			$builder->reconstructAFE( $sourceStart );
 			break;
 		case 'rb':
-		case 'rp':
 		case 'rtc':
 			if ( $stack->isInScope( 'ruby' ) ) {
 				$builder->generateImpliedEndTags( false, $sourceStart );
@@ -370,6 +369,7 @@ class InBody extends InsertionMode {
 				}
 			}
 			break;
+		case 'rp':
 		case 'rt':
 			if ( $stack->isInScope( 'ruby' ) ) {
 				$builder->generateImpliedEndTags( 'rtc', $sourceStart );
@@ -405,10 +405,6 @@ class InBody extends InsertionMode {
 		case 'tr':
 			$builder->error( "$name is invalid in body mode", $sourceStart );
 			return;
-		case 'isindex':
-			// TODO
-			$builder->error( "$name is unimplemented", $sourceStart );
-			// fall through
 		default:
 			$builder->reconstructAFE( $sourceStart );
 		}
@@ -467,7 +463,6 @@ class InBody extends InsertionMode {
 		case 'button':
 		case 'center':
 		case 'details':
-		case 'dialog':
 		case 'dir':
 		case 'div':
 		case 'dl':
@@ -476,9 +471,9 @@ class InBody extends InsertionMode {
 		case 'figure':
 		case 'footer':
 		case 'header':
-		case 'hgroup':
 		case 'listing':
 		case 'main':
+		case 'menu':
 		case 'nav':
 		case 'ol':
 		case 'pre':
