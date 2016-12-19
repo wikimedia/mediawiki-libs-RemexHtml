@@ -610,7 +610,7 @@ class TreeBuilder {
 			$current = $stack->current;
 		}
 	}
-	
+
 	/**
 	 * Generate all implied end tags thoroughly. This was introduced in
 	 * HTML 5.1 in order to expand the set of elements which can be implicitly

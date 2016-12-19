@@ -77,6 +77,7 @@ class InBody extends InsertionMode {
 			}
 			$builder->mergeAttributes( $stack->item( 0 ), $attrs, $sourceStart, $sourceLength );
 			return;
+
 		case 'base':
 		case 'basefont':
 		case 'bgsound':
@@ -90,6 +91,7 @@ class InBody extends InsertionMode {
 			$dispatcher->inHead->startTag(
 				$name, $attrs, $selfClose, $sourceStart, $sourceLength );
 			return;
+
 		case 'body':
 			if ( $stack->length() < 2 || $stack->hasTemplate() ) {
 				$builder->error( 'ignored unexpected body tag', $sourceStart );
@@ -104,6 +106,7 @@ class InBody extends InsertionMode {
 			$this->builder->framesetOK = false;
 			$this->builder->mergeAttributes( $body, $attrs, $sourceStart, $sourceLength );
 			return;
+
 		case 'frameset':
 			if ( !$builder->framesetOK || $stack->length() < 2 || $stack->hasTemplate() ) {
 				$builder->error( 'ignored unexpected frameset tag', $sourceStart );
@@ -125,6 +128,7 @@ class InBody extends InsertionMode {
 			$mode = Dispatcher::IN_FRAMESET;
 			// Insert as normal
 			break;
+
 		case 'address':
 		case 'article':
 		case 'aside':
@@ -149,6 +153,7 @@ class InBody extends InsertionMode {
 		case 'ul':
 			$builder->closePInButtonScope( $sourceStart );
 			break;
+
 		case 'h1':
 		case 'h2':
 		case 'h3':
@@ -161,12 +166,14 @@ class InBody extends InsertionMode {
 				$builder->pop( $sourceStart, 0 );
 			}
 			break;
+
 		case 'pre':
 		case 'listing':
 			$builder->closePInButtonScope( $sourceStart );
 			$builder->framesetOK = false;
 			$textMode = Dispatcher::IN_PRE;
 			break;
+
 		case 'form':
 			if ( $builder->formElement !== null && !$stack->hasTemplate() ) {
 				$builder->error( 'ignoring nested form tag', $sourceStart );
@@ -179,6 +186,7 @@ class InBody extends InsertionMode {
 				$builder->formElement = $elt;
 			}
 			return;
+
 		case 'li':
 			$builder->framesetOK = false;
 			for ( $idx = $stack->length() - 1; $idx >= 0; $idx-- ) {
@@ -196,6 +204,7 @@ class InBody extends InsertionMode {
 			}
 			$builder->closePInButtonScope( $sourceStart );
 			break;
+
 		case 'dd':
 		case 'dt':
 			$builder->framesetOK = false;
@@ -214,10 +223,12 @@ class InBody extends InsertionMode {
 			}
 			$builder->closePInButtonScope( $sourceStart );
 			break;
+
 		case 'plaintext':
 			$builder->closePInButtonScope( $sourceStart );
 			$tokenizerState = Tokenizer::STATE_PLAINTEXT;
 			break;
+
 		case 'button':
 			if ( $stack->isInScope( 'button' ) ) {
 				$builder->error( 'invalid nested button tag, closing previous', $sourceStart );
@@ -227,6 +238,7 @@ class InBody extends InsertionMode {
 			$builder->reconstructAFE( $sourceStart );
 			$builder->framesetOK = false;
 			break;
+
 		case 'a':
 			$elt = $builder->afe->findElementByName( 'a' );
 			if ( $elt !== null ) {
@@ -242,6 +254,7 @@ class InBody extends InsertionMode {
 			$builder->reconstructAFE( $sourceStart );
 			$isNewAFE = true;
 			break;
+
 		case 'b':
 		case 'big':
 		case 'code':
@@ -257,6 +270,7 @@ class InBody extends InsertionMode {
 			$builder->reconstructAFE( $sourceStart );
 			$isNewAFE = true;
 			break;
+
 		case 'nobr':
 			$builder->reconstructAFE( $sourceStart );
 			if ( $stack->isInScope( 'nobr' ) ) {
@@ -266,6 +280,7 @@ class InBody extends InsertionMode {
 			}
 			$isNewAFE = true;
 			break;
+
 		case 'applet':
 		case 'marquee':
 		case 'object':
@@ -273,6 +288,7 @@ class InBody extends InsertionMode {
 			$builder->afe->insertMarker();
 			$builder->framesetOK = false;
 			break;
+
 		case 'table':
 			if ( $builder->quirks !== TreeBuilder::QUIRKS ) {
 				$builder->closePInButtonScope( $sourceStart );
@@ -280,6 +296,7 @@ class InBody extends InsertionMode {
 			$builder->framesetOK = false;
 			$mode = Dispatcher::IN_TABLE;
 			break;
+
 		case 'area':
 		case 'br':
 		case 'embed':
@@ -291,6 +308,7 @@ class InBody extends InsertionMode {
 			$void = true;
 			$builder->framesetOK = false;
 			break;
+
 		case 'input':
 			$builder->reconstructAFE( $sourceStart );
 			$dispatcher->ack = true;
@@ -299,6 +317,7 @@ class InBody extends InsertionMode {
 				$builder->framesetOK = false;
 			}
 			break;
+
 		case 'menuitem':
 		case 'param':
 		case 'source':
@@ -306,21 +325,25 @@ class InBody extends InsertionMode {
 			$dispatcher->ack = true;
 			$void = true;
 			break;
+
 		case 'hr':
 			$builder->closePInButtonScope( $sourceStart );
 			$dispatcher->ack = true;
 			$void = true;
 			$builder->framesetOK = false;
 			break;
+
 		case 'image':
 			$builder->error( 'invalid "image" tag, assuming "img"', $sourceStart );
 			$this->startTag( 'img', $attrs, $selfClose, $sourceStart, $sourceLength );
 			return;
+
 		case 'textarea':
 			$tokenizerState = Tokenizer::STATE_RCDATA;
 			$textMode = Dispatcher::IN_TEXTAREA;
 			$builder->framesetOK = false;
 			break;
+
 		case 'xmp':
 			$builder->closePInButtonScope( $sourceStart );
 			$builder->reconstructAFE( $sourceStart );
@@ -328,11 +351,13 @@ class InBody extends InsertionMode {
 			$tokenizerState = Tokenizer::STATE_RAWTEXT;
 			$textMode = Dispatcher::TEXT;
 			break;
+
 		case 'iframe':
 			$builder->framesetOK = false;
 			$tokenizerState = Tokenizer::STATE_RAWTEXT;
 			$textMode = Dispatcher::TEXT;
 			break;
+
 		case 'noscript':
 			if ( !$builder->scriptingFlag ) {
 				$builder->reconstructAFE( $sourceStart );
@@ -343,6 +368,7 @@ class InBody extends InsertionMode {
 			$tokenizerState = Tokenizer::STATE_RAWTEXT;
 			$textMode = Dispatcher::TEXT;
 			break;
+
 		case 'select':
 			$builder->reconstructAFE( $sourceStart );
 			$builder->framesetOK = false;
@@ -352,6 +378,7 @@ class InBody extends InsertionMode {
 				$mode = Dispatcher::IN_SELECT;
 			}
 			break;
+
 		case 'optgroup':
 		case 'option':
 			if ( $stack->current->htmlName === 'option' ) {
@@ -359,6 +386,7 @@ class InBody extends InsertionMode {
 			}
 			$builder->reconstructAFE( $sourceStart );
 			break;
+
 		case 'rb':
 		case 'rtc':
 			if ( $stack->isInScope( 'ruby' ) ) {
@@ -369,6 +397,7 @@ class InBody extends InsertionMode {
 				}
 			}
 			break;
+
 		case 'rp':
 		case 'rt':
 			if ( $stack->isInScope( 'ruby' ) ) {
@@ -378,6 +407,7 @@ class InBody extends InsertionMode {
 				}
 			}
 			break;
+
 		case 'math':
 			$builder->reconstructAFE( $sourceStart );
 			$attrs = new ForeignAttributes( $attrs, 'math' );
@@ -385,6 +415,7 @@ class InBody extends InsertionMode {
 			$builder->insertForeign( HTMLData::NS_MATHML, 'math', $attrs, $selfClose,
 				$sourceStart, $sourceLength );
 			return;
+
 		case 'svg':
 			$builder->reconstructAFE( $sourceStart );
 			$attrs = new ForeignAttributes( $attrs, 'svg' );
@@ -392,6 +423,7 @@ class InBody extends InsertionMode {
 			$builder->insertForeign( HTMLData::NS_SVG, 'svg', $attrs, $selfClose,
 				$sourceStart, $sourceLength );
 			return;
+
 		case 'caption':
 		case 'col':
 		case 'colgroup':
@@ -405,6 +437,7 @@ class InBody extends InsertionMode {
 		case 'tr':
 			$builder->error( "$name is invalid in body mode", $sourceStart );
 			return;
+
 		default:
 			$builder->reconstructAFE( $sourceStart );
 		}

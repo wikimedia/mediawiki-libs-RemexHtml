@@ -308,25 +308,32 @@ class Tokenizer {
 			case self::STATE_DATA:
 				$this->state = $this->dataState( $loop );
 				break;
+
 			case self::STATE_RCDATA:
 				$this->state = $this->textElementState( false );
 				break;
+
 			case self::STATE_RAWTEXT:
 				$this->state = $this->textElementState( true );
 				break;
+
 			case self::STATE_SCRIPT_DATA:
 				$this->state = $this->scriptDataState();
 				break;
+
 			case self::STATE_PLAINTEXT:
 				$this->state = $this->plaintextState();
 				break;
+
 			case self::STATE_START:
 				$this->state = self::STATE_DATA;
 				break;
+
 			case self::STATE_EOF:
 				$this->listener->endDocument( $this->length );
 				$eof = true;
 				break 2;
+
 			default:
 				$this->fatal( 'invalid state' );
 			}
@@ -1449,18 +1456,23 @@ REGEX;
 		case PREG_NO_ERROR:
 			$msg = "PCRE returned false but gave PREG_NO_ERROR";
 			break;
+
 		case PREG_INTERNAL_ERROR:
 			$msg = "PCRE internal error";
 			break;
+
 		case PREG_BACKTRACK_LIMIT_ERROR:
 			$msg = "pcre.backtrack_limit exhausted";
 			break;
+
 		case PREG_RECURSION_LIMIT_ERROR:
 			$msg = "pcre.recursion_limit exhausted";
 			break;
+
 		case $PREG_JIT_STACKLIMIT_ERROR:
 			$msg = "PCRE JIT stack space exhausted";
 			break;
+
 		case PREG_BAD_UTF8_ERROR:
 		case PREG_BAD_UTF8_OFFSET_ERROR:
 		default:

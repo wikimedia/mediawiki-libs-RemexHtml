@@ -32,6 +32,7 @@ class InTableBody extends InsertionMode {
 			$builder->insertElement( $name, $attrs, false, $sourceStart, $sourceLength );
 			$dispatcher->switchMode( Dispatcher::IN_ROW );
 			break;
+
 		case 'th':
 		case 'td':
 			$builder->error( "<$name> encountered in table body (not row) mode", $sourceStart );
@@ -40,6 +41,7 @@ class InTableBody extends InsertionMode {
 			$dispatcher->switchMode( Dispatcher::IN_ROW )
 				->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
 			break;
+
 		case 'caption':
 		case 'col':
 		case 'colgroup':
@@ -59,6 +61,7 @@ class InTableBody extends InsertionMode {
 			$dispatcher->switchMode( Dispatcher::IN_TABLE )
 				->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
 			break;
+
 		default:
 			$dispatcher->inTable->startTag( $name, $attrs, $selfClose,
 				$sourceStart, $sourceLength );
@@ -81,6 +84,7 @@ class InTableBody extends InsertionMode {
 			$builder->clearStackBack( self::$tableBodyContext, $sourceStart );
 			$builder->pop( $sourceStart, $sourceLength );
 			$dispatcher->switchMode( Dispatcher::IN_TABLE );
+
 		case 'body':
 		case 'caption':
 		case 'col':
@@ -91,6 +95,7 @@ class InTableBody extends InsertionMode {
 		case 'tr':
 			$builder->error( "</$name> found in table body mode, ignoring", $sourceStart );
 			return;
+
 		default:
 			$dispatcher->inTable->endTag( $name, $sourceStart, $sourceLength );
 		}

@@ -46,6 +46,7 @@ class InHead extends InsertionMode {
 			$this->dispatcher->inBody->startTag( $name, $attrs, $selfClose,
 				$sourceStart, $sourceLength );
 			return;
+
 		case 'base':
 		case 'basefont':
 		case 'bgsound':
@@ -53,15 +54,18 @@ class InHead extends InsertionMode {
 			$void = true;
 			$dispatcher->ack = true;
 			break;
+
 		case 'meta':
 			$void = true;
 			$dispatcher->ack = true;
 			// charset handling omitted
 			break;
+
 		case 'title':
 			$tokenizerState = Tokenizer::STATE_RCDATA;
 			$textMode = Dispatcher::TEXT;
 			break;
+
 		case 'noscript':
 			if ( !$this->builder->scriptingFlag ) {
 				$mode = Dispatcher::IN_HEAD_NOSCRIPT;
@@ -73,19 +77,23 @@ class InHead extends InsertionMode {
 			$tokenizerState = Tokenizer::STATE_RAWTEXT;
 			$textMode = Dispatcher::TEXT;
 			break;
+
 		case 'script':
 			$tokenizerState = Tokenizer::STATE_SCRIPT_DATA;
 			$textMode = Dispatcher::TEXT;
 			break;
+
 		case 'template':
 			$this->builder->afe->insertMarker();
 			$this->builder->framesetOK = false;
 			$mode = Dispatcher::IN_TEMPLATE;
 			$this->dispatcher->templateModeStack->push( Dispatcher::IN_TEMPLATE );
 			break;
+
 		case 'head':
 			$this->builder->error( 'unexpected head tag in head, ignoring', $sourceStart );
 			return;
+
 		default:
 			$elt = $this->builder->pop( $sourceStart, 0 );
 			if ( $elt->htmlName !== 'head' ) {
@@ -118,6 +126,7 @@ class InHead extends InsertionMode {
 			$builder->pop( $sourceStart, $sourceLength );
 			$this->dispatcher->switchMode( Dispatcher::AFTER_HEAD );
 			break;
+
 		case 'body':
 		case 'html':
 		case 'br':
@@ -125,6 +134,7 @@ class InHead extends InsertionMode {
 			$this->dispatcher->switchMode( Dispatcher::AFTER_HEAD )
 				->endTag( $name, $sourceStart, $sourceLength );
 			break;
+
 		case 'template':
 			if ( !$stack->hasTemplate() ) {
 				$builder->error( 'found </template> but there is no open template, ignoring',
@@ -140,6 +150,7 @@ class InHead extends InsertionMode {
 			$this->dispatcher->templateModeStack->pop();
 			$this->dispatcher->reset();
 			break;
+
 		default:
 			$builder->error( "ignoring </$name> in head", $sourceStart );
 		}

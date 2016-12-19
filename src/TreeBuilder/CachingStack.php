@@ -175,6 +175,7 @@ class CachingStack extends Stack {
 			case 'table':
 			case 'template':
 				return self::$tableScopes;
+
 			case 'applet':
 			case 'caption':
 			case 'td':
@@ -182,14 +183,18 @@ class CachingStack extends Stack {
 			case 'marquee':
 			case 'object':
 				return self::$regularScopes;
+
 			case 'ol':
 			case 'ul':
 				return self::$listScopes;
+
 			case 'button':
 				return self::$buttonScopes;
+
 			case 'option':
 			case 'optgroup':
 				return [];
+
 			default:
 				return self::$selectOnly;
 			}

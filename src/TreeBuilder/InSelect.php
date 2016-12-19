@@ -98,6 +98,7 @@ class InSelect extends InsertionMode {
 			}
 			$builder->pop( $sourceStart, $sourceLength );
 			break;
+
 		case 'option':
 			if ( $stack->current->htmlName !== 'option' ) {
 				$builder->error( "unexpected </option>, ignoring", $sourceStart );
@@ -105,6 +106,7 @@ class InSelect extends InsertionMode {
 			}
 			$builder->pop( $sourceStart, $sourceLength );
 			break;
+
 		case 'select':
 			if ( !$stack->isInSelectScope( 'select' ) ) {
 				$builder->error( "</select> found but the select element is " .
@@ -114,9 +116,11 @@ class InSelect extends InsertionMode {
 			$builder->popAllUpToName( 'select', $sourceStart, $sourceLength );
 			$dispatcher->reset();
 			break;
+
 		case 'template':
 			$dispatcher->inHead->endTag( $name, $sourceStart, $sourceLength );
 			break;
+
 		default:
 			$builder->error( "unexpected </$name> in select, ignoring", $sourceStart );
 			break;

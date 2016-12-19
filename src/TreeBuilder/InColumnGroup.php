@@ -48,13 +48,16 @@ class InColumnGroup extends InsertionMode {
 		case 'html':
 			$dispatcher->inBody->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
 			break;
+
 		case 'col':
 			$dispatcher->ack = true;
 			$builder->insertElement( $name, $attrs, true, $sourceStart, $sourceLength );
 			break;
+
 		case 'template':
 			$dispatcher->inHead->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
 			break;
+
 		default:
 			if ( $stack->current->htmlName !== 'colgroup' ) {
 				$builder->error( 'start tag should close the colgroup but another element is open',
@@ -84,12 +87,15 @@ class InColumnGroup extends InsertionMode {
 			$builder->pop( $sourceStart, $sourceLength );
 			$dispatcher->switchMode( Dispatcher::IN_TABLE );
 			break;
+
 		case 'col':
 			$builder->error( '</col> found in column group mode, ignoring', $sourceStart );
 			break;
+
 		case 'template':
 			$dispatcher->inHead->endTag( $name, $sourceStart, $sourceLength );
 			break;
+
 		default:
 			if ( $stack->current->htmlName !== 'colgroup' ) {
 				$builder->error( 'non-matching end tag should close the colgroup ' .

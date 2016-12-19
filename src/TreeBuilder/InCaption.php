@@ -35,6 +35,7 @@ class InCaption extends InsertionMode {
 				$this->dispatcher->switchMode( Dispatcher::IN_TABLE )
 					->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
 				break;
+
 			default:
 				$this->dispatcher->inBody->startTag( $name, $attrs, $selfClose,
 					$sourceStart, $sourceLength );
