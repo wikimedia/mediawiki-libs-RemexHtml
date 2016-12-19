@@ -21,6 +21,8 @@ class TokenSalad {
 	private $characterSalad;
 	private $entities;
 
+	private static $elementNameBlacklist = '/^(menu|isindex)/i';
+
 	public function __construct( $maxLength ) {
 		$this->maxLength = $maxLength;
 		$this->bigDictionary = Utils::getBigDictionary();
@@ -106,15 +108,19 @@ class TokenSalad {
 	}
 
 	private function getElementName() {
-		if ( Utils::coinToss( 0.5 ) ) {
+		do {
 			if ( Utils::coinToss( 0.5 ) ) {
-				return Utils::pickRandom( $this->specialTags );
+				if ( Utils::coinToss( 0.5 ) ) {
+					$name = Utils::pickRandom( $this->specialTags );
+				} else {
+					$name = Utils::pickRandom( FuzzData::$w3schoolsTagNames );
+				}
 			} else {
-				return Utils::pickRandom( FuzzData::$w3schoolsTagNames );
+				$name = Utils::pickRandom( $this->bigDictionary );
 			}
-		} else {
-			return Utils::pickRandom( $this->bigDictionary );
 		}
+		while ( preg_match( self::$elementNameBlacklist, $name ) );
+		return $name;
 	}
 
 	private function getAttributeName() {

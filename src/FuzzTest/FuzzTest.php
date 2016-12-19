@@ -26,11 +26,6 @@ class FuzzTest {
 		for ( $seed = 0; true; $seed++ ) {
 			mt_srand( $seed );
 			$text = $tokenSalad->next();
-
-			if ( stripos( $text, "isindex" ) !== false ) {
-				// Skip isindex tests
-				continue;
-			}
 			if ( @iconv( 'UTF-8', 'UTF-8', $text ) === false ) {
 				// Skip invalid UTF-8 tests
 				continue;
