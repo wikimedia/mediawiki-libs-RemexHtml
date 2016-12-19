@@ -21,7 +21,7 @@
 		}
 	},
 	"scripts": {
-		"test": "hhvm vendor/bin/phpunit --no-globals-backup tests/phpunit",
-		"phpcs": "hhvm vendor/bin/phpcs -s src"
+		"test": "phpunit --no-globals-backup tests/phpunit",
+		"phpcs": "phpcs -s src"
 	}
 }
