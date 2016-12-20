@@ -7,7 +7,6 @@ if ( PHP_SAPI !== 'cli' ) {
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use RemexHtml;
 use RemexHtml\Tokenizer;
 use RemexHtml\TreeBuilder;
 use RemexHtml\Serializer;
@@ -90,7 +89,7 @@ function trace( $text ) {
 	$dispatchTracer = new TreeBuilder\DispatchTracer( $text, $dispatcher, $traceCallback );
 	$tokenizer = new Tokenizer\Tokenizer( $dispatchTracer, $text, [] );
 	$tokenizer->execute( [
-		// 'fragmentNamespace' => RemexHtml\HTMLData::NS_HTML,
+		// 'fragmentNamespace' => \RemexHtml\HTMLData::NS_HTML,
 		// 'fragmentName' => 'html'
 	] );
 
@@ -108,7 +107,7 @@ function traceDestruct( $text ) {
 	$dispatchTracer = new TreeBuilder\DispatchTracer( $text, $dispatcher, $traceCallback );
 	$tokenizer = new Tokenizer\Tokenizer( $dispatchTracer, $text, [] );
 	$tokenizer->execute( [
-		// 'fragmentNamespace' => RemexHtml\HTMLData::NS_HTML,
+		// 'fragmentNamespace' => \RemexHtml\HTMLData::NS_HTML,
 		// 'fragmentName' => 'html'
 	] );
 }
@@ -149,7 +148,10 @@ function benchmarkNull( $text ) {
 	$time = -microtime( true );
 	$handler = new NullHandler;
 	$tokenizer = new Tokenizer\Tokenizer( $handler, $text, $GLOBALS['tokenizerOptions'] );
-	$tokenizer->execute();
+	$tokenizer->execute( [
+		//'state' => Tokenizer\Tokenizer::STATE_SCRIPT_DATA,
+		//'appropriateEndTag' => 'script'
+	] );
 	$time += microtime( true );
 	print "$time\n";
 }

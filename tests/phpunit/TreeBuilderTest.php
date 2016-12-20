@@ -3,7 +3,6 @@
 namespace RemexHtml\TreeBuilder;
 use RemexHtml\HTMLData;
 use RemexHtml\Tokenizer;
-use RemexHtml\TreeBuilder;
 use RemexHtml\Serializer;
 
 class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
@@ -167,10 +166,10 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 		}
 		$formatter = new Serializer\TestFormatter;
 		$serializer = new Serializer\Serializer( $formatter );
-		$treeBuilder = new TreeBuilder\TreeBuilder( $serializer, [
+		$treeBuilder = new TreeBuilder( $serializer, [
 			'scriptingFlag' => $params['scripting']
 		] );
-		$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
+		$dispatcher = new Dispatcher( $treeBuilder );
 		$tokenizer = new Tokenizer\Tokenizer( $dispatcher, $params['data'], [] );
 
 		$tokenizerOptions = [];
