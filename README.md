@@ -1,3 +1,6 @@
+RemexHtml
+=========
+
 RemexHtml is a parser for HTML 5, written in PHP.
 
 RemexHtml aims to be:
@@ -27,7 +30,7 @@ minor backported bugfixes. We chose to implement the W3C standard rather than
 the latest WHATWG draft because our application needs stability more than
 feature completeness.
 
-RemexHtml passes all [html5lib tests](https://github.com/html5lib/html5lib-tests]),
+RemexHtml passes all [html5lib tests](https://github.com/html5lib/html5lib-tests),
 except for parse error counts and tests which reference a future version of the
 standard.
 
