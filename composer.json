@@ -21,7 +21,10 @@
 		}
 	},
 	"scripts": {
-		"test": "phpunit --no-globals-backup tests/phpunit",
-		"phpcs": "phpcs -s src"
+		"test": [
+			"phpunit",
+			"phpcs -p"
+		],
+		"phpcs": "phpcs -s"
 	}
 }

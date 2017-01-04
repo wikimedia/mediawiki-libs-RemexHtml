@@ -1,0 +1,12 @@
+<phpunit backupGlobals="false">
+	<testsuites>
+		<testsuite name="RemexHtml Tests">
+			<directory>./tests/phpunit</directory>
+		</testsuite>
+	</testsuites>
+	<filter>
+		<whitelist addUncoveredFilesFromWhitelist="true">
+			<directory suffix=".php">./src</directory>
+		</whitelist>
+	</filter>
+</phpunit>
