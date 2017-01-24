@@ -66,17 +66,6 @@ function reserializeXmp( $text ) {
 	reserializeState( $text, Tokenizer\Tokenizer::STATE_RCDATA, 'xmp' );
 }
 
-function traceDispatch( $text ) {
-	TreeBuilder\Parser::parseDocument( $text, [ 'traceDispatch' => true ] );
-}
-
-function traceDOM( $text ) {
-	TreeBuilder\Parser::parseDocument( $text, [
-		'traceTreeMutation' => true,
-		'traceDispatch' => true,
-	] );
-}
-
 function trace( $text ) {
 	$traceCallback = function ( $msg ) {
 		print "$msg\n";
@@ -110,25 +99,6 @@ function traceDestruct( $text ) {
 		// 'fragmentNamespace' => \RemexHtml\HTMLData::NS_HTML,
 		// 'fragmentName' => 'html'
 	] );
-}
-
-function tidyBodyViaDOM( $text ) {
-	$docText = "<!DOCTYPE html>\n<html><head></head><body>$text</body></html>";
-	$doc = TreeBuilder\Parser::parseDocument( $docText, [] );
-	$body = $doc->getElementsByTagName( 'body' )->item( 0 );
-	foreach ( $body->childNodes as $node ) {
-		print $doc->saveHTML( $node );
-	}
-	print "\n";
-}
-
-function tidyViaDOM( $text ) {
-	$doc = TreeBuilder\Parser::parseDocument( $text, [
-		'treeBuilder' => [
-			'scopeCache' => true,
-		]
-	] );
-	print $doc->saveHTML() . "\n";
 }
 
 function tidy( $text ) {
@@ -178,12 +148,11 @@ function benchmarkTreeBuilder( $text ) {
 
 function benchmarkDOM( $text ) {
 	$time = -microtime( true );
-	$dom = TreeBuilder\Parser::parseDocument( $text, [
-		'treeBuilder' => [
-			'ignoreErrors' => true,
-		],
-		'tokenizer' => $GLOBALS['tokenizerOptions']
-	] );
+	$domBuilder = new TreeBuilder\DOMBuilder;
+	$treeBuilder = new TreeBuilder\TreeBuilder( $domBuilder, [ 'ignoreErrors' => true ] );
+	$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
+	$tokenizer = new Tokenizer\Tokenizer( $dispatcher, $text, $GLOBALS['tokenizerOptions'] );
+	$tokenizer->execute();
 	$time += microtime( true );
 	print "$time\n";
 }
