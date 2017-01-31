@@ -12,7 +12,7 @@ use RemexHtml\Tokenizer\PlainAttributes;
  * encoding elements when the end tags are seen. This is faster than building
  * a DOM and then serializing it, even if you use DOMDocument::saveHTML().
  */
-class Serializer implements TreeHandler {
+class Serializer implements AbstractSerializer {
 	/**
 	 * A node corresponding to the Document
 	 * @var SerializerNode

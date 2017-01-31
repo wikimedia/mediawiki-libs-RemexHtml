@@ -2,11 +2,12 @@
 
 namespace RemexHtml\Serializer;
 use RemexHtml\HTMLData;
+use RemexHtml\DOM\DOMFormatter;
 
 /**
  * A formatter which follows the HTML 5 fragment serialization algorithm.
  */
-class HtmlFormatter implements Formatter {
+class HtmlFormatter implements Formatter, DOMFormatter {
 	/**
 	 * The elements for which a closing tag is omitted.
 	 */
@@ -73,28 +74,37 @@ class HtmlFormatter implements Formatter {
 	];
 
 	/**
-	 * The scripting flag, which is true if scripting is enabled. This influences
-	 * <noscript> serialization.
+	 * Attribute namespaces which have unqualified local names
 	 */
-	protected $scriptingFlag;
+	protected $unqualifiedNamespaces = [
+		HTMLData::NS_HTML => true,
+		HTMLData::NS_MATHML => true,
+		HTMLData::NS_SVG => true,
+	];
+
+	protected $useSourceDoctype;
 
 	/**
 	 * Constructor.
 	 *
 	 * @param array $options An associative array of options:
 	 *   - scriptingFlag : Set this to false to disable scripting. True by default.
+	 *   - useSourceDoctype : Emit the doctype used in the source. If this is
+	 *     false or absent, an HTML doctype will be used.
 	 */
 	public function __construct( $options = [] ) {
 		$options += [
-			'scriptingFlag' => true
+			'scriptingFlag' => true,
+			'useSourceDoctype' => false,
 		];
 		if ( $options['scriptingFlag'] ) {
 			$this->rawTextElements['noscript'] = true;
 		}
+		$this->useSourceDoctype = $options['useSourceDoctype'];
 	}
 
 	public function startDocument( $fragmentNamespace, $fragmentName ) {
-		return "<!DOCTYPE html>\n";
+		return "<!DOCTYPE html>";
 	}
 
 	public function characters( SerializerNode $parent, $text, $start, $length ) {
@@ -135,5 +145,115 @@ class HtmlFormatter implements Formatter {
 
 	public function doctype( $name, $public, $system ) {
 		return '';
+	}
+
+	public function formatDOMNode( \DOMNode $node ) {
+		$contents = '';
+		if ( $node->firstChild ) {
+			foreach ( $node->childNodes as $child ) {
+				$contents .= $this->formatDOMNode( $child );
+			}
+		}
+
+		switch ( $node->nodeType ) {
+		case XML_ELEMENT_NODE:
+			return $this->formatDOMElement( $node, $contents );
+
+		case XML_DOCUMENT_NODE:
+			if ( !$this->useSourceDoctype ) {
+				return "<!DOCTYPE html>" . $contents;
+			} else {
+				return $contents;
+			}
+
+		case XML_DOCUMENT_FRAG_NODE:
+			return $contents;
+
+		case XML_TEXT_NODE:
+			$text = $node->data;
+			$parent = $node->parentNode;
+			if ( $parent->namespaceURI !== HTMLData::NS_HTML
+				|| !isset( $this->rawTextElements[$parent->nodeName] )
+			) {
+				$text = strtr( $text, $this->textEscapes );
+			}
+			return $text;
+
+		case XML_CDATA_SECTION_NODE:
+			$parent = $node->parentNode;
+			if ( $parent->namespaceURI === HTMLData::NS_HTML ) {
+				// CDATA is not allowed in HTML nodes
+				return $node->data;
+			} else {
+				return "<![CDATA[{$node->data}]]>";
+			}
+
+		case XML_PI_NODE:
+			return "<?{$node->target} {$node->data}>";
+
+		case XML_COMMENT_NODE:
+			return "<!--{$node->data}-->";
+
+		case XML_DOCUMENT_TYPE_NODE:
+			if ( $this->useSourceDoctype ) {
+				return "<!DOCTYPE {$node->name}>";
+			} else {
+				return '';
+			}
+
+		default:
+			return '';
+		}
+	}
+
+	public function formatDOMElement( \DOMElement $node, $contents ) {
+		$ns = $node->namespaceURI;
+		if ( $ns === null
+			|| isset( $this->unqualifiedNamespaces[$ns] )
+			|| $node->prefix === null
+		) {
+			$name = $node->localName;
+		} else {
+			$name = $node->prefix . ':' . $node->localName;
+		}
+		$s = '<' . $name;
+		foreach ( $node->attributes as $attr ) {
+			switch ( $attr->namespaceURI ) {
+			case HTMLData::NS_XML:
+				$attrName = 'xml:' . $attr->localName;
+				break;
+			case HTMLData::NS_XMLNS:
+				if ( $attr->localName === 'xmlns' ) {
+					$attrName = 'xmlns';
+				} else {
+					$attrName = 'xmlns:' . $attr->localName;
+				}
+				break;
+			case HTMLData::NS_XLINK:
+				$attrName = 'xlink:' . $attr->localName;
+				break;
+			default:
+				if ( strlen( $attr->prefix ) ) {
+					$attrName = $attr->prefix . ':' . $attr->localName;
+				} else {
+					$attrName = $attr->localName;
+				}
+			}
+			$encValue = strtr( $attr->value, $this->attributeEscapes );
+			$s .= " $attrName=\"$encValue\"";
+		}
+		$s .= '>';
+		if ( $ns === HTMLData::NS_HTML ) {
+			if ( isset( $contents[0] ) && $contents[0] === "\n"
+				&& isset( $this->prefixLfElements[$name] )
+			) {
+				$s .= "\n$contents</$name>";
+			} elseif ( !isset( $this->voidElements[$name] ) ) {
+				$s .= "$contents</$name>";
+			}
+		} else {
+			$s .= "$contents</$name>";
+		}
+		return $s;
 	}
 }

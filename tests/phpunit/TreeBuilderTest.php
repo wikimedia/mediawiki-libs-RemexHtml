@@ -1,6 +1,7 @@
 <?php
 
 namespace RemexHtml\TreeBuilder;
+use RemexHtml\DOM;
 use RemexHtml\HTMLData;
 use RemexHtml\Tokenizer;
 use RemexHtml\Serializer;
@@ -19,7 +20,36 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 	private static $testBlacklist = [
 	];
 
-	public function provider() {
+	private static $domTestBlacklist = [
+		// Invalid tag name
+		'tree-construction/html5test-com.dat:1',
+		'tree-construction/webkit01.dat:179',
+
+		// Invalid attribute name
+		'tree-construction/html5test-com.dat:12',
+		'tree-construction/html5test-com.dat:39',
+		'tree-construction/tests14.dat:45',
+		'tree-construction/tests14.dat:55',
+		'tree-construction/tests14.dat:67',
+		'tree-construction/tests26.dat:263',
+		'tree-construction/webkit01.dat:606',
+
+		// Invalid doctype
+		'tree-construction/doctype01.dat:32',
+		'tree-construction/doctype01.dat:45',
+		'tree-construction/tests6.dat:48',
+	];
+
+	public function serializerProvider() {
+		return $this->provider( 'serializer' );
+	}
+
+	public function domProvider() {
+		return $this->provider( 'dom' );
+	}
+
+
+	private function provider( $type ) {
 		$testFiles = [];
 		foreach ( self::$testDirs as $testDir ) {
 			$testFiles = array_merge( $testFiles, glob( __DIR__ . "/../$testDir/*.dat" ) );
@@ -29,7 +59,7 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 			if ( in_array( 'tree-construction/' . basename( $fileName ), self::$fileBlacklist ) ) {
 				continue;
 			}
-			$tests = $this->readFile( $fileName );
+			$tests = $this->readFile( $fileName, $type );
 
 			foreach ( $tests as $test ) {
 				if ( isset( $test['scripting'] ) ) {
@@ -45,7 +75,7 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 		return $args;
 	}
 
-	private function readFile( $fileName ) {
+	private function readFile( $fileName, $type ) {
 		$text = file_get_contents( $fileName );
 		if ( $text === false ) {
 			throw new \Exception( "Cannot read test file: $fileName" );
@@ -97,10 +127,17 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 					break;
 				}
 			} while ( !$section['end'] );
-			
-			if ( !in_array( "$baseName:$startLine", self::$testBlacklist ) ) {
-				$tests[] = $test;
+
+			if ( in_array( "$baseName:$startLine", self::$testBlacklist ) ) {
+				continue;
 			}
+			if ( $type === 'dom'
+				&& in_array( "$baseName:$startLine", self::$domTestBlacklist )
+			) {
+				continue;
+			}
+			
+			$tests[] = $test;
 		}
 		return $tests;
 	}
@@ -159,13 +196,25 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 		return $result;
 	}
 
-	/** @dataProvider provider */
-	public function testDefault( $params ) {
+	/** @dataProvider serializerProvider */
+	public function testSerializer( $params ) {
+		$formatter = new Serializer\TestFormatter;
+		$serializer = new Serializer\Serializer( $formatter );
+		$this->runWithSerializer( $serializer, $params );
+	}
+
+	/** @dataProvider domProvider */
+	public function testDOMSerializer( $params ) {
+		$formatter = new Serializer\TestFormatter;
+		$builder = new DOM\DOMBuilder;
+		$serializer = new DOM\DOMSerializer( $builder, $formatter );
+		$this->runWithSerializer( $serializer, $params );
+	}
+
+	private function runWithSerializer( Serializer\AbstractSerializer $serializer, $params ) {
 		if ( !isset( $params['document'] ) ) {
 			throw new \Exception( "Test lacks #document: {$params['file']}:{$params['line']}" );
 		}
-		$formatter = new Serializer\TestFormatter;
-		$serializer = new Serializer\Serializer( $formatter );
 		$treeBuilder = new TreeBuilder( $serializer, [
 			'scriptingFlag' => $params['scripting']
 		] );

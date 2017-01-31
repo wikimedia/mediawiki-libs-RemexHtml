@@ -7,6 +7,7 @@ if ( PHP_SAPI !== 'cli' ) {
 
 require __DIR__ . '/../vendor/autoload.php';
 
+use RemexHtml\DOM;
 use RemexHtml\Tokenizer;
 use RemexHtml\TreeBuilder;
 use RemexHtml\Serializer;
@@ -41,7 +42,7 @@ class NullTreeHandler implements TreeBuilder\TreeHandler {
 function reserialize( $text ) {
 	$handler = new Tokenizer\TokenSerializer;
 	$tokenizer = new Tokenizer\Tokenizer( $handler, $text, [] );
-	$tokenizer->execute();
+	$tokenizer->execute( $GLOBALS['executeOptions'] );
 	print $handler->getOutput() . "\n";
 	foreach ( $handler->getErrors() as $error ) {
 		print "Error at {$error[1]}: {$error[0]}\n";
@@ -77,10 +78,7 @@ function trace( $text ) {
 	$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
 	$dispatchTracer = new TreeBuilder\DispatchTracer( $text, $dispatcher, $traceCallback );
 	$tokenizer = new Tokenizer\Tokenizer( $dispatchTracer, $text, [] );
-	$tokenizer->execute( [
-		// 'fragmentNamespace' => \RemexHtml\HTMLData::NS_HTML,
-		// 'fragmentName' => 'html'
-	] );
+	$tokenizer->execute( $GLOBALS['executeOptions'] );
 
 	print $serializer->getResult() . "\n";
 }
@@ -95,10 +93,7 @@ function traceDestruct( $text ) {
 	$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
 	$dispatchTracer = new TreeBuilder\DispatchTracer( $text, $dispatcher, $traceCallback );
 	$tokenizer = new Tokenizer\Tokenizer( $dispatchTracer, $text, [] );
-	$tokenizer->execute( [
-		// 'fragmentNamespace' => \RemexHtml\HTMLData::NS_HTML,
-		// 'fragmentName' => 'html'
-	] );
+	$tokenizer->execute( $GLOBALS['executeOptions'] );
 }
 
 function tidy( $text ) {
@@ -110,7 +105,48 @@ function tidy( $text ) {
 	$treeBuilder = new TreeBuilder\TreeBuilder( $serializer, [] );
 	$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
 	$tokenizer = new Tokenizer\Tokenizer( $dispatcher, $text, $GLOBALS['tokenizerOptions'] );
-	$tokenizer->execute();
+	$tokenizer->execute( $GLOBALS['executeOptions'] );
+	print $serializer->getResult() . "\n";
+}
+
+function test( $text ) {
+	$error = function ( $msg, $pos ) {
+		print "  *  [$pos] $msg\n";
+	};
+	$formatter = new Serializer\TestFormatter;
+	$serializer = new Serializer\Serializer( $formatter, $error );
+	$treeBuilder = new TreeBuilder\TreeBuilder( $serializer, [] );
+	$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
+	$tokenizer = new Tokenizer\Tokenizer( $dispatcher, $text, $GLOBALS['tokenizerOptions'] );
+	$tokenizer->execute( $GLOBALS['executeOptions'] );
+	print $serializer->getResult() . "\n";
+}
+
+function tidyViaDOM( $text ) {
+	$error = function ( $msg, $pos ) {
+		print "  *  [$pos] $msg\n";
+	};
+	$formatter = new Serializer\HtmlFormatter;
+	$domBuilder = new DOM\DOMBuilder( $error );
+	$serializer = new DOM\DOMSerializer( $domBuilder, $formatter );
+	$treeBuilder = new TreeBuilder\TreeBuilder( $serializer, [] );
+	$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
+	$tokenizer = new Tokenizer\Tokenizer( $dispatcher, $text, [] );
+	$tokenizer->execute( $GLOBALS['executeOptions'] );
+	print $serializer->getResult() . "\n";
+}
+
+function testViaDOM( $text ) {
+	$error = function ( $msg, $pos ) {
+		print "  *  [$pos] $msg\n";
+	};
+	$formatter = new Serializer\TestFormatter;
+	$domBuilder = new DOM\DOMBuilder( $error );
+	$serializer = new DOM\DOMSerializer( $domBuilder, $formatter );
+	$treeBuilder = new TreeBuilder\TreeBuilder( $serializer, [] );
+	$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
+	$tokenizer = new Tokenizer\Tokenizer( $dispatcher, $text, [] );
+	$tokenizer->execute( $GLOBALS['executeOptions'] );
 	print $serializer->getResult() . "\n";
 }
 
@@ -118,10 +154,7 @@ function benchmarkNull( $text ) {
 	$time = -microtime( true );
 	$handler = new NullHandler;
 	$tokenizer = new Tokenizer\Tokenizer( $handler, $text, $GLOBALS['tokenizerOptions'] );
-	$tokenizer->execute( [
-		//'state' => Tokenizer\Tokenizer::STATE_SCRIPT_DATA,
-		//'appropriateEndTag' => 'script'
-	] );
+	$tokenizer->execute( $GLOBALS['executeOptions'] );
 	$time += microtime( true );
 	print "$time\n";
 }
@@ -130,7 +163,7 @@ function benchmarkSerialize( $text ) {
 	$time = -microtime( true );
 	$handler = new Tokenizer\TokenSerializer;
 	$tokenizer = new Tokenizer\Tokenizer( $handler, $text, $GLOBALS['tokenizerOptions'] );
-	$tokenizer->execute();
+	$tokenizer->execute( $GLOBALS['executeOptions'] );
 	$time += microtime( true );
 	print "$time\n";
 }
@@ -141,18 +174,18 @@ function benchmarkTreeBuilder( $text ) {
 	$treeBuilder = new TreeBuilder\TreeBuilder( $handler, [] );
 	$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
 	$tokenizer = new Tokenizer\Tokenizer( $dispatcher, $text, $GLOBALS['tokenizerOptions'] );
-	$tokenizer->execute();
+	$tokenizer->execute( $GLOBALS['executeOptions'] );
 	$time += microtime( true );
 	print "$time\n";
 }
 
 function benchmarkDOM( $text ) {
 	$time = -microtime( true );
-	$domBuilder = new TreeBuilder\DOMBuilder;
+	$domBuilder = new DOM\DOMBuilder;
 	$treeBuilder = new TreeBuilder\TreeBuilder( $domBuilder, [ 'ignoreErrors' => true ] );
 	$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
 	$tokenizer = new Tokenizer\Tokenizer( $dispatcher, $text, $GLOBALS['tokenizerOptions'] );
-	$tokenizer->execute();
+	$tokenizer->execute( $GLOBALS['executeOptions'] );
 	$time += microtime( true );
 	print "$time\n";
 }
@@ -166,7 +199,7 @@ function benchmarkTidyFast( $text ) {
 		$treeBuilder = new TreeBuilder\TreeBuilder( $serializer, [] );
 		$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
 		$tokenizer = new Tokenizer\Tokenizer( $dispatcher, $text, $GLOBALS['tokenizerOptions'] );
-		$tokenizer->execute();
+		$tokenizer->execute( $GLOBALS['executeOptions'] );
 	}
 	$time += microtime( true );
 	print ( $time / $n ) . "\n";
@@ -181,7 +214,7 @@ function benchmarkTidySlow( $text ) {
 		$treeBuilder = new TreeBuilder\TreeBuilder( $serializer, [] );
 		$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
 		$tokenizer = new Tokenizer\Tokenizer( $dispatcher, $text, [] );
-		$tokenizer->execute();
+		$tokenizer->execute( $GLOBALS['executeOptions'] );
 	}
 	$time += microtime( true );
 	print ( $time / $n ) . "\n";
@@ -213,6 +246,10 @@ $tokenizerOptions = [
 	'ignoreCharRefs' => true,
 	'ignoreErrors' => true,
 	'skipPreprocess' => true,
+];
+$executeOptions = [
+	// 'fragmentNamespace' => \RemexHtml\HTMLData::NS_HTML,
+	// 'fragmentName' => 'div'
 ];
 $text = file_get_contents( '/tmp/Australia.html' );
 
