@@ -2,6 +2,7 @@
 
 namespace RemexHtml\Serializer;
 use RemexHtml\HTMLData;
+use RemexHtml\DOM\DOMUtils;
 use RemexHtml\DOM\DOMFormatter;
 
 /**
@@ -83,6 +84,7 @@ class HtmlFormatter implements Formatter, DOMFormatter {
 	];
 
 	protected $useSourceDoctype;
+	protected $reverseCoercion;
 
 	/**
 	 * Constructor.
@@ -91,16 +93,20 @@ class HtmlFormatter implements Formatter, DOMFormatter {
 	 *   - scriptingFlag : Set this to false to disable scripting. True by default.
 	 *   - useSourceDoctype : Emit the doctype used in the source. If this is
 	 *     false or absent, an HTML doctype will be used.
+	 *   - reverseCoercion : When formatting a DOM node, reverse the encoding
+	 *     of invalid names. False by default.
 	 */
 	public function __construct( $options = [] ) {
 		$options += [
 			'scriptingFlag' => true,
 			'useSourceDoctype' => false,
+			'reverseCoercion' => false,
 		];
 		if ( $options['scriptingFlag'] ) {
 			$this->rawTextElements['noscript'] = true;
 		}
 		$this->useSourceDoctype = $options['useSourceDoctype'];
+		$this->reverseCoercion = $options['reverseCoercion'];
 	}
 
 	public function startDocument( $fragmentNamespace, $fragmentName ) {
@@ -216,6 +222,10 @@ class HtmlFormatter implements Formatter, DOMFormatter {
 		} else {
 			$name = $node->prefix . ':' . $node->localName;
 		}
+		if ( $this->reverseCoercion ) {
+			$name = DOMUtils::uncoerceName( $name );
+		}
+
 		$s = '<' . $name;
 		foreach ( $node->attributes as $attr ) {
 			switch ( $attr->namespaceURI ) {
@@ -238,6 +248,9 @@ class HtmlFormatter implements Formatter, DOMFormatter {
 				} else {
 					$attrName = $attr->localName;
 				}
+			}
+			if ( $this->reverseCoercion ) {
+				$attrName = DOMUtils::uncoerceName( $attrName );
 			}
 			$encValue = strtr( $attr->value, $this->attributeEscapes );
 			$s .= " $attrName=\"$encValue\"";

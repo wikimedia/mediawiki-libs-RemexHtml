@@ -21,19 +21,6 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 	];
 
 	private static $domTestBlacklist = [
-		// Invalid tag name
-		'tree-construction/html5test-com.dat:1',
-		'tree-construction/webkit01.dat:179',
-
-		// Invalid attribute name
-		'tree-construction/html5test-com.dat:12',
-		'tree-construction/html5test-com.dat:39',
-		'tree-construction/tests14.dat:45',
-		'tree-construction/tests14.dat:55',
-		'tree-construction/tests14.dat:67',
-		'tree-construction/tests26.dat:263',
-		'tree-construction/webkit01.dat:606',
-
 		// Invalid doctype
 		'tree-construction/doctype01.dat:32',
 		'tree-construction/doctype01.dat:45',

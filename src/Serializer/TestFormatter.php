@@ -6,6 +6,7 @@ use RemexHtml\Tokenizer\Attributes;
 use RemexHtml\Tokenizer\PlainAttributes;
 use RemexHtml\HTMLData;
 use RemexHtml\DOM\DOMFormatter;
+use RemexHtml\DOM\DOMUtils;
 
 /**
  * A Formatter which is used to format documents in (almost) the way they
@@ -48,6 +49,7 @@ class TestFormatter implements Formatter, DOMFormatter {
 	}
 
 	private function formatElement( $namespace, $name, $attrs, $contents ) {
+		$name = DOMUtils::uncoerceName( $name );
 		if ( $namespace === HTMLData::NS_HTML ) {
 			$tagName = $name;
 		} elseif ( $namespace === HTMLData::NS_SVG ) {
@@ -61,6 +63,7 @@ class TestFormatter implements Formatter, DOMFormatter {
 		$sortedAttrs = $attrs;
 		ksort( $sortedAttrs, SORT_STRING );
 		foreach ( $sortedAttrs as $attrName => $attr ) {
+			$localName = DOMUtils::uncoerceName( $attr->localName );
 			if ( $attr->namespaceURI === null
 				|| isset( $attr->reallyNoNamespace )
 			) {
@@ -68,7 +71,7 @@ class TestFormatter implements Formatter, DOMFormatter {
 			} elseif ( isset( self::$attrNamespaces[$attr->namespaceURI] ) ) {
 				$prefix = self::$attrNamespaces[$attr->namespaceURI] . ' ';
 			}
-			$ret .= "  $prefix{$attr->localName}=\"{$attr->value}\"\n";
+			$ret .= "  $prefix$localName=\"{$attr->value}\"\n";
 		}
 		if ( $contents !== null && $contents !== '' ) {
 			$contents = preg_replace( '/^/m', '  ', $contents );

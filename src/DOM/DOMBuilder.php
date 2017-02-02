@@ -10,14 +10,15 @@ use RemexHtml\TreeBuilder\TreeHandler;
  * A TreeHandler which constructs a DOMDocument
  */
 class DOMBuilder implements TreeHandler {
-	private $doc;
-	private $errorCallback;
-	private $isFragment;
-
 	public $doctypeName;
 	public $public;
 	public $system;
 	public $quirks;
+
+	private $doc;
+	private $errorCallback;
+	private $isFragment;
+	private $coerced;
 
 	/**
 	 * @param callable|null $errorCallback A function which is called on parse errors
@@ -45,6 +46,16 @@ class DOMBuilder implements TreeHandler {
 		}
 	}
 
+	/**
+	 * Returns true if the document was coerced due to libxml limitations. We
+	 * follow HTML 5.1 § 8.2.7 "Coercing an HTML DOM into an infoset".
+	 *
+	 * @return bool
+	 */
+	public function isCoerced() {
+		return $this->coerced;
+	}
+
 	public function startDocument( $fragmentNamespace, $fragmentName ) {
 		$impl = new \DOMImplementation;
 		$this->isFragment = $fragmentNamespace !== null;
@@ -53,9 +64,10 @@ class DOMBuilder implements TreeHandler {
 
 	private function createDocument( $doctypeName = null, $public = null, $system = null ) {
 		$impl = new \DOMImplementation;
-		if ( $doctypeName === null
-			|| $doctypeName === '' // libxml limitation, causes test failures
-		) {
+		if ( $doctypeName === '' ) {
+			$this->coerced = true;
+			$doc = $impl->createDocument( null, null );
+		} elseif ( $doctypeName === null ) {
 			$doc = $impl->createDocument( null, null );
 		} else {
 			$doctype = $impl->createDocumentType( $doctypeName, $public, $system );
@@ -82,10 +94,31 @@ class DOMBuilder implements TreeHandler {
 		$parent->insertBefore( $node, $refNode );
 	}
 
+	/**
+	 * Replace unsupported characters with a code of the form U123456.
+	 *
+	 * @param string $name
+	 * @return string
+	 */
+	private function coerceName( $name ) {
+		$coercedName = DOMUtils::coerceName( $name );
+		if ( $name !== $coercedName ) {
+			$this->coerced = true;
+		}
+		return $coercedName;
+	}
+
 	private function createNode( Element $element ) {
-		$node = $this->doc->createElementNS(
-			$element->namespace,
-			$element->name );
+		try {
+			$node = $this->doc->createElementNS(
+				$element->namespace,
+				$element->name );
+		} catch ( \DOMException $e ) {
+			// Attempt to escape the name so that it is more acceptable
+			$node = $this->doc->createElementNS(
+				$element->namespace,
+				$this->coerceName( $element->name ) );
+		}
 
 		foreach ( $element->attrs->getObjects() as $attr ) {
 			if ( $attr->namespaceURI === null
@@ -98,12 +131,26 @@ class DOMBuilder implements TreeHandler {
 				// way can't be discovered via hasAttribute() or hasAttributeNS().
 				$attrNode = $this->doc->createAttribute( $attr->localName );
 				$attrNode->value = $attr->value;
-				$node->setAttributeNodeNS( $attrNode );
+				try {
+					$node->setAttributeNodeNS( $attrNode );
+				} catch ( \DOMException $e ) {
+					$node->setAttributeNS(
+						$attr->namespaceURI,
+						$this->coerceName( $attr->qualifiedName ),
+						$attr->value );
+				}
 			} else {
-				$node->setAttributeNS(
-					$attr->namespaceURI,
-					$attr->qualifiedName,
-					$attr->value );
+				try {
+					$node->setAttributeNS(
+						$attr->namespaceURI,
+						$attr->qualifiedName,
+						$attr->value );
+				} catch ( \DOMException $e ) {
+					$node->setAttributeNS(
+						$attr->namespaceURI,
+						$this->coerceName( $attr->qualifiedName ),
+						$attr->value );
+				}
 			}
 		}
 		$element->userData = $node;
@@ -164,17 +211,41 @@ class DOMBuilder implements TreeHandler {
 				// instead.
 				$attrNode = $this->doc->createAttribute( $attr->localName );
 				$attrNode->value = $attr->value;
-				$replaced = $node->setAttributeNodeNS( $attrNode );
+				try {
+					$replaced = $node->setAttributeNodeNS( $attrNode );
+				} catch ( \DOMException $e ) {
+					$attrNode = $this->doc->createAttribute(
+						$this->coerceName( $attr->localName ) );
+					$attrNode->value = $attr->value;
+					$replaced = $node->setAttributeNodeNS( $attrNode );
+				}
 				if ( $replaced ) {
 					// Put it back how it was
 					$node->setAttributeNodeNS( $replaced );
 				}
 			} elseif ( $attr->namespaceURI === null ) {
-				if ( !$node->hasAttribute( $attr->localName ) ) {
-					$node->setAttribute( $attr->localName, $attr->value );
+				try {
+					if ( !$node->hasAttribute( $attr->localName ) ) {
+						$node->setAttribute( $attr->localName, $attr->value );
+					}
+				} catch ( \DOMException $e ) {
+					$name = $this->coerceName( $attr->localName );
+					if ( !$node->hasAttribute( $name ) ) {
+						$node->setAttribute( $name, $attr->value );
+					}
 				}
-			} elseif ( !$node->hasAttributeNS( $attr->namespaceURI, $attr->localName ) ) {
-				$node->setAttributeNS( $attr->namespaceURI, $attr->localName, $attr->value );
+			} else {
+				try {
+					if ( !$node->hasAttributeNS( $attr->namespaceURI, $attr->localName ) ) {
+						$node->setAttributeNS( $attr->namespaceURI,
+							$attr->localName, $attr->value );
+					}
+				} catch ( \DOMException $e ) {
+					$name = $this->coerceName( $attr->localName );
+					if ( !$node->hasAttributeNS( $attr->namespaceURI, $name ) ) {
+						$node->setAttributeNS( $attr->namespaceURI, $name, $attr->value );
+					}
+				}
 			}
 		}
 	}

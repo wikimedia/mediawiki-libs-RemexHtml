@@ -134,6 +134,18 @@ EOT;
 		self::NS_SVG => 'foreignObject, desc, title',
 	];
 
+	// @codingStandardsIgnoreStart
+	/**
+	 * The NameStartChar production from XML 1.0, but with colon excluded since
+	 * there's a lot of ways to break namespace validation, and we actually need
+	 * this for local names
+	 */
+	private static $nameStartChar = '[A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]';
+
+	/** The NameChar production from XML 1.0 */
+	private static $nameChar = 'NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]';
+	// @codingStandardsIgnoreEnd
+
 	private function makeRegexAlternation( $array ) {
 		$regex = '';
 		foreach ( $array as $value ) {
@@ -143,6 +155,79 @@ EOT;
 			$regex .= "\n\t\t" . preg_quote( substr( $value, 1 ), '~' );
 		}
 		return $regex;
+	}
+
+	private function getCharRanges( $input, $nonterminals = [] ) {
+		$ranges = [];
+
+		foreach ( preg_split( '/\s*\|\s*/', $input ) as $case ) {
+			if ( preg_match( '/^"(.)"$/', $case, $m ) ) {
+				// Single ASCII character
+				$ranges[] = [ ord( $m[1] ), ord( $m[1] ) ];
+			} elseif ( preg_match( '/^\[(.)-(.)\]$/', $case, $m ) ) {
+				// ASCII range
+				$ranges[] = [ ord( $m[1] ), ord( $m[2] ) ];
+			} elseif ( preg_match( '/^#x([0-9A-F]+)$/', $case, $m ) ) {
+				// Single encoded character
+				$codepoint = intval( $m[1], 16 );
+				$ranges[] = [ $codepoint, $codepoint ];
+			} elseif ( preg_match( '/^\[#x([0-9A-F]+)-#x([0-9A-F]+)\]$/', $case, $m ) ) {
+				// Encoded range
+				$ranges[] = [ intval( $m[1], 16 ), intval( $m[2], 16 ) ];
+			} elseif ( isset( $nonterminals[$case] ) ) {
+				$ranges = array_merge( $ranges, $this->getCharRanges( $nonterminals[$case] ) );
+			} else {
+				throw new \Exception( "Invalid XML char case \"$case\"" );
+			}
+		}
+		usort( $ranges, function ( $a, $b ) {
+			return $a[0] - $b[0];
+		} );
+		return $ranges;
+	}
+
+	private function makeConvTable( $input, $nonterminals = [] ) {
+		$ranges = $this->getCharRanges( $input, $nonterminals );
+
+		// Invert the ranges, produce a set complement
+		$lastEndPlusOne = 0;
+		$table = [];
+		for ( $i = 0; $i < count( $ranges ); $i++ ) {
+			$start = $ranges[$i][0];
+			$end = $ranges[$i][1];
+			// Merge consecutive ranges
+			for ( $j = $i + 1; $j < count( $ranges ); $j++ ) {
+				if ( $ranges[$j][0] === $end + 1 ) {
+					$end = $ranges[$j][1];
+					$i = $j;
+				} else {
+					break;
+				}
+			}
+
+			$table[] = $lastEndPlusOne;
+			$table[] = $start - 1;
+			$table[] = 0;
+			$table[] = 0xffffff;
+
+			$lastEndPlusOne = $end + 1;
+		}
+
+		// Last range
+		$table[] = $lastEndPlusOne;
+		$table[] = 0x10ffff;
+		$table[] = 0;
+		$table[] = 0xffffff;
+
+		return $table;
+	}
+
+	private function encodeConvTable( $table ) {
+		return "[\n\t\t" . implode( ",\n\t\t", array_map(
+			function ( $a ) {
+				return implode( ', ', $a );
+			},
+			array_chunk( $table, 4 ) ) ) . ' ]';
 	}
 
 	private function execute() {
@@ -188,10 +273,16 @@ EOT;
 			$this->makeRegexAlternation( self::$quirkyPublicPrefixes ) .
 			'~xAi';
 
+		$nameStartCharConvTable = $this->makeConvTable( self::$nameStartChar );
+		$nameCharConvTable = $this->makeConvTable( self::$nameChar,
+			[ 'NameStartChar' => self::$nameStartChar ] );
+
 		$encEntityRegex = var_export( $entityRegex, true );
 		$encTranslations = var_export( $entityTranslations, true );
 		$encLegacy = var_export( $legacyNumericEntities, true );
 		$encQuirkyRegex = var_export( $quirkyRegex, true );
+		$encNameStartCharConvTable = $this->encodeConvTable( $nameStartCharConvTable );
+		$encNameCharConvTable = $this->encodeConvTable( $nameCharConvTable );
 
 		$special = [];
 		foreach ( self::$special as $ns => $str ) {
@@ -223,6 +314,8 @@ class HTMLData {
 	static public \$namedEntityTranslations = $encTranslations;
 	static public \$legacyNumericEntities = $encLegacy;
 	static public \$quirkyPrefixRegex = $encQuirkyRegex;
+	static public \$nameStartCharConvTable = $encNameStartCharConvTable;
+	static public \$nameCharConvTable = $encNameCharConvTable;
 }
 PHP;
 
