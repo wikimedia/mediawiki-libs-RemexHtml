@@ -9,7 +9,7 @@
 	<file>.</file>
 	<arg name="extensions" value="php"/>
 	<arg name="encoding" value="utf8"/>
-	<exclude-pattern>vendor</exclude-pattern>
-	<exclude-pattern>HTMLData.php</exclude-pattern>
-	<exclude-pattern>test.php</exclude-pattern>
+	<exclude-pattern>/vendor</exclude-pattern>
+	<exclude-pattern>/src/HTMLData.php</exclude-pattern>
+	<exclude-pattern>/bin/test.php</exclude-pattern>
 </ruleset>

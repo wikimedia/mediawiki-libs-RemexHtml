@@ -33,7 +33,7 @@ class TokenizerTest extends \PHPUnit_Framework_TestCase {
 				continue;
 			}
 			foreach ( $testData['tests'] as $test ) {
-				$states = isset( $test['initialStates'] ) ? $test['initialStates']  : ['data state'];
+				$states = isset( $test['initialStates'] ) ? $test['initialStates']  : [ 'data state' ];
 				$input = $test['input'];
 				$output = $test['output'];
 				$appropriateEndTag = isset( $test['lastStartTag'] ) ? $test['lastStartTag'] : null;
@@ -67,7 +67,7 @@ class TokenizerTest extends \PHPUnit_Framework_TestCase {
 	 */
 	private function unescape( $value ) {
 		if ( is_array( $value ) ) {
-			return array_map( array( $this, 'unescape' ), $value );
+			return array_map( [ $this, 'unescape' ], $value );
 		} elseif ( is_string( $value ) ) {
 			return preg_replace_callback( '/\\\\u([0-9a-fA-F]{4})/',
 				function ( $m ) {
@@ -132,7 +132,7 @@ class TokenizerTest extends \PHPUnit_Framework_TestCase {
 	}
 
 	/** @dataProvider provider */
-	public function testIgnoreErrors(  $state, $appropriateEndTag, $input, $expected ) {
+	public function testIgnoreErrors( $state, $appropriateEndTag, $input, $expected ) {
 		$handler = new TestTokenHandler();
 		$tokenizer = new Tokenizer( $handler, $input, [ 'ignoreErrors' => true ] );
 		$tokenizer->execute( [

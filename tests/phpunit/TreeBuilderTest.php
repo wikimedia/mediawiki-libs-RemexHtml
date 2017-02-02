@@ -48,7 +48,6 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 		return $this->provider( 'dom' );
 	}
 
-
 	private function provider( $type ) {
 		$testFiles = [];
 		foreach ( self::$testDirs as $testDir ) {
@@ -136,7 +135,7 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 			) {
 				continue;
 			}
-			
+
 			$tests[] = $test;
 		}
 		return $tests;
