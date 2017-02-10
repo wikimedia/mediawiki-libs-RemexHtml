@@ -406,10 +406,10 @@ class CachingStack extends Stack {
 	public function dump() {
 		return parent::dump() .
 			$this->scopeDump( self::SCOPE_DEFAULT, 'In scope' ) .
-			$this->scopeDump( self::SCOPE_DEFAULT, 'In list scope' ) .
-			$this->scopeDump( self::SCOPE_DEFAULT, 'In button scope' ) .
-			$this->scopeDump( self::SCOPE_DEFAULT, 'In table scope' ) .
-			$this->scopeDump( self::SCOPE_DEFAULT, 'In select scope' ) . "\n";
+			$this->scopeDump( self::SCOPE_LIST, 'In list scope' ) .
+			$this->scopeDump( self::SCOPE_BUTTON, 'In button scope' ) .
+			$this->scopeDump( self::SCOPE_TABLE, 'In table scope' ) .
+			$this->scopeDump( self::SCOPE_SELECT, 'In select scope' ) . "\n";
 	}
 
 	private function scopeDump( $scopeId, $scopeName ) {
