@@ -9,6 +9,7 @@
 		}
 	],
 	"require": {
+		"ext-mbstring": "*",
 		"wikimedia/utfnormal": "1.*"
 	},
 	"require-dev": {
