@@ -70,6 +70,20 @@ class Serializer implements AbstractSerializer {
 		return $this->result;
 	}
 
+	/**
+	 * Get the root SerializerNode.
+	 */
+	public function getRootNode() {
+		return $this->root;
+	}
+
+	/**
+	 * Get the parent SerializerNode of a given SerializerNode
+	 */
+	public function getParentNode( SerializerNode $node ) {
+		return $this->nodes[$node->parentId];
+	}
+
 	public function startDocument( $fragmentNamespace, $fragmentName ) {
 		$this->root = new SerializerNode( 0, 0, '', '', new PlainAttributes, false );
 		$this->nodes = [ $this->root ];
@@ -96,16 +110,28 @@ class Serializer implements AbstractSerializer {
 		$this->nextNodeId = 0;
 	}
 
+	private function interpretPlacement( $preposition, $refElement ) {
+		if ( $preposition === TreeBuilder::ROOT ) {
+			return [ $this->root, null ];
+		}
+		if ( $refElement instanceof Element ) {
+			$refNode = $refElement->userData;
+		} elseif ( $refElement instanceof SerializerNode ) {
+			$refNode = $refElement;
+		} else {
+			throw new SerializerError( "Invalid type of ref element" );
+		}
+		if ( $preposition === TreeBuilder::BEFORE ) {
+			return [ $this->nodes[$refNode->parentId], $refNode ];
+		} else {
+			return [ $refNode, $refNode ];
+		}
+	}
+
 	public function characters( $preposition, $refElement, $text, $start, $length,
 		$sourceStart, $sourceLength
 	) {
-		if ( $preposition === TreeBuilder::ROOT ) {
-			$parent = $this->root;
-		} elseif ( $preposition === TreeBuilder::BEFORE ) {
-			$parent = $this->nodes[$refElement->userData->parentId];
-		} else {
-			$parent = $refElement->userData;
-		}
+		list( $parent, $refNode ) = $this->interpretPlacement( $preposition, $refElement );
 		$encoded = (string)$this->formatter->characters( $parent, $text, $start, $length );
 
 		$children =& $parent->children;
@@ -114,7 +140,6 @@ class Serializer implements AbstractSerializer {
 
 		if ( $preposition === TreeBuilder::BEFORE ) {
 			// Insert before element
-			$refNode = $refElement->userData;
 			if ( $lastChild !== $refNode ) {
 				$refIndex = array_search( $refNode, $children, true );
 				throw new SerializerError( "invalid insert position $refIndex/$lastChildIndex" );
@@ -131,16 +156,20 @@ class Serializer implements AbstractSerializer {
 		}
 	}
 
+	/**
+	 * Insert an element
+	 *
+	 * @param integer $preposition
+	 * @param Element|SerializerNode|null $refElement
+	 * @param Element $element
+	 * @param bool $void
+	 * @param integer $sourceStart
+	 * @param integer $sourceLength
+	 */
 	public function insertElement( $preposition, $refElement, Element $element, $void,
 		$sourceStart, $sourceLength
 	) {
-		if ( $preposition === TreeBuilder::ROOT ) {
-			$parent = $this->root;
-		} elseif ( $preposition === TreeBuilder::BEFORE ) {
-			$parent = $this->nodes[$refElement->userData->parentId];
-		} else {
-			$parent = $refElement->userData;
-		}
+		list( $parent, $refNode ) = $this->interpretPlacement( $preposition, $refElement );
 		$children =& $parent->children;
 		$lastChildIndex = count( $children ) - 1;
 		$lastChild = $lastChildIndex >= 0 ? $children[$lastChildIndex] : null;
@@ -168,7 +197,6 @@ class Serializer implements AbstractSerializer {
 
 		if ( $preposition === TreeBuilder::BEFORE ) {
 			// Insert before element
-			$refNode = $refElement->userData;
 			if ( $lastChild !== $refNode ) {
 				$refIndex = array_search( $refNode, $children, true );
 				throw new SerializerError( "invalid insert position $refIndex/$lastChildIndex" );
@@ -227,13 +255,7 @@ class Serializer implements AbstractSerializer {
 	}
 
 	public function comment( $preposition, $refElement, $text, $sourceStart, $sourceLength ) {
-		if ( $preposition === TreeBuilder::ROOT ) {
-			$parent = $this->root;
-		} elseif ( $preposition === TreeBuilder::BEFORE ) {
-			$parent = $this->nodes[$refElement->userData->parentId];
-		} else {
-			$parent = $refElement->userData;
-		}
+		list( $parent, $refNode ) = $this->interpretPlacement( $preposition, $refElement );
 		$encoded = $this->formatter->comment( $parent, $text );
 		$children =& $parent->children;
 		$lastChildIndex = count( $children ) - 1;
@@ -241,7 +263,6 @@ class Serializer implements AbstractSerializer {
 
 		if ( $preposition === TreeBuilder::BEFORE ) {
 			// Insert before element
-			$refNode = $refElement->userData;
 			if ( $lastChild !== $refNode ) {
 				throw new SerializerError( "invalid insert position" );
 			}

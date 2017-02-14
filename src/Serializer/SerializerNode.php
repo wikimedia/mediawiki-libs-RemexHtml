@@ -11,6 +11,11 @@ class SerializerNode {
 	public $void;
 	public $children = [];
 
+	/**
+	 * Arbitrary user data can be placed here.
+	 */
+	public $snData;
+
 	public function __construct( $id, $parentId, $namespace, $name, $attrs, $void ) {
 		$this->id = $id;
 		$this->parentId = $parentId;
