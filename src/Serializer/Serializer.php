@@ -72,6 +72,8 @@ class Serializer implements AbstractSerializer {
 
 	/**
 	 * Get the root SerializerNode.
+	 *
+	 * @return SerializerNode
 	 */
 	public function getRootNode() {
 		return $this->root;
@@ -79,9 +81,25 @@ class Serializer implements AbstractSerializer {
 
 	/**
 	 * Get the parent SerializerNode of a given SerializerNode
+	 *
+	 * @param SerializerNode $node
+	 * @return SerializerNode
 	 */
 	public function getParentNode( SerializerNode $node ) {
 		return $this->nodes[$node->parentId];
+	}
+
+	/**
+	 * Get the last child of a given SerializerNode
+	 *
+	 * @param SerializerNode $node
+	 * @return SerializerNode|string|null
+	 */
+	public function getLastChild( SerializerNode $node ) {
+		$children = $node->children;
+		$lastChildIndex = count( $children ) - 1;
+		$lastChild = $lastChildIndex >= 0 ? $children[$lastChildIndex] : null;
+		return $lastChild;
 	}
 
 	public function startDocument( $fragmentNamespace, $fragmentName ) {
@@ -110,7 +128,7 @@ class Serializer implements AbstractSerializer {
 		$this->nextNodeId = 0;
 	}
 
-	private function interpretPlacement( $preposition, $refElement ) {
+	protected function interpretPlacement( $preposition, $refElement ) {
 		if ( $preposition === TreeBuilder::ROOT ) {
 			return [ $this->root, null ];
 		}
