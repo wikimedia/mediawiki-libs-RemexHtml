@@ -36,8 +36,8 @@ class SerializerDestructAttacher implements TreeBuilder\TreeHandler {
 		$sourceStart, $sourceLength
 	) {
 		$this->wrap( __FUNCTION__, func_get_args() );
-		if ( !isset( $element->userData->testDestruct ) ) {
-			$element->userData->testDestruct = new DestructNode( $this->count );
+		if ( !$element->userData->snData ) {
+			$element->userData->snData = new DestructNode( $this->count );
 		}
 	}
 
@@ -71,8 +71,8 @@ class SerializerDestructAttacher implements TreeBuilder\TreeHandler {
 		$sourceStart
 	) {
 		$this->wrap( __FUNCTION__, func_get_args() );
-		if ( !isset( $newParent->userData->testDestruct ) ) {
-			$newParent->userData->testDestruct = new DestructNode( $this->count );
+		if ( !$newParent->userData->snData ) {
+			$newParent->userData->snData = new DestructNode( $this->count );
 		}
 	}
 }

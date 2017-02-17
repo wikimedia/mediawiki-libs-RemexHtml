@@ -16,7 +16,7 @@ class TokenGeneratorHandler implements TokenHandler {
 		];
 	}
 
-	public function endDocument() {
+	public function endDocument( $pos ) {
 		$this->tokens[] = [ 'type' => 'endDocument' ];
 	}
 

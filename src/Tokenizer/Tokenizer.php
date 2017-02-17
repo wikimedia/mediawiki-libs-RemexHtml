@@ -2,6 +2,7 @@
 
 namespace RemexHtml\Tokenizer;
 use RemexHtml\HTMLData;
+use RemexHtml\PropGuard;
 
 /**
  * HTML 5 tokenizer
@@ -67,6 +68,8 @@ class Tokenizer {
 	protected $ignoreErrors;
 	protected $ignoreCharRefs;
 	protected $ignoreNulls;
+	protected $skipPreprocess;
+	protected $appropriateEndTag;
 	protected $listener;
 	protected $state;
 	protected $preprocessed;
@@ -108,6 +111,10 @@ class Tokenizer {
 		$this->ignoreCharRefs = !empty( $options['ignoreCharRefs'] );
 		$this->ignoreNulls = !empty( $options['ignoreNulls'] );
 		$this->skipPreprocess = !empty( $options['skipPreprocess'] );
+	}
+
+	public function __set( $name, $value ) {
+		PropGuard::set( $this, $name, $value );
 	}
 
 	public function setEnableCdataCallback( $cb ) {

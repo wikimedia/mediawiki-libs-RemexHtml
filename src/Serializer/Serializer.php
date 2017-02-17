@@ -1,6 +1,7 @@
 <?php
 
 namespace RemexHtml\Serializer;
+use RemexHtml\PropGuard;
 use RemexHtml\TreeBuilder\TreeBuilder;
 use RemexHtml\TreeBuilder\TreeHandler;
 use RemexHtml\TreeBuilder\Element;
@@ -52,6 +53,11 @@ class Serializer implements AbstractSerializer {
 	private $isFragment;
 
 	/**
+	 * The result string
+	 */
+	private $result = '';
+
+	/**
 	 * Constructor
 	 *
 	 * @param Formatter $formatter
@@ -61,6 +67,10 @@ class Serializer implements AbstractSerializer {
 	public function __construct( Formatter $formatter, $errorCallback = null ) {
 		$this->formatter = $formatter;
 		$this->errorCallback = $errorCallback;
+	}
+
+	public function __set( $name, $value ) {
+		PropGuard::set( $this, $name, $value );
 	}
 
 	/**

@@ -2,6 +2,7 @@
 
 namespace RemexHtml\TreeBuilder;
 use RemexHtml\HTMLData;
+use RemexHtml\PropGuard;
 use RemexHtml\Tokenizer\Attributes;
 use RemexHtml\Tokenizer\PlainAttributes;
 use RemexHtml\Tokenizer\Tokenizer;
@@ -50,6 +51,7 @@ class TreeBuilder {
 	public $framesetOK = true;
 	public $quirks = self::NO_QUIRKS;
 	public $fosterParenting = false;
+	public $pendingTableCharacters = [];
 
 	private static $fosterTriggers = [
 		'table' => true,
@@ -114,6 +116,10 @@ class TreeBuilder {
 		} else {
 			$this->stack = new SimpleStack;
 		}
+	}
+
+	public function __set( $name, $value ) {
+		PropGuard::set( $this, $name, $value );
 	}
 
 	public function startDocument( Tokenizer $tokenizer, $namespace, $name ) {

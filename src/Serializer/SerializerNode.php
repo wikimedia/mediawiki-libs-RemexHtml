@@ -1,6 +1,7 @@
 <?php
 
 namespace RemexHtml\Serializer;
+use RemexHtml\PropGuard;
 
 class SerializerNode {
 	public $id;
@@ -23,5 +24,9 @@ class SerializerNode {
 		$this->name = $name;
 		$this->attrs = $attrs;
 		$this->void = $void;
+	}
+
+	public function __set( $name, $value ) {
+		PropGuard::set( $this, $name, $value );
 	}
 }

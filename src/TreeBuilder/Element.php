@@ -2,6 +2,7 @@
 
 namespace RemexHtml\TreeBuilder;
 use RemexHtml\HTMLData;
+use RemexHtml\PropGuard;
 use RemexHtml\Tokenizer\Attributes;
 
 /**
@@ -54,6 +55,12 @@ class Element implements FormattingElement {
 	 * Internal to CachingStack. A link in the scope list.
 	 */
 	public $nextScope;
+
+	/**
+	 * Internal to CachingStack and SimpleStack. The current stack index, or
+	 * null if the element is not in the stack.
+	 */
+	public $stackIndex;
 
 	/**
 	 * Internal to ActiveFormattingElements.
@@ -116,6 +123,10 @@ class Element implements FormattingElement {
 			$this->htmlName = "$namespace $name";
 		}
 		$this->attrs = $attrs;
+	}
+
+	public function __set( $name, $value ) {
+		PropGuard::set( $this, $name, $value );
 	}
 
 	/**
