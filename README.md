@@ -6,7 +6,9 @@ RemexHtml is a parser for HTML 5, written in PHP.
 RemexHtml aims to be:
 
 - Modular and flexible.
-- Fast, as opposed to elegant.
+- Fast, as opposed to elegant. For example, we sometimes use direct member
+  access instead of going through accessors, and manually inline some
+  performance-sensitive code.
 - Robust, aiming for O(N) worst-case performance.
 
 RemexHtml contains the following modules:
