@@ -11,3 +11,43 @@ x</pre>
 |     <pre>
 |       "
 x"
+
+#data
+<table><tr><td><table><tr id=1></table><tr id=2></tr></table>
+#errors
+[0] missing doctype
+#document
+| <html>
+|   <head>
+|   <body>
+|     <table>
+|       <tbody>
+|         <tr>
+|           <td>
+|             <table>
+|               <tbody>
+|                 <tr>
+|                   id="1"
+|         <tr>
+|           id="2"
+
+#data
+<!doctype html><table><tr><td><table><tr id=1></tbody><tbody id=2></table></td></tr><tr id=3></tr></table>
+#errors
+#document
+| <!DOCTYPE html>
+| <html>
+|   <head>
+|   <body>
+|     <table>
+|       <tbody>
+|         <tr>
+|           <td>
+|             <table>
+|               <tbody>
+|                 <tr>
+|                   id="1"
+|               <tbody>
+|                 id="2"
+|         <tr>
+|           id="3"

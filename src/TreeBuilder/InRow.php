@@ -85,6 +85,8 @@ class InRow extends InsertionMode {
 			$builder->pop( $sourceStart, $sourceLength );
 			$dispatcher->switchMode( Dispatcher::IN_TABLE_BODY )
 				->endTag( $name, $sourceStart, $sourceLength );
+			break;
+
 		case 'tbody':
 		case 'tfoot':
 		case 'thead':
@@ -100,6 +102,7 @@ class InRow extends InsertionMode {
 			$builder->pop( $sourceStart, 0 );
 			$dispatcher->switchMode( Dispatcher::IN_TABLE_BODY )
 				->endTag( $name, $sourceStart, $sourceLength );
+			break;
 
 		case 'body':
 		case 'caption':

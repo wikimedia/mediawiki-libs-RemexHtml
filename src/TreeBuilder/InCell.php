@@ -32,6 +32,7 @@ class InCell extends InsertionMode {
 			}
 			$this->closeTheCell( $sourceStart )
 				->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
+			break;
 
 		default:
 			$this->dispatcher->inBody->startTag(

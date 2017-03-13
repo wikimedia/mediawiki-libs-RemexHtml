@@ -84,6 +84,7 @@ class InTableBody extends InsertionMode {
 			$builder->clearStackBack( self::$tableBodyContext, $sourceStart );
 			$builder->pop( $sourceStart, $sourceLength );
 			$dispatcher->switchMode( Dispatcher::IN_TABLE );
+			break;
 
 		case 'body':
 		case 'caption':
