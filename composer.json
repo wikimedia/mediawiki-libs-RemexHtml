@@ -10,7 +10,7 @@
 	],
 	"require": {
 		"ext-mbstring": "*",
-		"wikimedia/utfnormal": "1.*"
+		"wikimedia/utfnormal": "1.1.0"
 	},
 	"require-dev": {
 		"phpunit/phpunit": "4.*",
