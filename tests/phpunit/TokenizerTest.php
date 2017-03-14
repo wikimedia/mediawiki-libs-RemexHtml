@@ -3,6 +3,8 @@
 namespace RemexHtml\Tokenizer;
 
 class TokenizerTest extends \PHPUnit_Framework_TestCase {
+	public static $testErrorCount = false;
+
 	private static $skippedFiles = [
 		// We don't implement draft changes
 		'pendingSpecChanges.test',
@@ -95,12 +97,12 @@ class TokenizerTest extends \PHPUnit_Framework_TestCase {
 	}
 
 	private function normalizeErrors( $tokens, $remove = false ) {
-		$hasError = false;
+		$errorCount = 0;
 		$output = [];
 		$lastToken = false;
 		foreach ( $tokens as $token ) {
 			if ( $token === 'ParseError' ) {
-				$hasError = true;
+				$errorCount++;
 				continue;
 			}
 			if ( $lastToken[0] === 'Character' && $token[0] === 'Character' ) {
@@ -110,8 +112,12 @@ class TokenizerTest extends \PHPUnit_Framework_TestCase {
 			}
 			$lastToken = $token;
 		}
-		if ( $hasError && !$remove ) {
-			array_unshift( $output, 'ParseError' );
+		if ( $errorCount && !$remove ) {
+			if ( self::$testErrorCount ) {
+				array_splice( $output, 0, 0, array_fill( 0, $errorCount, 'ParseError' ) );
+			} else {
+				array_unshift( $output, 'ParseError' );
+			}
 		}
 		return $output;
 	}

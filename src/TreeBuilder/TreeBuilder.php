@@ -252,12 +252,21 @@ class TreeBuilder {
 	 * @param array $allowed An array with the HTML element names in the key
 	 */
 	public function checkUnclosed( $allowed, $pos ) {
+		if ( $this->ignoreErrors ) {
+			return;
+		}
+
 		$stack = $this->stack;
+		$unclosedErrors = [];
 		for ( $i = $stack->length() - 1; $i >= 0; $i-- ) {
 			$unclosedName = $stack->item( $i )->htmlName;
 			if ( !isset( $allowed[$unclosedName] ) ) {
-				$this->error( "closing unclosed <$unclosedName>", $pos );
+				$unclosedErrors[$unclosedName] = true;
 			}
+		}
+		if ( $unclosedErrors ) {
+			$names = implode( ', ', array_keys( $unclosedErrors ) );
+			$this->error( "closing unclosed $names", $pos );
 		}
 	}
 

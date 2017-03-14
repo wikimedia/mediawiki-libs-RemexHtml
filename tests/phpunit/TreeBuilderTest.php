@@ -7,6 +7,8 @@ use RemexHtml\Tokenizer;
 use RemexHtml\Serializer;
 
 class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
+	public static $testErrorCounts = false;
+
 	private static $testDirs = [
 		'html5lib/tree-construction',
 		'local/tree-construction',
@@ -26,6 +28,8 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 		'tree-construction/doctype01.dat:45',
 		'tree-construction/tests6.dat:48',
 	];
+
+	private $errors;
 
 	public function serializerProvider() {
 		return $this->provider( 'serializer' );
@@ -93,7 +97,11 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 				}
 				switch ( $section['name'] ) {
 				case 'errors':
-					$test['errors'] = explode( "\n", rtrim( $section['value'], "\n" ) );
+					if ( $section['value'] === '' ) {
+						$test['errors'] = [];
+					} else {
+						$test['errors'] = explode( "\n", $section['value'] );
+					}
 					break;
 
 				case 'document':
@@ -182,17 +190,21 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 		return $result;
 	}
 
+	public function errorCallback( $msg, $pos ) {
+		$this->errors[] = "[$pos] $msg\n";
+	}
+
 	/** @dataProvider serializerProvider */
 	public function testSerializer( $params ) {
 		$formatter = new Serializer\TestFormatter;
-		$serializer = new Serializer\Serializer( $formatter );
+		$serializer = new Serializer\Serializer( $formatter, [ $this, 'errorCallback' ] );
 		$this->runWithSerializer( $serializer, $params );
 	}
 
 	/** @dataProvider domProvider */
 	public function testDOMSerializer( $params ) {
 		$formatter = new Serializer\TestFormatter;
-		$builder = new DOM\DOMBuilder;
+		$builder = new DOM\DOMBuilder( [ $this, 'errorCallback' ] );
 		$serializer = new DOM\DOMSerializer( $builder, $formatter );
 		$this->runWithSerializer( $serializer, $params );
 	}
@@ -228,6 +240,7 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 			$tokenizerOptions['fragmentName'] = $name;
 		}
 
+		$this->errors = [];
 		$tokenizer->execute( $tokenizerOptions );
 		$result = $serializer->getResult();
 
@@ -246,5 +259,12 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
 		$expected = rtrim( $params['document'], "\n" );
 
 		$this->assertEquals( $expected, $result, "{$params['file']}:{$params['line']}" );
+
+		if ( self::$testErrorCounts ) {
+			$this->assertCount(
+				count( $params['errors'] ),
+				$this->errors,
+				"{$params['file']}:{$params['line']} error count" );
+		}
 	}
 }

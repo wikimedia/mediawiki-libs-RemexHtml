@@ -168,6 +168,7 @@ class InTable extends InsertionMode {
 			break;
 
 		default:
+			$builder->error( 'unexpected end tag in table, fostering', $sourceStart );
 			$builder->fosterParenting = true;
 			$dispatcher->inBody->endTag( $name, $sourceStart, $sourceLength );
 			$builder->fosterParenting = false;

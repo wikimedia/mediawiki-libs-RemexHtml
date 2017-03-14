@@ -675,9 +675,6 @@ class Tokenizer {
 
 		if ( isset( $m[self::MD_DT_PUBLIC_WS] ) && $m[self::MD_DT_PUBLIC_WS][1] >= 0 ) {
 			// PUBLIC keyword found
-			if ( !$igerr && !$eof && !strlen( $m[self::MD_DT_PUBLIC_WS][0] ) ) {
-				$this->error( 'missing whitespace', $m[self::MD_DT_PUBLIC_WS][1] );
-			}
 			$public = $this->interpretDoctypeQuoted( $m,
 				self::MD_DT_PUBLIC_DQ, self::MD_DT_PUBLIC_SQ, $quirks );
 			if ( $public === null ) {
@@ -685,6 +682,8 @@ class Tokenizer {
 				if ( !$eof && !$igerr ) {
 					$this->error( 'missing public identifier', $m[self::MD_DT_PUBLIC_WS][1] );
 				}
+			} elseif ( !$igerr && !$eof && !strlen( $m[self::MD_DT_PUBLIC_WS][0] ) ) {
+				$this->error( 'missing whitespace', $m[self::MD_DT_PUBLIC_WS][1] );
 			}
 
 			// Check for a system ID after the public ID
@@ -699,14 +698,13 @@ class Tokenizer {
 			}
 		} elseif ( isset( $m[self::MD_DT_SYSTEM_WS] ) && $m[self::MD_DT_SYSTEM_WS][1] >= 0 ) {
 			// SYSTEM keyword found
-			if ( !$igerr && !strlen( $m[self::MD_DT_SYSTEM_WS][0] ) ) {
-				$this->error( 'missing whitespace', $m[self::MD_DT_SYSTEM_WS][1] );
-			}
 			$system = $this->interpretDoctypeQuoted( $m,
 				self::MD_DT_SYSTEM_DQ, self::MD_DT_SYSTEM_SQ, $quirks );
 			if ( $system === null ) {
 				$quirks = true;
 				$this->error( 'missing system identifier', $m[self::MD_DT_SYSTEM_WS][1] );
+			} elseif ( !$igerr && !strlen( $m[self::MD_DT_SYSTEM_WS][0] ) ) {
+				$this->error( 'missing whitespace', $m[self::MD_DT_SYSTEM_WS][1] );
 			}
 
 		}
