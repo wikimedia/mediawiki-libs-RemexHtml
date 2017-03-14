@@ -8,4 +8,4 @@
 /phpunit.xml.dist export-ignore
 /tests export-ignore
 /bin export-ignore
-/src/FuzzTest export-ignore
+/RemexHtml/FuzzTest export-ignore

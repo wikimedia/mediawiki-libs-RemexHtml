@@ -1,0 +1,8 @@
+#!/bin/bash
+
+base=$(readlink -f $(dirname $0)/../..)
+files=$(find "$base/RemexHtml" -name \*.php)
+
+phpl --no-ascii-ext-check  --no-ctrl-check --no-print-context \
+	"$@" "$base/tests/phplint/autoload.php" $files \
+	| egrep -v 'ERROR: undefined type |^==== [0-9]*:|^[0-9]*:|ERROR: multiple types not supported'

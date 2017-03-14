@@ -14,7 +14,7 @@ interface DOMFormatter {
 	/**
 	 * Non-recursively format a DOMElement.
 	 *
-	 * @param DOMElement $Element The element to format
+	 * @param DOMElement $element The element to format
 	 * @param string $contents The formatted contents of the element
 	 */
 	function formatDOMElement( \DOMElement $element, $contents );

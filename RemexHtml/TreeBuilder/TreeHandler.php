@@ -139,7 +139,7 @@ interface TreeHandler {
 
 	/**
 	 * Remove a node from the tree, and all its children. This is only done
-	 * when a <framset> element is found, which triggers removal of the
+	 * when a <frameset> element is found, which triggers removal of the
 	 * partially-constructed body element.
 	 *
 	 * @param Element $element The element to remove

@@ -71,7 +71,7 @@ class InHead extends InsertionMode {
 				$mode = Dispatcher::IN_HEAD_NOSCRIPT;
 				break;
 			}
-			// Fall through
+			/*. missing_break; .*/
 		case 'noframes':
 		case 'style':
 			$tokenizerState = Tokenizer::STATE_RAWTEXT;

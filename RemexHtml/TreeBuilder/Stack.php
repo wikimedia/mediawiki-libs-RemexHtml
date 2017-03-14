@@ -62,8 +62,8 @@ abstract class Stack {
 	 * Is there any element in the (default) scope which is in the HTML
 	 * namespace and has one of the given tag names?
 	 *
-	 * @param string[bool] An array with the tag names in the keys, the value
-	 *   arbitrary
+	 * @param string[bool] $names An array with the tag names in the keys, the
+	 *   value arbitrary
 	 * @return bool
 	 */
 	abstract public function isOneOfSetInScope( $names );
