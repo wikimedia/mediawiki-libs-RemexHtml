@@ -35,7 +35,7 @@ class TokenizerTest extends \PHPUnit_Framework_TestCase {
 				continue;
 			}
 			foreach ( $testData['tests'] as $test ) {
-				$states = isset( $test['initialStates'] ) ? $test['initialStates']  : [ 'data state' ];
+				$states = isset( $test['initialStates'] ) ? $test['initialStates'] : [ 'data state' ];
 				$input = $test['input'];
 				$output = $test['output'];
 				$appropriateEndTag = isset( $test['lastStartTag'] ) ? $test['lastStartTag'] : null;
@@ -131,7 +131,7 @@ class TokenizerTest extends \PHPUnit_Framework_TestCase {
 			'appropriateEndTag' => $appropriateEndTag ] );
 		$output = $this->normalizeErrors( $handler->getTokens() );
 		$expected = $this->normalizeErrors( $expected );
-		$jsonOptions =  JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
+		$jsonOptions = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
 		$this->assertEquals(
 			json_encode( $expected, $jsonOptions ),
 			json_encode( $output, $jsonOptions ) );
@@ -146,7 +146,7 @@ class TokenizerTest extends \PHPUnit_Framework_TestCase {
 			'appropriateEndTag' => $appropriateEndTag ] );
 		$output = $this->normalizeErrors( $handler->getTokens(), true );
 		$expected = $this->normalizeErrors( $expected, true );
-		$jsonOptions =  JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
+		$jsonOptions = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
 		$this->assertEquals(
 			json_encode( $expected, $jsonOptions ),
 			json_encode( $output, $jsonOptions ) );

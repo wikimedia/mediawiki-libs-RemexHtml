@@ -9,7 +9,7 @@ class Utils {
 	 * Generate a pseudorandom boolean value.
 	 *
 	 * @param float $p The probability of the function returning true
-	 * @return boolean
+	 * @return bool
 	 */
 	public static function coinToss( $p ) {
 		return mt_rand() / mt_getrandmax() < $p;

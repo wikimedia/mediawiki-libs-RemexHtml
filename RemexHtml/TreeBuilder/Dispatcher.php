@@ -132,7 +132,7 @@ class Dispatcher implements TokenHandler {
 	/**
 	 * Switch the insertion mode, and return the new handler
 	 *
-	 * @param integer $mode
+	 * @param int $mode
 	 * @return InsertionMode
 	 */
 	public function switchMode( $mode ) {
@@ -144,7 +144,7 @@ class Dispatcher implements TokenHandler {
 	 * Let the original insertion mode be the current insertion mode, and
 	 * switch the insertion mode to some new value. Return the new handler.
 	 *
-	 * @param integer $mode
+	 * @param int $mode
 	 * @return InsertionMode
 	 */
 	public function switchAndSave( $mode ) {
@@ -209,7 +209,7 @@ class Dispatcher implements TokenHandler {
 	 * Get the insertion mode index which is switched to when we reset the
 	 * insertion mode appropriately.
 	 *
-	 * @return integer
+	 * @return int
 	 */
 	protected function getAppropriateMode() {
 		$builder = $this->builder;

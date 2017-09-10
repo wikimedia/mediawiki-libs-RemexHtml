@@ -187,12 +187,12 @@ class Serializer implements AbstractSerializer {
 	/**
 	 * Insert an element
 	 *
-	 * @param integer $preposition
+	 * @param int $preposition
 	 * @param Element|SerializerNode|null $refElement
 	 * @param Element $element
 	 * @param bool $void
-	 * @param integer $sourceStart
-	 * @param integer $sourceLength
+	 * @param int $sourceStart
+	 * @param int $sourceLength
 	 */
 	public function insertElement( $preposition, $refElement, Element $element, $void,
 		$sourceStart, $sourceLength

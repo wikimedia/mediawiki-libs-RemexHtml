@@ -119,4 +119,3 @@ abstract class InsertionMode {
 	abstract public function endTag( $name, $sourceStart, $sourceLength );
 	abstract public function endDocument( $pos );
 }
-

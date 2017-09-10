@@ -154,7 +154,7 @@ class ActiveFormattingElements {
 	/**
 	 * Determine whether an element is in the list of formatting elements.
 	 * @param Element $elt
-	 * @return boolean
+	 * @return bool
 	 */
 	public function isInList( Element $elt ) {
 		return $this->head === $elt || $elt->prevAFE;

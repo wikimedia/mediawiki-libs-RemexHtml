@@ -20,4 +20,3 @@ class Marker implements FormattingElement {
 		PropGuard::set( $this, $name, $value );
 	}
 }
-

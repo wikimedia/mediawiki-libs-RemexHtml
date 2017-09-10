@@ -18,4 +18,3 @@ function __autoload( /*. string .*/ $className ) {
 	require_once '../../' .
 		str_replace( '\\', '/', $className ) . '.php';
 }
-

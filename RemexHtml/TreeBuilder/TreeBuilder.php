@@ -326,8 +326,8 @@ class TreeBuilder {
 	 * @author C. Scott Ananian, Tim Starling
 	 *
 	 * @param string $subject The subject tag name.
-	 * @param integer $sourceStart
-	 * @param integer $sourceLength
+	 * @param int $sourceStart
+	 * @param int $sourceLength
 	 */
 	public function adoptionAgency( $subject, $sourceStart, $sourceLength ) {
 		$afe = $this->afe;
@@ -403,7 +403,7 @@ class TreeBuilder {
 			$furthestBlockIndex = -1;
 			$stackLength = $stack->length();
 
-			for ( $i = $fmtEltIndex+1; $i < $stackLength; $i++ ) {
+			for ( $i = $fmtEltIndex + 1; $i < $stackLength; $i++ ) {
 				$item = $stack->item( $i );
 				if ( isset( HTMLData::$special[$item->namespace][$item->name] ) ) {
 					$furthestBlock = $item;
@@ -612,7 +612,7 @@ class TreeBuilder {
 	 * Generate implied end tags, optionally with an element to exclude.
 	 *
 	 * @param string|null $name The name to exclude
-	 * @param integer $pos The source position
+	 * @param int $pos The source position
 	 */
 	public function generateImpliedEndTags( $name, $pos ) {
 		$stack = $this->stack;
@@ -648,8 +648,8 @@ class TreeBuilder {
 	 * the list.
 	 *
 	 * @param string $name The name to exclude
-	 * @param integer $sourceStart
-	 * @param integer $sourceLength
+	 * @param int $sourceStart
+	 * @param int $sourceLength
 	 */
 	public function generateImpliedEndTagsAndPop( $name, $sourceStart, $sourceLength ) {
 		$this->generateImpliedEndTags( $name, $sourceStart );
@@ -708,7 +708,7 @@ class TreeBuilder {
 	 * not popped, and a set of names is used instead of a single name.
 	 *
 	 * @param array $names
-	 * @param integer $pos
+	 * @param int $pos
 	 */
 	public function clearStackBack( $names, $pos ) {
 		$stack = $this->stack;
