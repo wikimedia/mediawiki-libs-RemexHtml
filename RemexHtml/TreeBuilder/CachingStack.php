@@ -295,7 +295,7 @@ class CachingStack extends Stack {
 					if ( $nextElt === $oldElt ) {
 						$scopeElt->nextEltInScope = $elt;
 						$elt->nextEltInScope = $nextElt->nextEltInScope;
-						$scopeElt->nextEltInScope = null;
+						$nextElt->nextEltInScope = null;
 						break;
 					}
 					$scopeElt = $scopeElt->nextEltInScope;
