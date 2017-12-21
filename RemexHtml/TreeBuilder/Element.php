@@ -54,7 +54,7 @@ class Element implements FormattingElement {
 	/**
 	 * Internal to CachingStack. A link in the scope list.
 	 */
-	public $nextScope;
+	public $nextEltInScope;
 
 	/**
 	 * Internal to CachingStack and SimpleStack. The current stack index, or
