@@ -51,3 +51,23 @@ x"
 |                 id="2"
 |         <tr>
 |           id="3"
+
+#data
+<!doctype html><div><i><b>foo<b><p><b>foo</i></p>
+#errors
+#document
+| <!DOCTYPE html>
+| <html>
+|   <head>
+|   <body>
+|     <div>
+|       <i>
+|         <b>
+|           "foo"
+|           <b>
+|       <b>
+|         <b>
+|           <p>
+|             <i>
+|               <b>
+|                 "foo"
