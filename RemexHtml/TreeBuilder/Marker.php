@@ -7,6 +7,8 @@ use RemexHtml\PropGuard;
  * A pseudo-element used as a marker or bookmark in the list of active formatting elements
  */
 class Marker implements FormattingElement {
+	use PropGuard;
+
 	public $nextAFE;
 	public $prevAFE;
 	public $nextNoah;
@@ -14,9 +16,5 @@ class Marker implements FormattingElement {
 
 	public function __construct( $type ) {
 		$this->type = $type;
-	}
-
-	public function __set( $name, $value ) {
-		PropGuard::set( $this, $name, $value );
 	}
 }

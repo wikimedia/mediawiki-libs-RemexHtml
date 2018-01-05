@@ -11,6 +11,8 @@ use RemexHtml\PropGuard;
  * https://www.w3.org/TR/2016/REC-html51-20161101/
  */
 class Tokenizer {
+	use PropGuard;
+
 	// States
 	const STATE_START = 1;
 	const STATE_DATA = 2;
@@ -111,10 +113,6 @@ class Tokenizer {
 		$this->ignoreCharRefs = !empty( $options['ignoreCharRefs'] );
 		$this->ignoreNulls = !empty( $options['ignoreNulls'] );
 		$this->skipPreprocess = !empty( $options['skipPreprocess'] );
-	}
-
-	public function __set( $name, $value ) {
-		PropGuard::set( $this, $name, $value );
 	}
 
 	public function setEnableCdataCallback( $cb ) {

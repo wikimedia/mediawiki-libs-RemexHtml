@@ -21,6 +21,8 @@ use RemexHtml\Tokenizer\Tokenizer;
  * https://www.w3.org/TR/2016/REC-html51-20161101/syntax.html
  */
 class TreeBuilder {
+	use PropGuard;
+
 	// Quirks
 	const NO_QUIRKS = 0;
 	const LIMITED_QUIRKS = 1;
@@ -116,10 +118,6 @@ class TreeBuilder {
 		} else {
 			$this->stack = new SimpleStack;
 		}
-	}
-
-	public function __set( $name, $value ) {
-		PropGuard::set( $this, $name, $value );
 	}
 
 	public function startDocument( Tokenizer $tokenizer, $namespace, $name ) {

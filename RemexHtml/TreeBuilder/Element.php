@@ -14,6 +14,8 @@ use RemexHtml\Tokenizer\Attributes;
  * downstream clients.
  */
 class Element implements FormattingElement {
+	use PropGuard;
+
 	/**
 	 * The namespace. This will be the HTML namespace for elements that are not
 	 * in foreign content, even if there is a prefix.
@@ -123,10 +125,6 @@ class Element implements FormattingElement {
 			$this->htmlName = "$namespace $name";
 		}
 		$this->attrs = $attrs;
-	}
-
-	public function __set( $name, $value ) {
-		PropGuard::set( $this, $name, $value );
 	}
 
 	/**

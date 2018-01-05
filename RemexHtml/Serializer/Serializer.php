@@ -14,6 +14,8 @@ use RemexHtml\Tokenizer\PlainAttributes;
  * a DOM and then serializing it, even if you use DOMDocument::saveHTML().
  */
 class Serializer implements AbstractSerializer {
+	use PropGuard;
+
 	/**
 	 * A node corresponding to the Document
 	 * @var SerializerNode
@@ -67,10 +69,6 @@ class Serializer implements AbstractSerializer {
 	public function __construct( Formatter $formatter, $errorCallback = null ) {
 		$this->formatter = $formatter;
 		$this->errorCallback = $errorCallback;
-	}
-
-	public function __set( $name, $value ) {
-		PropGuard::set( $this, $name, $value );
 	}
 
 	/**

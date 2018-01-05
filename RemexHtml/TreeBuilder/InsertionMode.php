@@ -6,6 +6,8 @@ use RemexHtml\Tokenizer\Attributes;
 use RemexHtml\Tokenizer\TokenHandler;
 
 abstract class InsertionMode {
+	use PropGuard;
+
 	const SELF_CLOSE_ERROR = 'unacknowledged self closing tag';
 
 	protected $builder;
@@ -14,10 +16,6 @@ abstract class InsertionMode {
 	public function __construct( TreeBuilder $builder, Dispatcher $dispatcher ) {
 		$this->builder = $builder;
 		$this->dispatcher = $dispatcher;
-	}
-
-	public function __set( $name, $value ) {
-		PropGuard::set( $this, $name, $value );
 	}
 
 	public function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
