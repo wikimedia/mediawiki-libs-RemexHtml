@@ -1,6 +1,7 @@
 <?php
 
 namespace RemexHtml\TreeBuilder;
+
 use RemexHtml\HTMLData;
 use RemexHtml\Tokenizer\Attributes;
 use RemexHtml\Tokenizer\TokenHandler;
@@ -137,7 +138,8 @@ class Dispatcher implements TokenHandler {
 	 */
 	public function switchMode( $mode ) {
 		$this->mode = $mode;
-		return $this->handler = $this->dispatchTable[$mode];
+		$this->handler = $this->dispatchTable[$mode];
+		return $this->handler;
 	}
 
 	/**
@@ -150,7 +152,8 @@ class Dispatcher implements TokenHandler {
 	public function switchAndSave( $mode ) {
 		$this->originalMode = $this->mode;
 		$this->mode = $mode;
-		return $this->handler = $this->dispatchTable[$mode];
+		$this->handler = $this->dispatchTable[$mode];
+		return $this->handler;
 	}
 
 	/**
@@ -165,7 +168,8 @@ class Dispatcher implements TokenHandler {
 		}
 		$mode = $this->mode = $this->originalMode;
 		$this->originalMode = null;
-		return $this->handler = $this->dispatchTable[$mode];
+		$this->handler = $this->dispatchTable[$mode];
+		return $this->handler;
 	}
 
 	/**
@@ -295,6 +299,7 @@ class Dispatcher implements TokenHandler {
 	/**
 	 * If the stack of open elements is empty, return null, otherwise return
 	 * the adjusted current node.
+	 * @return Element|null
 	 */
 	protected function dispatcherCurrentNode() {
 		$current = $this->builder->stack->current;

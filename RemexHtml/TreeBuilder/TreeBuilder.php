@@ -1,6 +1,7 @@
 <?php
 
 namespace RemexHtml\TreeBuilder;
+
 use RemexHtml\HTMLData;
 use RemexHtml\PropGuard;
 use RemexHtml\Tokenizer\Attributes;
@@ -208,6 +209,9 @@ class TreeBuilder {
 	/**
 	 * Pop the current node from the stack of open elements, and notify the
 	 * handler that we are done with that node.
+	 * @param int $sourceStart
+	 * @param int $sourceLength
+	 * @return Element
 	 */
 	public function pop( $sourceStart, $sourceLength ) {
 		$element = $this->stack->pop();
@@ -248,6 +252,7 @@ class TreeBuilder {
 	 * of allowed elements. Raise an error if any are found.
 	 *
 	 * @param array $allowed An array with the HTML element names in the key
+	 * @param int $pos
 	 */
 	public function checkUnclosed( $allowed, $pos ) {
 		if ( $this->ignoreErrors ) {
@@ -271,6 +276,7 @@ class TreeBuilder {
 	/**
 	 * Reconstruct the active formatting elements.
 	 * @author C. Scott Ananian, Tim Starling
+	 * @param int $sourceStart
 	 */
 	public function reconstructAFE( $sourceStart ) {
 		$entry = $this->afe->getTail();
@@ -628,6 +634,7 @@ class TreeBuilder {
 	 * Generate all implied end tags thoroughly. This was introduced in
 	 * HTML 5.1 in order to expand the set of elements which can be implicitly
 	 * closed by a </template>.
+	 * @param int $pos
 	 */
 	public function generateImpliedEndTagsThoroughly( $pos ) {
 		$stack = $this->stack;

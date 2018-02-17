@@ -1,9 +1,9 @@
 <?php
 
 namespace RemexHtml\TreeBuilder;
+
 use RemexHtml\PropGuard;
 use RemexHtml\Tokenizer\Attributes;
-use RemexHtml\Tokenizer\TokenHandler;
 
 abstract class InsertionMode {
 	use PropGuard;

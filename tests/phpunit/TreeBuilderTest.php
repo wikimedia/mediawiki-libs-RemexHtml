@@ -1,12 +1,13 @@
 <?php
 
 namespace RemexHtml\TreeBuilder;
+
 use RemexHtml\DOM;
 use RemexHtml\HTMLData;
 use RemexHtml\Tokenizer;
 use RemexHtml\Serializer;
 
-class TreeBuilderTest extends \PHPUnit_Framework_TestCase {
+class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 	public static $testErrorCounts = false;
 
 	private static $testDirs = [

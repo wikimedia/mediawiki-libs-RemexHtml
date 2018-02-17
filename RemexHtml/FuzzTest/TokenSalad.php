@@ -1,6 +1,7 @@
 <?php
 
 namespace RemexHtml\FuzzTest;
+
 use RemexHtml\HTMLData;
 
 /**

@@ -2,7 +2,7 @@
 
 namespace RemexHtml\Tokenizer;
 
-class TokenizerTest extends \PHPUnit_Framework_TestCase {
+class TokenizerTest extends \PHPUnit\Framework\TestCase {
 	public static $testErrorCount = false;
 
 	private static $skippedFiles = [

@@ -1,6 +1,7 @@
 <?php
 
 namespace RemexHtml\TreeBuilder;
+
 use RemexHtml\HTMLData;
 use RemexHtml\PropGuard;
 use RemexHtml\Tokenizer\Attributes;
@@ -139,6 +140,7 @@ class Element implements FormattingElement {
 
 	/**
 	 * Is the element an HTML integration point?
+	 * @return bool
 	 */
 	public function isHtmlIntegration() {
 		if ( $this->namespace === HTMLData::NS_MATHML ) {
@@ -171,6 +173,7 @@ class Element implements FormattingElement {
 
 	/**
 	 * Get a string identifying the element, for use in debugging.
+	 * @return string
 	 */
 	public function getDebugTag() {
 		return $this->htmlName . '#' . substr( md5( spl_object_hash( $this ) ), 0, 8 );

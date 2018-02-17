@@ -1,7 +1,6 @@
 <?php
 
 namespace RemexHtml\Serializer;
-use RemexHtml\Tokenizer\Attributes;
 
 /**
  * The interface for classes that help Serializer to convert nodes to strings.

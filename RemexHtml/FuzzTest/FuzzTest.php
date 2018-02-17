@@ -1,6 +1,7 @@
 <?php
 
 namespace RemexHtml\FuzzTest;
+
 use RemexHtml\Tokenizer;
 use RemexHtml\TreeBuilder;
 use RemexHtml\Serializer;

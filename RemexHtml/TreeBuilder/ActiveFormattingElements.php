@@ -139,6 +139,8 @@ class ActiveFormattingElements {
 	 * Find and return the last element with the specified name between the
 	 * end of the list and the last marker on the list.
 	 * Used when parsing <a> "in body mode".
+	 * @param string $name
+	 * @return Marker|null
 	 */
 	public function findElementByName( $name ) {
 		$elt = $this->tail;
@@ -309,6 +311,7 @@ class ActiveFormattingElements {
 
 	/**
 	 * Get a string representation of the AFE list, for debugging
+	 * @return string
 	 */
 	public function dump() {
 		$prev = null;

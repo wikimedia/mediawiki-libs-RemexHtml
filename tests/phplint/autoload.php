@@ -1,8 +1,5 @@
 <?php
 
-/*
- * PHPLint fake entry point
- */
 /*.
 
 require_module 'array';
@@ -13,6 +10,10 @@ require_module 'spl';
 
 .*/
 
+/**
+ * PHPLint fake entry point
+ * @param string $className
+ */
 function __autoload( /*. string .*/ $className ) {
 	/*. pragma 'autoload' 'schema1' '../..' '/' '.php'; .*/
 	require_once '../../' .

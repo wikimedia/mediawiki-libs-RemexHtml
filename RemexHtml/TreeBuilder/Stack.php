@@ -1,7 +1,6 @@
 <?php
 
 namespace RemexHtml\TreeBuilder;
-use RemexHtml\Tokenizer\Attributes;
 
 /**
  * The parent class for the "stack of open elements".

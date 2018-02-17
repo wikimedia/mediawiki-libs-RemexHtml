@@ -5,7 +5,7 @@ namespace RemexHtml\Tests;
 use Exception;
 use RemexHtml\PropGuard;
 
-class PropGuardTest extends \PHPUnit_Framework_TestCase {
+class PropGuardTest extends \PHPUnit\Framework\TestCase {
 	public function testArmed() {
 		MockPropGuard::$armed = true;
 		$mock = new MockPropGuard();

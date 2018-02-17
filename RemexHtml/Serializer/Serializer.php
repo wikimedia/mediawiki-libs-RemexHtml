@@ -1,9 +1,9 @@
 <?php
 
 namespace RemexHtml\Serializer;
+
 use RemexHtml\PropGuard;
 use RemexHtml\TreeBuilder\TreeBuilder;
-use RemexHtml\TreeBuilder\TreeHandler;
 use RemexHtml\TreeBuilder\Element;
 use RemexHtml\Tokenizer\Attributes;
 use RemexHtml\Tokenizer\PlainAttributes;
@@ -73,6 +73,7 @@ class Serializer implements AbstractSerializer {
 
 	/**
 	 * Get the final string. This can only be called after endDocument() is received.
+	 * @return string
 	 */
 	public function getResult() {
 		return $this->result;

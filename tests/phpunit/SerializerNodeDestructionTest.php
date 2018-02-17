@@ -87,7 +87,7 @@ class DestructNode {
 	}
 }
 
-class SerializerNodeDestructionTest extends \PHPUnit_Framework_TestCase {
+class SerializerNodeDestructionTest extends \PHPUnit\Framework\TestCase {
 	public function testDestruction() {
 		$input = '<div></div><div></div><div></div><div></div>';
 

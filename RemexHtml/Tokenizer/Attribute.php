@@ -1,6 +1,7 @@
 <?php
 
 namespace RemexHtml\Tokenizer;
+
 use RemexHtml\PropGuard;
 
 /**

@@ -1,8 +1,8 @@
 <?php
 
 namespace RemexHtml\TreeBuilder;
+
 use RemexHtml\HTMLData;
-use RemexHtml\Tokenizer\Attributes;
 
 /**
  * An implementation of the "stack of open elements" which includes a cache of

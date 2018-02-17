@@ -15,7 +15,7 @@
 	},
 	"require-dev": {
 		"phpunit/phpunit": "4.8.36",
-		"mediawiki/mediawiki-codesniffer": "0.12.0"
+		"mediawiki/mediawiki-codesniffer": "16.0.0"
 	},
 	"autoload": {
 		"psr-4": {
@@ -25,9 +25,9 @@
 	"scripts": {
 		"test": [
 			"phpunit",
-			"phpcs -p"
+			"phpcs -s -p"
 		],
-		"phpcs": "phpcs -s",
+		"phpcs": "phpcs -s -p",
 		"fix": "phpcbf"
 	}
 }
