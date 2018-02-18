@@ -15,7 +15,8 @@
 	},
 	"require-dev": {
 		"phpunit/phpunit": "4.8.36",
-		"mediawiki/mediawiki-codesniffer": "16.0.0"
+		"mediawiki/mediawiki-codesniffer": "16.0.0",
+		"mediawiki/minus-x": "0.3.1"
 	},
 	"autoload": {
 		"psr-4": {
@@ -25,9 +26,13 @@
 	"scripts": {
 		"test": [
 			"phpunit",
-			"phpcs -s -p"
+			"phpcs -s -p",
+			"minus-x check ."
 		],
 		"phpcs": "phpcs -s -p",
-		"fix": "phpcbf"
+		"fix": [
+			"phpcbf",
+			"minus-x fix ."
+		]
 	}
 }
