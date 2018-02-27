@@ -12,7 +12,13 @@ class PropGuardTest extends \PHPUnit\Framework\TestCase {
 		// Should not throw
 		$mock->real = true;
 		// Will throw
-		$this->setExpectedException( Exception::class );
+		if ( is_callable( [ $this, 'expectException' ] ) ) {
+			// PHPUnit 6+
+			$this->expectException( Exception::class );
+		} else {
+			// PHPUnit 4.8
+			$this->setExpectedException( Exception::class );
+		}
 		$mock->fake = true;
 	}
 
