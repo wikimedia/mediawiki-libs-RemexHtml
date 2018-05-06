@@ -1,4 +1,6 @@
-<phpunit backupGlobals="false">
+<phpunit colors="true"
+	beStrictAboutTestsThatDoNotTestAnything="true"
+	beStrictAboutOutputDuringTests="true">
 	<testsuites>
 		<testsuite name="RemexHtml Tests">
 			<directory>./tests/phpunit</directory>

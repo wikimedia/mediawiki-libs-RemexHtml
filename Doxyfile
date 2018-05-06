@@ -1,4 +1,4 @@
-# Doxyfile RemexHtml
+# Doxyfile for RemexHtml
 #
 # See <http://www.stack.nl/~dimitri/doxygen/manual/config.html>
 # for help on how to use this file to configure Doxygen.
@@ -13,6 +13,7 @@ INPUT                  = README.md RemexHtml/
 FILE_PATTERNS          = *.php
 RECURSIVE              = YES
 USE_MDFILE_AS_MAINPAGE = README.md
+FILTER_PATTERNS        = *md=build/doxygen_escape.sh
 HTML_DYNAMIC_SECTIONS  = YES
 GENERATE_TREEVIEW      = YES
 TREEVIEW_WIDTH         = 250

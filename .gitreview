@@ -1,6 +1,5 @@
 [gerrit]
 host=gerrit.wikimedia.org
 port=29418
-project=mediawiki/libs/RemexHtml
-defaultbranch=master
-defaultrebase=0
+project=mediawiki/libs/RemexHtml.git
+track=1
