@@ -12,33 +12,6 @@ use RemexHtml\Tokenizer;
 use RemexHtml\TreeBuilder;
 use RemexHtml\Serializer;
 
-class NullHandler implements Tokenizer\TokenHandler {
-	function startDocument( Tokenizer\Tokenizer $t, $fns, $fn ) {}
-	function endDocument( $pos ) {}
-	function error( $text, $pos ) {}
-	function characters( $text, $start, $length, $sourceStart, $sourceLength ) {}
-	function startTag( $name, Tokenizer\Attributes $attrs, $selfClose,
-		$sourceStart, $sourceLength ) {}
-	function endTag( $name, $sourceStart, $sourceLength ) {}
-	function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {}
-	function comment( $text, $sourceStart, $sourceLength ) {}
-}
-
-class NullTreeHandler implements TreeBuilder\TreeHandler {
-	function startDocument( $fns, $fn ) {}
-	function endDocument( $pos ) {}
-	function characters( $parent, $refNode, $text, $start, $length, $sourceStart, $sourceLength ) {}
-	function insertElement( $parent, $refNode, TreeBuilder\Element $element, $void,
-		$sourceStart, $sourceLength ) {}
-	function endTag( TreeBuilder\Element $element, $sourceStart, $sourceLength ) {}
-	function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {}
-	function comment( $parent, $refNode, $text, $sourceStart, $sourceLength ) {}
-	function error( $text, $pos ) {}
-	function mergeAttributes( TreeBuilder\Element $element, Tokenizer\Attributes $attrs, $sourceStart ) {}
-	function removeNode( TreeBuilder\Element $element, $sourceStart ) {}
-	function reparentChildren( TreeBuilder\Element $element, TreeBuilder\Element $newParent, $sourceStart ) {}
-}
-
 function reserialize( $text ) {
 	$handler = new Tokenizer\TokenSerializer;
 	$tokenizer = new Tokenizer\Tokenizer( $handler, $text, [] );
@@ -152,7 +125,7 @@ function testViaDOM( $text ) {
 
 function benchmarkNull( $text ) {
 	$time = -microtime( true );
-	$handler = new NullHandler;
+	$handler = new Tokenizer\NullTokenHandler;
 	$tokenizer = new Tokenizer\Tokenizer( $handler, $text, $GLOBALS['tokenizerOptions'] );
 	$tokenizer->execute( $GLOBALS['executeOptions'] );
 	$time += microtime( true );
@@ -170,7 +143,7 @@ function benchmarkSerialize( $text ) {
 
 function benchmarkTreeBuilder( $text ) {
 	$time = -microtime( true );
-	$handler = new NullTreeHandler;
+	$handler = new TreeBuilder\NullTreeHandler;
 	$treeBuilder = new TreeBuilder\TreeBuilder( $handler, [] );
 	$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
 	$tokenizer = new Tokenizer\Tokenizer( $dispatcher, $text, $GLOBALS['tokenizerOptions'] );
