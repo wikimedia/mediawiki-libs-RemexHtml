@@ -35,6 +35,19 @@ class SerializerWithTracer extends Serializer {
 	}
 
 	public function endDocument( $pos ) {
+		if ( count( $this->nodes ) ) {
+			$nodeTags = '';
+			foreach ( $this->nodes as $node ) {
+				if ( $nodeTags !== '' ) {
+					$nodeTags .= ', ';
+				}
+				$nodeTags .= $node->getDebugTag();
+			}
+			$this->trace( "endDocument: unclosed elements: $nodeTags" );
+		} else {
+			$this->trace( "endDocument: no unclosed elements" );
+		}
+
 		$this->handle( __FUNCTION__, func_get_args() );
 	}
 

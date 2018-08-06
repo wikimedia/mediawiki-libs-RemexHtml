@@ -40,8 +40,9 @@ class Serializer implements AbstractSerializer {
 	 * to avoid circular references, allowing nodes to be freed.
 	 *
 	 * @var SerializerNode[integer]
+	 * @internal
 	 */
-	private $nodes = [];
+	protected $nodes = [];
 
 	/**
 	 * True if we are parsing a fragment. The children of the <html> element
@@ -123,7 +124,7 @@ class Serializer implements AbstractSerializer {
 			if ( is_string( $child ) ) {
 				$this->result .= $child;
 			} else {
-				$this->result .= $this->stringify( $root, $child );
+				$this->result .= $this->serializeNode( $root, $child, false );
 			}
 		}
 		$this->root = null;
@@ -239,8 +240,7 @@ class Serializer implements AbstractSerializer {
 		$children =& $parent->children;
 		for ( $index = count( $children ) - 1; $index >= 0; $index-- ) {
 			if ( $children[$index] === $self ) {
-				unset( $this->nodes[$self->id] );
-				$children[$index] = $this->stringify( $parent, $self );
+				$children[$index] = $this->serializeNode( $parent, $self, true );
 				return;
 			}
 		}
@@ -252,9 +252,10 @@ class Serializer implements AbstractSerializer {
 	 *
 	 * @param SerializerNode $parent The parent of $node
 	 * @param SerializerNode $node The node to serialize
+	 * @param bool $destroy If true, the node and its descendants will be removed from $this->nodes
 	 * @return string
 	 */
-	private function stringify( SerializerNode $parent, SerializerNode $node ) {
+	private function serializeNode( SerializerNode $parent, SerializerNode $node, $destroy ) {
 		if ( $node->void ) {
 			$contents = null;
 		} else {
@@ -263,9 +264,12 @@ class Serializer implements AbstractSerializer {
 				if ( is_string( $child ) ) {
 					$contents .= $child;
 				} else {
-					$contents .= $this->stringify( $node, $child );
+					$contents .= $this->serializeNode( $node, $child, $destroy );
 				}
 			}
+		}
+		if ( $destroy ) {
+			unset( $this->nodes[$node->id] );
 		}
 		return $this->formatter->element( $parent, $node, $contents );
 	}
@@ -346,7 +350,7 @@ class Serializer implements AbstractSerializer {
 	 * @return string
 	 */
 	public function dump() {
-		$s = $this->stringify( $this->root, $this->root );
+		$s = $this->serializeNode( $this->root, $this->root, false );
 		return substr( $s, 2, -3 ) . "\n";
 	}
 }
