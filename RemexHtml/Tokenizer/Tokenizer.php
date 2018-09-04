@@ -1483,6 +1483,6 @@ REGEX;
 			$msg = "PCRE unexpected error";
 		}
 
-		throw new TokenizerError( __CLASS__.": $msg" );
+		throw new TokenizerError( __CLASS__ . ": $msg" );
 	}
 }
