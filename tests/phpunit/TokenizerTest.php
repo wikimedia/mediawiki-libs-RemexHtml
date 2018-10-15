@@ -152,4 +152,22 @@ class TokenizerTest extends \PHPUnit\Framework\TestCase {
 			json_encode( $output, $jsonOptions ) );
 	}
 
+	public function provideIgnoreErrors() {
+		return [
+			'ignoreErrors=false' => [ false ],
+			'ignoreErrors=true' => [ true ],
+		];
+	}
+
+	/** @dataProvider provideIgnoreErrors */
+	public function testDoubleDecode( $ignoreErrors ) {
+		$handler = new TestTokenHandler();
+		$tokenizer = new Tokenizer( $handler, '&amp;amp;', [ 'ignoreErrors' => $ignoreErrors ] );
+		$tokenizer->execute( [
+			'state' => Tokenizer::STATE_DATA
+		] );
+		$output = $this->normalizeErrors( $handler->getTokens() );
+		$output = json_encode( $output, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+		$this->assertEquals( '[["Character","&amp;"]]', $output );
+	}
 }
