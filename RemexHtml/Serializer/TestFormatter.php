@@ -3,7 +3,6 @@
 namespace RemexHtml\Serializer;
 
 use RemexHtml\Tokenizer\Attribute;
-use RemexHtml\Tokenizer\Attributes;
 use RemexHtml\HTMLData;
 use RemexHtml\DOM\DOMFormatter;
 use RemexHtml\DOM\DOMUtils;

@@ -50,7 +50,7 @@ class CachingStack extends Stack {
 	 * involves pulling an item out of the AFE list and checking if it is in
 	 * scope.
 	 */
-	static private $predicateMap = [
+	private static $predicateMap = [
 		'a' => self::SCOPE_DEFAULT,
 		'address' => self::SCOPE_DEFAULT,
 		'applet' => self::SCOPE_DEFAULT,
