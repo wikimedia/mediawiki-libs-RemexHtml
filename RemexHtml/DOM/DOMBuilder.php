@@ -36,7 +36,7 @@ class DOMBuilder implements TreeHandler {
 	 * DOMDocumentFragment, libxml would invent new prefixes for the orphaned
 	 * namespaces.
 	 *
-	 * @return DOMNode
+	 * @return \DOMNode
 	 */
 	public function getFragment() {
 		if ( $this->isFragment ) {
