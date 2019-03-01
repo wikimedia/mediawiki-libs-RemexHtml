@@ -104,7 +104,7 @@ class Tokenizer {
 	 *     control characters. Advisable if the input stream is already
 	 *     appropriately normalized.
 	 */
-	public function __construct( TokenHandler $listener, $text, $options ) {
+	public function __construct( TokenHandler $listener, $text, $options = [] ) {
 		$this->listener = $listener;
 		$this->text = $text;
 		$this->pos = 0;
