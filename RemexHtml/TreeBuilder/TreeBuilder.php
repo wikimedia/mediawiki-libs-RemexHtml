@@ -320,10 +320,6 @@ class TreeBuilder {
 		} while ( $entry );
 	}
 
-	private function trace( $msg ) {
-		// print "[AAA] $msg\n";
-	}
-
 	/**
 	 * Run the "adoption agency algorithm" (AAA) for the given subject
 	 * tag name.
@@ -349,13 +345,10 @@ class TreeBuilder {
 			$this->pop( $sourceStart, $sourceLength );
 			return;
 		}
-		$this->trace( "AAA invoked on $subject" );
 
 		// Outer loop: If outer loop counter is greater than or
 		// equal to eight, then abort these steps. [2-4]
 		for ( $outer = 0; $outer < 8; $outer++ ) {
-			$this->trace( "Outer $outer" );
-			$this->trace( "AFE\n" . $afe->dump() . "STACK\n" . $stack->dump() );
 
 			// Let the formatting element be the last element in the list
 			// of active formatting elements that: is between the end of
@@ -423,13 +416,10 @@ class TreeBuilder {
 			// formatting element from the list of active formatting
 			// elements. [10]
 			if ( !$furthestBlock ) {
-				$this->trace( "no furthest block" );
 				$this->popAllUpToElement( $fmtElt, $sourceStart, $sourceLength );
 				$afe->remove( $fmtElt );
 				return;
 			}
-
-			$this->trace( "furthestBlock = " . $furthestBlock->getDebugTag() );
 
 			// Let the common ancestor be the element immediately above the
 			// formatting element in the stack of open elements. [11]
@@ -462,7 +452,6 @@ class TreeBuilder {
 				if ( $node === $fmtElt ) {
 					break;
 				}
-				$this->trace( "inner $inner, {$node->getDebugTag()} is not fmtElt" );
 
 				// If the inner loop counter is greater than three and node
 				// is in the list of active formatting elements, then remove
@@ -544,10 +533,6 @@ class TreeBuilder {
 			// and insert the new element into the stack of open elements
 			// immediately below the position of the furthest block in that
 			// stack. [19]
-			$this->trace( "Removing " . $stack->length() . "-" . ( $furthestBlockIndex + 1 ) );
-			$this->trace( "Inserting the new element below $furthestBlockIndex" );
-			$this->trace( "Removing stack elements " .
-				implode( ', ', array_keys( $stackRemovals ) ) );
 
 			// Make a temporary stack with the elements we are going to push back in
 			$tempStack = [];
@@ -563,7 +548,6 @@ class TreeBuilder {
 				$elt = $stack->pop();
 				// Drop elements previously marked for removal
 				if ( isset( $stackRemovals[$index] ) ) {
-					$this->trace( "ending marked node {$elt->getDebugTag()}" );
 					$handler->endTag( $elt, $sourceStart, 0 );
 				} else {
 					$tempStack[] = $elt;
@@ -571,7 +555,6 @@ class TreeBuilder {
 			}
 			// Remove the formatting element
 			$elt = $stack->pop();
-			$this->trace( "ending formatting element {$elt->getDebugTag()}" );
 			$handler->endTag( $elt, $sourceStart, 0 );
 			// Reinsert
 			foreach ( array_reverse( $tempStack ) as $elt ) {
