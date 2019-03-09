@@ -100,7 +100,7 @@ function tidyViaDOM( $text ) {
 		print "  *  [$pos] $msg\n";
 	};
 	$formatter = new Serializer\HtmlFormatter;
-	$domBuilder = new DOM\DOMBuilder( $error );
+	$domBuilder = new DOM\DOMBuilder( [ 'errorCallback' => $error ] );
 	$serializer = new DOM\DOMSerializer( $domBuilder, $formatter );
 	$treeBuilder = new TreeBuilder\TreeBuilder( $serializer, [] );
 	$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );
@@ -114,7 +114,7 @@ function testViaDOM( $text ) {
 		print "  *  [$pos] $msg\n";
 	};
 	$formatter = new Serializer\TestFormatter;
-	$domBuilder = new DOM\DOMBuilder( $error );
+	$domBuilder = new DOM\DOMBuilder( [ 'errorCallback' => $error ] );
 	$serializer = new DOM\DOMSerializer( $domBuilder, $formatter );
 	$treeBuilder = new TreeBuilder\TreeBuilder( $serializer, [] );
 	$dispatcher = new TreeBuilder\Dispatcher( $treeBuilder );

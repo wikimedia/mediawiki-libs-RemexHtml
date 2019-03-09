@@ -205,7 +205,7 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 	/** @dataProvider domProvider */
 	public function testDOMSerializer( $params ) {
 		$formatter = new Serializer\TestFormatter;
-		$builder = new DOM\DOMBuilder( [ $this, 'errorCallback' ] );
+		$builder = new DOM\DOMBuilder( [ 'errorCallback' => [ $this, 'errorCallback' ] ] );
 		$serializer = new DOM\DOMSerializer( $builder, $formatter );
 		$this->runWithSerializer( $serializer, $params );
 	}
