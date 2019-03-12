@@ -27,25 +27,26 @@ class Tokenizer {
 	// Match indices for the data state regex
 	const MD_END_TAG_OPEN = 1;
 	const MD_TAG_NAME = 2;
-	const MD_COMMENT = 3;
-	const MD_COMMENT_INNER = 4;
-	const MD_COMMENT_END = 5;
-	const MD_DOCTYPE = 6;
-	const MD_DT_NAME_WS = 7;
-	const MD_DT_NAME = 8;
-	const MD_DT_PUBLIC_WS = 9;
-	const MD_DT_PUBLIC_DQ = 10;
-	const MD_DT_PUBLIC_SQ = 11;
-	const MD_DT_PUBSYS_WS = 12;
-	const MD_DT_PUBSYS_DQ = 13;
-	const MD_DT_PUBSYS_SQ = 14;
-	const MD_DT_SYSTEM_WS = 15;
-	const MD_DT_SYSTEM_DQ = 16;
-	const MD_DT_SYSTEM_SQ = 17;
-	const MD_DT_BOGUS = 18;
-	const MD_DT_END = 19;
-	const MD_CDATA = 20;
-	const MD_BOGUS_COMMENT = 21;
+	const MD_TAG_AFTER_LOWERCASE = 3;
+	const MD_COMMENT = 4;
+	const MD_COMMENT_INNER = 5;
+	const MD_COMMENT_END = 6;
+	const MD_DOCTYPE = 7;
+	const MD_DT_NAME_WS = 8;
+	const MD_DT_NAME = 9;
+	const MD_DT_PUBLIC_WS = 10;
+	const MD_DT_PUBLIC_DQ = 11;
+	const MD_DT_PUBLIC_SQ = 12;
+	const MD_DT_PUBSYS_WS = 13;
+	const MD_DT_PUBSYS_DQ = 14;
+	const MD_DT_PUBSYS_SQ = 15;
+	const MD_DT_SYSTEM_WS = 16;
+	const MD_DT_SYSTEM_DQ = 17;
+	const MD_DT_SYSTEM_SQ = 18;
+	const MD_DT_BOGUS = 19;
+	const MD_DT_END = 20;
+	const MD_CDATA = 21;
+	const MD_BOGUS_COMMENT = 22;
 
 	// Match indices for the character reference regex
 	const MC_PREFIX = 1;
@@ -359,17 +360,27 @@ class Tokenizer {
 					# Try to match the ASCII letter required for the start of a start
 					# or end tag. If this fails, a slash matched above can be
 					# backtracked and then fed into the bogus comment alternative below.
-					[a-zA-Z]
+					# As an optimization, notice if the tag is all-lowercase;
+					# we can skip strtolower and null handling in that case.
+					(?:
+						[a-z]++
+						# Portion after initial all-lowercase prefix
+						( [^\t\n\f />]*+ ) |
 
-					# Then capture the rest of the tag name
-					[^\t\n\f />]*
-				) |
+						# Capture initial uppercase letter
+						[A-Z]
+						# Then capture the rest of the tag name
+						[^\t\n\f />]*+
+					)
+				)
+
+				|
 
 				# Comment
 				!--
-				(                             # 3. Comment match detector
+				(                             # 4. Comment match detector
 					> | -> | # Invalid short close
-					(                         # 4. Comment contents
+					(                         # 5. Comment contents
 						(?:
 							(?! --> )
 							(?! --!> )
@@ -379,7 +390,7 @@ class Tokenizer {
 							.
 						)*+
 					)
-					(                         # 5. Comment close
+					(                         # 6. Comment close
 						--> |   # Normal close
 						--!> |  # Comment end bang
 						--! |   # EOF in comment end bang state
@@ -388,7 +399,7 @@ class Tokenizer {
 						        # EOF in comment state
 					)
 				) |
-				( (?i)                        # 6. Doctype
+				( (?i)                        # 7. Doctype
 					! DOCTYPE
 
 					# There must be at least one whitespace character to suppress
@@ -397,45 +408,45 @@ class Tokenizer {
 					# as a character node, the DOCTYPE subexpression must always
 					# wholly match if we matched up to this point.
 
-					( [\t\n\f ]*+ )           # 7. Required whitespace
-					( [^\t\n\f >]*+ )         # 8. DOCTYPE name
+					( [\t\n\f ]*+ )           # 8. Required whitespace
+					( [^\t\n\f >]*+ )         # 9. DOCTYPE name
 					[\t\n\f ]*+
 					(?:
 						# After DOCTYPE name state
 						PUBLIC
-						( [\t\n\f ]* )            # 9. Required whitespace
+						( [\t\n\f ]* )            # 10. Required whitespace
 						(?:
-							\" ( [^\">]* ) \"? |  # 10. Double-quoted identifier
-							' ( [^'>]* ) '? |     # 11. Single-quoted identifier
+							\" ( [^\">]* ) \"? |  # 11. Double-quoted identifier
+							' ( [^'>]* ) '? |     # 12. Single-quoted identifier
 							# Non-match: bogus
 						)
 						(?:
 							# After DOCTYPE public identifier state
 							# Assert quoted identifier before here
 							(?<= \" | ' )
-							( [\t\n\f ]* )            # 12. Required whitespace
+							( [\t\n\f ]* )            # 13. Required whitespace
 							(?:
-								\" ( [^\">]* ) \"? |  # 13. Double-quoted identifier
-								' ( [^'>]* ) '? |     # 14. Single-quoted identifier
+								\" ( [^\">]* ) \"? |  # 14. Double-quoted identifier
+								' ( [^'>]* ) '? |     # 15. Single-quoted identifier
 								# Non-match: no system ID
 							)
 						)?
 						|
 						SYSTEM
-						( [\t\n\f ]* )            # 15. Required whitespace
+						( [\t\n\f ]* )            # 16. Required whitespace
 						(?:
-							\" ( [^\">]* ) \"? |  # 16. Double-quoted identifier
-							' ( [^'>]* ) '? |     # 17. Single-quoted identifier
+							\" ( [^\">]* ) \"? |  # 17. Double-quoted identifier
+							' ( [^'>]* ) '? |     # 18. Single-quoted identifier
 							# Non-match: bogus
 						)
 						|  # No keyword is OK
 					)
 					[\t\n\f ]*
-					( [^>]*+ )                # 18. Bogus DOCTYPE
-					( >? )                    # 19. End of DOCTYPE
+					( [^>]*+ )                # 19. Bogus DOCTYPE
+					( >? )                    # 20. End of DOCTYPE
 				) |
-				( ! \[CDATA\[ ) |             # 20. CDATA section
-				( [!?/] [^>]*+ ) >?           # 21. Bogus comment
+				( ! \[CDATA\[ ) |             # 21. CDATA section
+				( [!?/] [^>]*+ ) >?           # 22. Bogus comment
 
 				# Anything else: parse error and emit literal less-than sign.
 				# We will let the match fail at this position and later check
@@ -479,11 +490,35 @@ class Tokenizer {
 			if ( strlen( $tagName ) ) {
 				// Tag
 				$isEndTag = (bool)strlen( $m[self::MD_END_TAG_OPEN][0] );
-				if ( !$this->ignoreNulls ) {
-					$tagName = $this->handleNulls( $tagName, $m[self::MD_TAG_NAME][1] );
+				$isAllLower = isset( $m[self::MD_TAG_AFTER_LOWERCASE] ) &&
+					$m[self::MD_TAG_AFTER_LOWERCASE][0] === '';
+				if ( !$isAllLower ) {
+					// As an optimization, we skip these steps for the common
+					// case of an all-lowercase tag name
+					if ( !$this->ignoreNulls ) {
+						$tagName = $this->handleNulls( $tagName, $m[self::MD_TAG_NAME][1] );
+					}
+					$tagName = strtolower( $tagName );
 				}
-				$tagName = strtolower( $tagName );
 				$this->pos = $nextPos;
+				if ( $nextPos < $this->length && $this->text[ $nextPos ] === '>' ) {
+					// "Simple tag" optimization; skip attribute parsing and
+					// stay in this state
+					$this->pos = ++$nextPos;
+					if ( $isEndTag ) {
+						$this->listener->endTag(
+							$tagName, $startPos, $nextPos - $startPos
+						);
+					} else {
+						$this->listener->startTag(
+							$tagName, new PlainAttributes(), false,
+							$startPos, $nextPos - $startPos
+						);
+					}
+					// Respect any state switch imposed by the parser
+					$nextState = $this->state;
+					continue;
+				}
 				$nextState = $this->handleAttribsAndClose( self::STATE_DATA,
 					$tagName, $isEndTag, $startPos );
 				$nextPos = $this->pos;
