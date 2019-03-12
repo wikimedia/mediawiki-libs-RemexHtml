@@ -297,7 +297,7 @@ class Tokenizer {
 				'\x{DFFFE}\x{DFFFF}' .
 				'\x{EFFFE}\x{EFFFF}' .
 				'\x{FFFFE}\x{FFFFF}' .
-				'\x{10FFFE}\x{10FFFF}]/u';
+				'\x{10FFFE}\x{10FFFF}]/uS';
 			while ( $pos < $this->length ) {
 				$count = preg_match( $re, $this->text, $m, PREG_OFFSET_CAPTURE, $pos );
 				if ( $count === false ) {
