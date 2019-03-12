@@ -63,15 +63,26 @@ class Tokenizer {
 	const MA_NAME = 2;
 	const MA_SIMPLE_NAME = 3;
 	const MA_DQUOTED = 4;
-	const MA_DQUOTED_UNSIMPLE = 5;
-	const MA_SQUOTED = 6;
-	const MA_SQUOTED_UNSIMPLE = 7;
-	const MA_UNQUOTED = 8;
-	const MA_UNQUOTED_UNSIMPLE = 9;
+	const MA_DQUOTED_CHARREF = 5;
+	const MA_DQUOTED_UNSIMPLE = 6;
+	const MA_SQUOTED = 7;
+	const MA_SQUOTED_CHARREF = 8;
+	const MA_SQUOTED_UNSIMPLE = 9;
+	const MA_UNQUOTED = 10;
+	const MA_UNQUOTED_UNSIMPLE = 11;
 
 	// Characters
 	const REPLACEMENT_CHAR = "\xef\xbf\xbd";
 	const BYTE_ORDER_MARK = "\xef\xbb\xbf";
+
+	// A list of "common well-behaved entities", used to optimize fast paths
+	private static $commonEntities = [
+		'&amp;' => '&',
+		'&apos;' => "'",
+		'&lt;' => '<',
+		'&gt;' => '>',
+		'&quot;' => '"',
+	];
 
 	protected $ignoreErrors;
 	protected $ignoreCharRefs;
@@ -1144,7 +1155,15 @@ class Tokenizer {
 	 * @return array Attributes
 	 */
 	protected function consumeAttribs() {
-		$re = '~
+		static $re;
+		if ( $re === null ) {
+			# Optimize handling of attributes containing only the following
+			# entities, properly semicolon terminated.
+			$wellBehavedEntities = '&(?:' .
+				implode( '|', array_map( function ( $s ) {
+					return substr( $s, 1, -1 );
+				}, array_keys( self::$commonEntities ) ) ) . ');';
+			$re = '~
 			[\t\n\f ]*+  # Ignored whitespace before attribute name
 			(?! /> )     # Do not consume self-closing end of tag
 			(?! > )      # Do not consume normal closing bracket
@@ -1183,15 +1202,21 @@ class Tokenizer {
 						# unexpected EOF and will not emit the tag, which is correct.
 						" (                     # 4. Double-quoted attribute values
 							[^"&\r\0]*+         #    Simple prefix
-							( [^"]*+ )          # 5. Unsimple suffix
+							(                   # 5. Perhaps some clean entities
+								(?: ' . $wellBehavedEntities . ' | [^"&\r\0] )*+
+							)
+							( [^"]*+ )          # 6. Unsimple suffix
 						) "? |
-						\' (                    # 6. Single-quoted attribute value
+						\' (                    # 7. Single-quoted attribute value
 							[^\'&\r\0]*+        #    Simple prefix
-							( [^\']*+ )         # 7. Unsimple suffix
+							(                   # 8. Perhaps some clean entities
+								(?: ' . $wellBehavedEntities . ' | [^\'&\r\0] )*+
+							)
+							( [^\']*+ )         # 9. Unsimple suffix
 						)  \'? |
-						(                       # 8. Unquoted attribute value
+						(                       # 10. Unquoted attribute value
 							[^\t\n\f >\r"&\'\0=<`]*+ #  Simple prefix
-							( [^\t\n\f >]*+ )   # 9. Unsimple suffix
+							( [^\t\n\f >]*+ )   # 11. Unsimple suffix
 						)
 					)
 					# Or nothing: an attribute with an empty value. The attribute name was
@@ -1201,6 +1226,7 @@ class Tokenizer {
 			)
 			# The /A modifier causes preg_match_all to give contiguous chunks
 			~xAS';
+		}
 		$count = preg_match_all( $re, $this->text, $m,
 			PREG_SET_ORDER | PREG_OFFSET_CAPTURE, $this->pos );
 		if ( $count === false ) {
@@ -1256,12 +1282,20 @@ class Tokenizer {
 				$value = $m[self::MA_DQUOTED][0];
 				$pos = $m[self::MA_DQUOTED][1];
 				$isSimple = !strlen( $m[self::MA_DQUOTED_UNSIMPLE][0] );
+				if ( $isSimple && strlen( $m[self::MA_DQUOTED_CHARREF][0] ) ) {
+					// Efficiently handle well-behaved character references
+					$value = strtr( $value, self::$commonEntities );
+				}
 			} elseif ( isset( $m[self::MA_SQUOTED] ) && $m[self::MA_SQUOTED][1] >= 0 ) {
 				// Single-quoted attribute value
 				$additionalAllowedChar = "'";
 				$value = $m[self::MA_SQUOTED][0];
 				$pos = $m[self::MA_SQUOTED][1];
 				$isSimple = !strlen( $m[self::MA_SQUOTED_UNSIMPLE][0] );
+				if ( $isSimple && strlen( $m[self::MA_SQUOTED_CHARREF][0] ) ) {
+					// Efficiently handle well-behaved character references
+					$value = strtr( $value, self::$commonEntities );
+				}
 			} elseif ( isset( $m[self::MA_UNQUOTED] ) && $m[self::MA_UNQUOTED][1] >= 0 ) {
 				// Unquoted attribute value
 				$value = $m[self::MA_UNQUOTED][0];
