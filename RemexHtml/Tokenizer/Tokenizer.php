@@ -61,9 +61,13 @@ class Tokenizer {
 	// Match indices for the attribute regex
 	const MA_SLASH = 1;
 	const MA_NAME = 2;
-	const MA_DQUOTED = 3;
-	const MA_SQUOTED = 4;
-	const MA_UNQUOTED = 5;
+	const MA_SIMPLE_NAME = 3;
+	const MA_DQUOTED = 4;
+	const MA_DQUOTED_UNSIMPLE = 5;
+	const MA_SQUOTED = 6;
+	const MA_SQUOTED_UNSIMPLE = 7;
+	const MA_UNQUOTED = 8;
+	const MA_UNQUOTED_UNSIMPLE = 9;
 
 	// Characters
 	const REPLACEMENT_CHAR = "\xef\xbf\xbd";
@@ -1157,10 +1161,16 @@ class Tokenizer {
 				# but still generates an attribute called "=". Thus the only way the match
 				# could fail here is due to EOF.
 
-				( [^\t\n\f />] [^\t\n\f =/>]*+ )  # 2. Attribute name
+				(                       # 2. Attribute name
+					(?:
+						( [-a-z]++ ) |  # 3. Optional "simple" prefix
+                        [^\t\n\f />]
+					)
+                    [^\t\n\f =/>]*+
+                )
 
 				# After attribute name state
-				[\t\n\f ]*
+				[\t\n\f ]*+
 
 				(?:
 					=
@@ -1171,9 +1181,18 @@ class Tokenizer {
 						# If an end-quote is omitted, the attribute will run to the end of the
 						# string, leaving no closing bracket. So the caller will detect the
 						# unexpected EOF and will not emit the tag, which is correct.
-						" ( [^"]*+ ) "? |       # 3. Double-quoted attribute value
-						\' ( [^\']*+ ) \'? |    # 4. Single-quoted attribute value
-						( [^\t\n\f >]*+ )       # 5. Unquoted attribute value
+						" (                     # 4. Double-quoted attribute values
+							[^"&\r\0]*+         #    Simple prefix
+							( [^"]*+ )          # 5. Unsimple suffix
+						) "? |
+						\' (                    # 6. Single-quoted attribute value
+							[^\'&\r\0]*+        #    Simple prefix
+							( [^\']*+ )         # 7. Unsimple suffix
+						)  \'? |
+						(                       # 8. Unquoted attribute value
+							[^\t\n\f >\r"&\'\0=<`]*+ #  Simple prefix
+							( [^\t\n\f >]*+ )   # 9. Unsimple suffix
+						)
 					)
 					# Or nothing: an attribute with an empty value. The attribute name was
 					# terminated by a slash, closing bracket or EOF
@@ -1181,7 +1200,7 @@ class Tokenizer {
 				)
 			)
 			# The /A modifier causes preg_match_all to give contiguous chunks
-			~xA';
+			~xAS';
 		$count = preg_match_all( $re, $this->text, $m,
 			PREG_SET_ORDER | PREG_OFFSET_CAPTURE, $this->pos );
 		if ( $count === false ) {
@@ -1217,35 +1236,46 @@ class Tokenizer {
 				continue;
 			}
 			$name = $m[self::MA_NAME][0];
-			if ( !$this->ignoreErrors ) {
-				$this->handleAsciiErrors( "\"'<=", $name, 0, strlen( $name ), $m[self::MA_NAME][1] );
+			$isSimple = isset( $m[self::MA_SIMPLE_NAME] ) &&
+				( strlen( $name ) === strlen( $m[self::MA_SIMPLE_NAME][0] ) );
+			if ( !$isSimple ) {
+				// We can skip these steps if we already know the name is simple
+				if ( !$this->ignoreErrors ) {
+					$this->handleAsciiErrors( "\"'<=", $name, 0, strlen( $name ), $m[self::MA_NAME][1] );
+				}
+				if ( !$this->ignoreNulls ) {
+					$name = $this->handleNulls( $m[self::MA_NAME][0], $m[self::MA_NAME][1] );
+				}
+				$name = strtolower( $name );
 			}
-			if ( !$this->ignoreNulls ) {
-				$name = $this->handleNulls( $m[self::MA_NAME][0], $m[self::MA_NAME][1] );
-			}
-			$name = strtolower( $name );
 			$additionalAllowedChar = '';
+			$isSimple = true;
 			if ( isset( $m[self::MA_DQUOTED] ) && $m[self::MA_DQUOTED][1] >= 0 ) {
 				// Double-quoted attribute value
 				$additionalAllowedChar = '"';
 				$value = $m[self::MA_DQUOTED][0];
 				$pos = $m[self::MA_DQUOTED][1];
+				$isSimple = !strlen( $m[self::MA_DQUOTED_UNSIMPLE][0] );
 			} elseif ( isset( $m[self::MA_SQUOTED] ) && $m[self::MA_SQUOTED][1] >= 0 ) {
 				// Single-quoted attribute value
 				$additionalAllowedChar = "'";
 				$value = $m[self::MA_SQUOTED][0];
 				$pos = $m[self::MA_SQUOTED][1];
+				$isSimple = !strlen( $m[self::MA_SQUOTED_UNSIMPLE][0] );
 			} elseif ( isset( $m[self::MA_UNQUOTED] ) && $m[self::MA_UNQUOTED][1] >= 0 ) {
 				// Unquoted attribute value
 				$value = $m[self::MA_UNQUOTED][0];
 				$pos = $m[self::MA_UNQUOTED][1];
+				$isSimple = !strlen( $m[self::MA_UNQUOTED_UNSIMPLE][0] );
 				// Search for parse errors
 				if ( !$this->ignoreErrors ) {
 					if ( $value === '' ) {
 						// ">" in the before attribute value state is a parse error
 						$this->error( 'empty unquoted attribute', $pos );
 					}
-					$this->handleAsciiErrors( "\"'<=`", $value, 0, strlen( $value ), $pos );
+					if ( !$isSimple ) {
+						$this->handleAsciiErrors( "\"'<=`", $value, 0, strlen( $value ), $pos );
+					}
 				}
 			} else {
 				$value = '';
@@ -1261,7 +1291,7 @@ class Tokenizer {
 					}
 				}
 			}
-			if ( $value !== '' ) {
+			if ( !$isSimple && $value !== '' ) {
 				if ( !$this->ignoreNulls ) {
 					$value = $this->handleNulls( $value, $pos );
 				}
