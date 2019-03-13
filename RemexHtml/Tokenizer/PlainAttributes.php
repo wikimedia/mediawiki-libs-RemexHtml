@@ -25,7 +25,7 @@ class PlainAttributes implements Attributes {
 		return isset( $this->data[$key] );
 	}
 
-	public function offsetGet( $key ) {
+	public function &offsetGet( $key ) {
 		return $this->data[$key];
 	}
 
@@ -38,7 +38,7 @@ class PlainAttributes implements Attributes {
 	}
 
 	public function getIterator() {
-		return new ArrayIterator( $this->data );
+		return new \ArrayIterator( $this->data );
 	}
 
 	public function getValues() {
