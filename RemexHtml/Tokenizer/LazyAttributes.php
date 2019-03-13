@@ -9,7 +9,7 @@ namespace RemexHtml\Tokenizer;
  * This should not be directly instantiated outside of Tokenizer.
  */
 class LazyAttributes implements Attributes {
-	private $tokenizer;
+	private $interpreter;
 	private $data;
 	private $attributes;
 	private $attrObjects;
@@ -24,6 +24,7 @@ class LazyAttributes implements Attributes {
 			$func = $this->interpreter;
 			$this->attributes = $func( $this->data );
 			$this->interpreter = null;
+			$this->data = null;
 		}
 	}
 
@@ -77,7 +78,10 @@ class LazyAttributes implements Attributes {
 	}
 
 	public function count() {
-		return is_object( $this->data ) ? $this->data->count() : count( $this->data );
+		if ( $this->attributes === null ) {
+			return is_object( $this->data ) ? $this->data->count() : count( $this->data );
+		}
+		return count( $this->attributes );
 	}
 
 	public function getIterator() {
