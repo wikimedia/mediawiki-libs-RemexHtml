@@ -471,21 +471,26 @@ class Tokenizer {
 
 		$nextState = self::STATE_DATA;
 		do {
-			$count = preg_match( $re, $this->text, $m, PREG_OFFSET_CAPTURE, $this->pos );
+			# As an optimization, quick scan ahead to the first "difficult"
+			# character
+			$npos = strcspn( $this->text, "<&\0", $this->pos ) + $this->pos;
+			$count = preg_match( $re, $this->text, $m, PREG_OFFSET_CAPTURE, $npos );
 			if ( $count === false ) {
 				$this->throwPregError();
 			} elseif ( !$count ) {
 				// Text runs to end
-				$this->emitDataRange( $this->pos, $this->length - $this->pos );
+				$dataIsSimple = ( $npos === $this->length );
+				$this->emitDataRange( $this->pos, $this->length - $this->pos, $dataIsSimple );
 				$this->pos = $this->length;
 				$nextState = self::STATE_EOF;
 				break;
 			}
 
 			$startPos = $m[0][1];
+			$dataIsSimple = ( $startPos === $npos );
 			$tagName = isset( $m[self::MD_TAG_NAME] ) ? $m[self::MD_TAG_NAME][0] : '';
 
-			$this->emitDataRange( $this->pos, $startPos - $this->pos );
+			$this->emitDataRange( $this->pos, $startPos - $this->pos, $dataIsSimple );
 			$this->pos = $startPos;
 			$nextPos = $m[0][1] + strlen( $m[0][0] );
 
@@ -1033,12 +1038,18 @@ class Tokenizer {
 	 *
 	 * @param int $pos Offset within the input text
 	 * @param int $length The length of the range
+	 * @param bool $isSimple True if you know that the data range does not
+	 *  contain < \0 or &; false is safe if you're not sure
 	 */
-	protected function emitDataRange( $pos, $length ) {
+	protected function emitDataRange( $pos, $length, $isSimple = false ) {
 		if ( $length === 0 ) {
 			return;
 		}
 		if ( $this->ignoreCharRefs && $this->ignoreNulls && $this->ignoreErrors ) {
+			// Pretend this data range doesn't contain < \0 or &
+			$isSimple = true;
+		}
+		if ( $isSimple ) {
 			$this->listener->characters( $this->text, $pos, $length, $pos, $length );
 		} else {
 			if ( !$this->ignoreErrors ) {
