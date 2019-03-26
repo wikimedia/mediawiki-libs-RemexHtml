@@ -267,41 +267,73 @@ class Tokenizer {
 		}
 
 		// Normalize line endings
-		$this->text = strtr( $this->text, [
-			"\r\n" => "\n",
-			"\r" => "\n" ] );
-		$this->length = strlen( $this->text );
+		if ( strcspn( $this->text, "\r" ) !== strlen( $this->text ) ) {
+			$this->text = preg_replace( '/\r\n?/', "\n", $this->text );
+			$this->length = strlen( $this->text );
+		}
 
 		// Raise parse errors for any control characters
+		static $re;
+		if ( $re === null ) {
+			// Note that we deliberately do not use the 'u' flag on the
+			// regexp below, as that bypasses the PCRE JIT.  Instead we
+			// rewrite character classes containing codepoints which
+			// require more than one UTF-8 byte as alternations.
+			$re = '/[' .
+				// "C0 controls" (u0000 - u001F) but not
+				// "ASCII whitespace" (u0009, u000A, u000C, u000D, u0020) or
+				// NULL (u0000)
+				// https://infra.spec.whatwg.org/#c0-control
+				// https://infra.spec.whatwg.org/#ascii-whitespace
+				'\x{0001}-\x{0008}' .
+				'\x{000B}' .
+				'\x{000E}-\x{001F}' .
+				// "Controls" other than C0 controls (u007F - u009F)
+				// https://infra.spec.whatwg.org/#control
+				'\x{007F}]|' .
+				// (We can't use character classes above u007F)
+				"\u{0080}|\u{0081}|\u{0082}|\u{0083}|" .
+				"\u{0084}|\u{0085}|\u{0086}|\u{0087}|" .
+				"\u{0088}|\u{0089}|\u{008A}|\u{008B}|" .
+				"\u{008C}|\u{008D}|\u{008E}|\u{008F}|" .
+				"\u{0090}|\u{0091}|\u{0092}|\u{0093}|" .
+				"\u{0094}|\u{0095}|\u{0096}|\u{0097}|" .
+				"\u{0098}|\u{0099}|\u{009A}|\u{009B}|" .
+				"\u{009C}|\u{009D}|\u{009E}|\u{009F}|" .
+				// HTML spec calls these "noncharacters"
+				// https://infra.spec.whatwg.org/#noncharacter
+				"\u{FDD0}|\u{FDD1}|\u{FDD2}|\u{FDD3}|" .
+				"\u{FDD4}|\u{FDD5}|\u{FDD6}|\u{FDD7}|" .
+				"\u{FDD8}|\u{FDD9}|\u{FDDA}|\u{FDDB}|" .
+				"\u{FDDC}|\u{FDDD}|\u{FDDE}|\u{FDDF}|" .
+				"\u{FDE0}|\u{FDE1}|\u{FDE2}|\u{FDE3}|" .
+				"\u{FDE4}|\u{FDE5}|\u{FDE6}|\u{FDE7}|" .
+				"\u{FDE8}|\u{FDE9}|\u{FDEA}|\u{FDEB}|" .
+				"\u{FDEC}|\u{FDED}|\u{FDEE}|\u{FDEF}|" .
+				"\u{FFFE}|\u{FFFF}|" .
+				"\u{1FFFE}|\u{1FFFF}|" .
+				"\u{2FFFE}|\u{2FFFF}|" .
+				"\u{3FFFE}|\u{3FFFF}|" .
+				"\u{4FFFE}|\u{4FFFF}|" .
+				"\u{5FFFE}|\u{5FFFF}|" .
+				"\u{6FFFE}|\u{6FFFF}|" .
+				"\u{7FFFE}|\u{7FFFF}|" .
+				"\u{8FFFE}|\u{8FFFF}|" .
+				"\u{9FFFE}|\u{9FFFF}|" .
+				"\u{AFFFE}|\u{AFFFF}|" .
+				"\u{BFFFE}|\u{BFFFF}|" .
+				"\u{CFFFE}|\u{CFFFF}|" .
+				"\u{DFFFE}|\u{DFFFF}|" .
+				"\u{EFFFE}|\u{EFFFF}|" .
+				"\u{FFFFE}|\u{FFFFF}|" .
+				"\u{10FFFE}|\u{10FFFF}/S";
+		}
 		if ( !$this->ignoreErrors ) {
 			$pos = 0;
-			$re = '/[' .
-				'\x{0001}-\x{0008}' .
-				'\x{000E}-\x{001F}' .
-				'\x{007F}-\x{009F}' .
-				'\x{FDD0}-\x{FDEF}' .
-				'\x{000B}' .
-				'\x{FFFE}\x{FFFF}' .
-				'\x{1FFFE}\x{1FFFF}' .
-				'\x{2FFFE}\x{2FFFF}' .
-				'\x{3FFFE}\x{3FFFF}' .
-				'\x{4FFFE}\x{4FFFF}' .
-				'\x{5FFFE}\x{5FFFF}' .
-				'\x{6FFFE}\x{6FFFF}' .
-				'\x{7FFFE}\x{7FFFF}' .
-				'\x{8FFFE}\x{8FFFF}' .
-				'\x{9FFFE}\x{9FFFF}' .
-				'\x{AFFFE}\x{AFFFF}' .
-				'\x{BFFFE}\x{BFFFF}' .
-				'\x{CFFFE}\x{CFFFF}' .
-				'\x{DFFFE}\x{DFFFF}' .
-				'\x{EFFFE}\x{EFFFF}' .
-				'\x{FFFFE}\x{FFFFF}' .
-				'\x{10FFFE}\x{10FFFF}]/uS';
 			while ( $pos < $this->length ) {
 				$count = preg_match( $re, $this->text, $m, PREG_OFFSET_CAPTURE, $pos );
 				if ( $count === false ) {
-					$this->fatal( "Invalid UTF-8 sequence given to Tokenizer" );
+					$this->throwPregError();
 				} elseif ( !$count ) {
 					break;
 				}
