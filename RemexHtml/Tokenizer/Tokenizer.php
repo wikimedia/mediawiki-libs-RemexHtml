@@ -82,6 +82,7 @@ class Tokenizer {
 		'&lt;' => '<',
 		'&gt;' => '>',
 		'&quot;' => '"',
+		'&nbsp;' => "\u{00A0}",
 	];
 
 	protected $ignoreErrors;
@@ -506,23 +507,35 @@ class Tokenizer {
 			# As an optimization, quick scan ahead to the first "difficult"
 			# character
 			$npos = strcspn( $this->text, "<&\0", $this->pos ) + $this->pos;
-			$count = preg_match( $re, $this->text, $m, PREG_OFFSET_CAPTURE, $npos );
+			# While the "difficult" section is in fact a simple entity, keep
+			# skipping ahead.
+			$mpos = $npos;
+			while ( preg_match( '/&(?:amp|apos|lt|gt|quot|nbsp);/A', $this->text, $m, 0, $mpos ) === 1 ) {
+				$mpos += strlen( $m[0] );
+				$mpos += strcspn( $this->text, "<&\0", $mpos );
+			}
+			$count = preg_match( $re, $this->text, $m, PREG_OFFSET_CAPTURE, $mpos );
 			if ( $count === false ) {
 				$this->throwPregError();
 			} elseif ( !$count ) {
 				// Text runs to end
 				$dataIsSimple = ( $npos === $this->length );
-				$this->emitDataRange( $this->pos, $this->length - $this->pos, $dataIsSimple );
+				$dataHasSimpleRefs = ( $mpos === $this->length );
+				$this->emitDataRange(
+					$this->pos, $this->length - $this->pos,
+					$dataIsSimple, $dataHasSimpleRefs
+				);
 				$this->pos = $this->length;
 				$nextState = self::STATE_EOF;
 				break;
 			}
 
 			$startPos = $m[0][1];
-			$dataIsSimple = ( $startPos === $npos );
+			$dataIsSimple = ( $npos === $startPos );
+			$dataHasSimpleRefs = ( $mpos === $startPos );
 			$tagName = isset( $m[self::MD_TAG_NAME] ) ? $m[self::MD_TAG_NAME][0] : '';
 
-			$this->emitDataRange( $this->pos, $startPos - $this->pos, $dataIsSimple );
+			$this->emitDataRange( $this->pos, $startPos - $this->pos, $dataIsSimple, $dataHasSimpleRefs );
 			$this->pos = $startPos;
 			$nextPos = $m[0][1] + strlen( $m[0][0] );
 
@@ -1075,8 +1088,11 @@ class Tokenizer {
 	 * @param int $length The length of the range
 	 * @param bool $isSimple True if you know that the data range does not
 	 *  contain < \0 or &; false is safe if you're not sure
+	 * @param bool $hasSimpleRefs True if you know that any character
+	 *  references are semicolon terminated and in the list of $commonEntities;
+	 *  false is safe if you're not sure
 	 */
-	protected function emitDataRange( $pos, $length, $isSimple = false ) {
+	protected function emitDataRange( $pos, $length, $isSimple = false, $hasSimpleRefs = false ) {
 		if ( $length === 0 ) {
 			return;
 		}
@@ -1095,7 +1111,11 @@ class Tokenizer {
 			}
 
 			$text = substr( $this->text, $pos, $length );
-			$text = $this->handleCharRefs( $text, $pos );
+			if ( $hasSimpleRefs ) {
+				$text = strtr( $text, self::$commonEntities );
+			} else {
+				$text = $this->handleCharRefs( $text, $pos );
+			}
 			$this->listener->characters( $text, 0, strlen( $text ), $pos, $length );
 		}
 	}
@@ -1203,12 +1223,6 @@ class Tokenizer {
 	protected function consumeAttribs() {
 		static $re;
 		if ( $re === null ) {
-			# Optimize handling of attributes containing only the following
-			# entities, properly semicolon terminated.
-			$wellBehavedEntities = '&(?:' .
-				implode( '|', array_map( function ( $s ) {
-					return substr( $s, 1, -1 );
-				}, array_keys( self::$commonEntities ) ) ) . ');';
 			$re = '~
 			[\t\n\f ]*+  # Ignored whitespace before attribute name
 			(?! /> )     # Do not consume self-closing end of tag
@@ -1248,15 +1262,15 @@ class Tokenizer {
 						# unexpected EOF and will not emit the tag, which is correct.
 						" (                     # 4. Double-quoted attribute values
 							[^"&\r\0]*+         #    Simple prefix
-							(                   # 5. Perhaps some clean entities
-								(?: ' . $wellBehavedEntities . ' | [^"&\r\0] )*+
+							(                   # 5. Perhaps some simple entities
+								(?: &(?:amp|apos|lt|gt|quot|nbsp); | [^"&\r\0] )*+
 							)
 							( [^"]*+ )          # 6. Unsimple suffix
 						) "? |
 						\' (                    # 7. Single-quoted attribute value
 							[^\'&\r\0]*+        #    Simple prefix
-							(                   # 8. Perhaps some clean entities
-								(?: ' . $wellBehavedEntities . ' | [^\'&\r\0] )*+
+							(                   # 8. Perhaps some simple entities
+								(?: &(?:amp|apos|lt|gt|quot|nbsp); | [^\'&\r\0] )*+
 							)
 							( [^\']*+ )         # 9. Unsimple suffix
 						)  \'? |
