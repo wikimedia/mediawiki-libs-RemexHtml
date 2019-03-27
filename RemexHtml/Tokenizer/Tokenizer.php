@@ -891,6 +891,36 @@ class Tokenizer {
 		}
 	}
 
+	// This string isn't used directly: it's input to GenerateDataFiles.php
+	// which will substitute in the named entities and create a
+	// compile-time constant string in HtmlData::$charRefRegex
+	// Only compile-time constants are handled efficiently in the
+	// regexp cache; otherwise we pay for a 26k strcmp each time we
+	// fetch the regexp from the cache.
+	const CHARREF_REGEX = '~
+				( .*? )                      # 1. prefix
+				&
+				(?:
+					\# (?:
+						0*(\d+)           |  # 2. decimal
+						[xX]0*([0-9A-Fa-f]+) # 3. hexadecimal
+					)
+					( ; ) ?                  # 4. semicolon
+					|
+					( \# )                   # 5. bare hash
+					|
+					({{NAMED_ENTITY_REGEX}}) # 6. known named
+					(?:
+						(?<! ; )             # Assert no semicolon prior
+						( [=a-zA-Z0-9] )     # 7. attribute suffix
+					)?
+					|
+					( [a-zA-Z0-9]+ ; )       # 8. invalid named
+				)
+				# S = study, for efficient knownNamed
+				# A = anchor, to avoid unnecessary movement of the whole pattern on failure
+				~xAsS';
+
 	/**
 	 * Expand character references in some text, and emit errors as appropriate.
 	 * @param string $text The text to expand
@@ -908,38 +938,11 @@ class Tokenizer {
 			return $text;
 		}
 
-		static $re;
-		if ( $re === null ) {
-			$knownNamed = HTMLData::$namedEntityRegex;
-			$re = "~
-				( .*? )                      # 1. prefix
-				&
-				(?:
-					\# (?:
-						0*(\d+)           |  # 2. decimal
-						[xX]0*([0-9A-Fa-f]+) # 3. hexadecimal
-					)
-					( ; ) ?                  # 4. semicolon
-					|
-					( \# )                   # 5. bare hash
-					|
-					($knownNamed)            # 6. known named
-					(?:
-						(?<! ; )             # Assert no semicolon prior
-						( [=a-zA-Z0-9] )     # 7. attribute suffix
-					)?
-					|
-					( [a-zA-Z0-9]+ ; )       # 8. invalid named
-				)
-				# S = study, for efficient knownNamed
-				# A = anchor, to avoid unnecessary movement of the whole pattern on failure
-				~xAsS";
-		}
 		$out = '';
 		$pos = 0;
 		$length = strlen( $text );
 		$matches = [];
-		$count = preg_match_all( $re, $text, $matches, PREG_SET_ORDER );
+		$count = preg_match_all( HTMLData::$charRefRegex, $text, $matches, PREG_SET_ORDER );
 		if ( $count === false ) {
 			$this->throwPregError();
 		}
