@@ -68,7 +68,6 @@ class DOMBuilder implements TreeHandler {
 	}
 
 	public function startDocument( $fragmentNamespace, $fragmentName ) {
-		$impl = new \DOMImplementation;
 		$this->isFragment = $fragmentNamespace !== null;
 		$this->doc = $this->createDocument();
 	}
@@ -202,7 +201,6 @@ class DOMBuilder implements TreeHandler {
 
 	public function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
 		if ( !$this->doc->firstChild ) {
-			$impl = $this->doc->implementation;
 			$this->doc = $this->createDocument( $name, $public, $system );
 		}
 		$this->doctypeName = $name;
