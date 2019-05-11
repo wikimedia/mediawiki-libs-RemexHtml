@@ -1342,7 +1342,7 @@ class Tokenizer {
 				$value = $m[self::MA_DQUOTED][0];
 				$pos = $m[self::MA_DQUOTED][1];
 				$isSimple = !strlen( $m[self::MA_DQUOTED_UNSIMPLE][0] );
-				if ( $isSimple && strlen( $m[self::MA_DQUOTED_CHARREF][0] ) ) {
+				if ( $isSimple && strlen( $m[self::MA_DQUOTED_CHARREF][0] ) && !$this->ignoreCharRefs ) {
 					// Efficiently handle well-behaved character references
 					$value = strtr( $value, self::$commonEntities );
 				}
@@ -1352,7 +1352,7 @@ class Tokenizer {
 				$value = $m[self::MA_SQUOTED][0];
 				$pos = $m[self::MA_SQUOTED][1];
 				$isSimple = !strlen( $m[self::MA_SQUOTED_UNSIMPLE][0] );
-				if ( $isSimple && strlen( $m[self::MA_SQUOTED_CHARREF][0] ) ) {
+				if ( $isSimple && strlen( $m[self::MA_SQUOTED_CHARREF][0] ) && !$this->ignoreCharRefs ) {
 					// Efficiently handle well-behaved character references
 					$value = strtr( $value, self::$commonEntities );
 				}
