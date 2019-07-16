@@ -112,8 +112,11 @@ abstract class InsertionMode {
 	}
 
 	abstract public function characters( $text, $start, $length, $sourceStart, $sourceLength );
+
 	abstract public function startTag( $name, Attributes $attrs, $selfClose,
 		$sourceStart, $sourceLength );
+
 	abstract public function endTag( $name, $sourceStart, $sourceLength );
+
 	abstract public function endDocument( $pos );
 }
