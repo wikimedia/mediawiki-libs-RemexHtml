@@ -199,7 +199,7 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 	public function testSerializer( $params ) {
 		$formatter = new Serializer\TestFormatter;
 		$serializer = new Serializer\Serializer( $formatter, [ $this, 'errorCallback' ] );
-		$this->runWithSerializer( $serializer, $params );
+		$this->runWithSerializer( $serializer, $params, true );
 	}
 
 	/** @dataProvider domProvider */
@@ -210,7 +210,11 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 		$this->runWithSerializer( $serializer, $params );
 	}
 
-	private function runWithSerializer( Serializer\AbstractSerializer $serializer, $params ) {
+	private function runWithSerializer(
+		Serializer\AbstractSerializer $serializer,
+		$params,
+		$normalizeTextNodes = false
+	) {
 		if ( !isset( $params['document'] ) ) {
 			throw new \Exception( "Test lacks #document: {$params['file']}:{$params['line']}" );
 		}
@@ -246,10 +250,12 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 		$result = $serializer->getResult();
 
 		// Normalize adjacent text nodes
-		do {
-			$prevResult = $result;
-			$result = preg_replace( '/^([ ]*)"([^"]*+)"\n\1"([^"]*+)"\n/m', "\\1\"\\2\\3\"\n", $result );
-		} while ( $prevResult !== $result );
+		if ( $normalizeTextNodes ) {
+			do {
+				$prevResult = $result;
+				$result = preg_replace( '/^([ ]*)"([^"]*+)"\n\1"([^"]*+)"\n/m', "\\1\"\\2\\3\"\n", $result );
+			} while ( $prevResult !== $result );
+		}
 
 		// Format appropriately
 		$result = preg_replace( '/^/m', "| ", $result );

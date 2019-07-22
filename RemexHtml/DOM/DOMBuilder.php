@@ -181,8 +181,37 @@ class DOMBuilder implements TreeHandler {
 	public function characters( $preposition, $refElement, $text, $start, $length,
 		$sourceStart, $sourceLength
 	) {
-		$node = $this->doc->createTextNode( substr( $text, $start, $length ) );
-		$this->insertNode( $preposition, $refElement, $node );
+		// Parse $preposition and $refElement as in self::insertNode()
+		if ( $preposition === TreeBuilder::ROOT ) {
+			$parent = $this->doc;
+			$refNode = null;
+		} elseif ( $preposition === TreeBuilder::BEFORE ) {
+			$parent = $refElement->userData->parentNode;
+			$refNode = $refElement->userData;
+		} else {
+			$parent = $refElement->userData;
+			$refNode = null;
+		}
+		// https://html.spec.whatwg.org/#insert-a-character
+		// If the adjusted insertion location is in a Document node, then
+		// return.
+		if ( $parent === $this->doc ) {
+			return;
+		}
+		$data = substr( $text, $start, $length );
+		// If there is a Text node immediately before the adjusted insertion
+		// location, then append data to that Text node's data.
+		if ( $refNode === null ) {
+			$prev = $parent->lastChild;
+		} else {
+			$prev = $refNode->previousSibling;
+		}
+		if ( $prev !== null && $prev->nodeType === XML_TEXT_NODE ) {
+			$prev->appendData( $data );
+		} else {
+			$node = $this->doc->createTextNode( $data );
+			$parent->insertBefore( $node, $refNode );
+		}
 	}
 
 	public function insertElement( $preposition, $refElement, Element $element, $void,
