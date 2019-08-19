@@ -140,7 +140,7 @@ class ActiveFormattingElements {
 	 * end of the list and the last marker on the list.
 	 * Used when parsing <a> "in body mode".
 	 * @param string $name
-	 * @return Marker|null
+	 * @return Element|null
 	 */
 	public function findElementByName( $name ) {
 		$elt = $this->tail;

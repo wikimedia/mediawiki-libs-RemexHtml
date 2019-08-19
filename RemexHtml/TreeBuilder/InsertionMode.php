@@ -10,7 +10,10 @@ abstract class InsertionMode {
 
 	const SELF_CLOSE_ERROR = 'unacknowledged self closing tag';
 
+	/** @var TreeBuilder */
 	protected $builder;
+
+	/** @var Dispatcher */
 	protected $dispatcher;
 
 	public function __construct( TreeBuilder $builder, Dispatcher $dispatcher ) {

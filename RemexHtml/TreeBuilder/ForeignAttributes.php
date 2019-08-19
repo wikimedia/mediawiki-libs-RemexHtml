@@ -11,8 +11,13 @@ use RemexHtml\Tokenizer\Attributes;
  * have namespaces. Features lazy adjustment of attribute name case.
  */
 class ForeignAttributes implements Attributes {
+	/** @var Attributes */
 	protected $unadjusted;
+
+	/** @var array The map of lowercase attribute name to correct attribute name */
 	protected $table;
+
+	/** @var Attribute[]|null */
 	protected $attrObjects;
 
 	/**
