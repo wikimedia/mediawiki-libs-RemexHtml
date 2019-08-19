@@ -25,7 +25,7 @@ class TokenGenerator {
 	 * @param array $options Options passed through to Tokenizer
 	 */
 	protected function __construct( $text, $options ) {
-		$this->handler = new TokenGeneratorHandler( $this );
+		$this->handler = new TokenGeneratorHandler;
 		$this->tokenizer = new Tokenizer( $this->handler, $text, $options );
 	}
 

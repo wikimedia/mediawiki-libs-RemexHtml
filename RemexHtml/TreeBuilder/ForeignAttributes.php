@@ -143,11 +143,6 @@ class ForeignAttributes implements Attributes {
 		return $result;
 	}
 
-	public function key() {
-		$name = parent::key();
-		return isset( $this->table[$name] ) ? $this->table[$name] : $name;
-	}
-
 	public function count() {
 		return $this->unadjusted->count();
 	}

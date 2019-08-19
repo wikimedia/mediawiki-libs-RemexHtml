@@ -23,7 +23,7 @@ class TokenizerTest extends \PHPUnit\Framework\TestCase {
 		$tests = [];
 		$testFiles = [];
 		foreach ( self::$testDirs as $testDir ) {
-			$testFiles = array_merge( $testFiles, glob( __DIR__ . "/../$testDir/*.test" ) );
+			$testFiles = array_merge( $testFiles, glob( __DIR__ . "/../../$testDir/*.test" ) );
 		}
 		foreach ( $testFiles as $fileName ) {
 			$lastPart = preg_replace( "/^.*\//s", '', $fileName );

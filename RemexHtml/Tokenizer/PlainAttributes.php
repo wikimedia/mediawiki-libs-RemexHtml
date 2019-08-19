@@ -31,10 +31,14 @@ class PlainAttributes implements Attributes {
 
 	public function offsetSet( $key, $value ) {
 		$this->data[$key] = $value;
+		if ( $this->attrObjects !== null ) {
+			$this->attrObjects[$key] = new Attribute( $key, null, null, $key, $value );
+		}
 	}
 
 	public function offsetUnset( $key ) {
 		unset( $this->data[$key] );
+		unset( $this->attrObjects[$key] );
 	}
 
 	public function getIterator() {

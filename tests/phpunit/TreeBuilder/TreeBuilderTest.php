@@ -43,7 +43,7 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 	private function provider( $type ) {
 		$testFiles = [];
 		foreach ( self::$testDirs as $testDir ) {
-			$testFiles = array_merge( $testFiles, glob( __DIR__ . "/../$testDir/*.dat" ) );
+			$testFiles = array_merge( $testFiles, glob( __DIR__ . "/../../$testDir/*.dat" ) );
 		}
 		$args = [];
 		foreach ( $testFiles as $fileName ) {
