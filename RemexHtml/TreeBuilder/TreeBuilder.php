@@ -348,7 +348,7 @@ class TreeBuilder {
 	 */
 	public function mergeAttributes( Element $elt, Attributes $attrs, $sourceStart, $sourceLength ) {
 		if ( $attrs->count() && !$elt->isVirtual ) {
-			$this->handler->mergeAttributes( $elt, $attrs, $sourceStart, $sourceLength );
+			$this->handler->mergeAttributes( $elt, $attrs, $sourceStart );
 		}
 	}
 

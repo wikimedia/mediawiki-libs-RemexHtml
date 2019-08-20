@@ -143,7 +143,6 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 		}
 
 		$sectionLineNum = $lineNum++;
-		$startPos = $pos;
 		$name = $m[1];
 		$valuePos = $pos + strlen( $m[0] );
 		$pos = $valuePos;

@@ -96,7 +96,6 @@ abstract class InsertionMode {
 	}
 
 	protected function stripNulls( $callback, $text, $start, $length, $sourceStart, $sourceLength ) {
-		$originalLength = $length;
 		$errorOffset = $sourceStart - $start;
 		while ( $length > 0 ) {
 			$validLength = strcspn( $text, "\0", $start, $length );

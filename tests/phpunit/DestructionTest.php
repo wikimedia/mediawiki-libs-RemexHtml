@@ -35,7 +35,7 @@ class DestructDispatcher extends TreeBuilder\Dispatcher {
 class DestructTreeBuilder extends TreeBuilder\TreeBuilder {
 	private $flag;
 
-	public function __construct( TreeBuilder\TreeHandler $handler, $options = [], &$flag ) {
+	public function __construct( TreeBuilder\TreeHandler $handler, $options, &$flag ) {
 		parent::__construct( $handler, $options );
 		$this->flag =& $flag;
 	}

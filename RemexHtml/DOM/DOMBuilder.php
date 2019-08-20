@@ -12,15 +12,35 @@ use RemexHtml\TreeBuilder\TreeHandler;
  * A TreeHandler which constructs a DOMDocument
  */
 class DOMBuilder implements TreeHandler {
+	/** @var string|null The name of the input document type */
 	public $doctypeName;
+
+	/** @var string|null The public ID */
 	public $public;
+
+	/** @var string|null The system ID */
 	public $system;
+
+	/**
+	 * @var int $quirks The quirks mode. May be either TreeBuilder::NO_QUIRKS,
+	 *   TreeBuilder::LIMITED_QUIRKS or TreeBuilder::QUIRKS to indicate
+	 *   no-quirks mode, limited-quirks mode or quirks mode respectively.
+	 */
 	public $quirks;
 
+	/** @var \DOMDocument */
 	private $doc;
+
+	/** @var callable|null */
 	private $errorCallback;
+
+	/** @var bool */
 	private $suppressHtmlNamespace;
+
+	/** @var bool */
 	private $isFragment;
+
+	/** @var bool */
 	private $coerced;
 
 	/**
@@ -204,9 +224,11 @@ class DOMBuilder implements TreeHandler {
 		if ( $refNode === null ) {
 			$prev = $parent->lastChild;
 		} else {
+			/** @var \DOMNode $refNode */
 			$prev = $refNode->previousSibling;
 		}
 		if ( $prev !== null && $prev->nodeType === XML_TEXT_NODE ) {
+			/** @var \DOMCharacterData $prev */
 			$prev->appendData( $data );
 		} else {
 			$node = $this->doc->createTextNode( $data );
@@ -250,6 +272,7 @@ class DOMBuilder implements TreeHandler {
 	}
 
 	public function mergeAttributes( Element $element, Attributes $attrs, $sourceStart ) {
+		/** @var \DOMElement $node */
 		$node = $element->userData;
 		foreach ( $attrs->getObjects() as $name => $attr ) {
 			if ( $attr->namespaceURI === null
@@ -307,6 +330,7 @@ class DOMBuilder implements TreeHandler {
 	public function reparentChildren( Element $element, Element $newParent, $sourceStart ) {
 		$this->insertElement( TreeBuilder::UNDER, $element, $newParent, false, $sourceStart, 0 );
 		$node = $element->userData;
+		/** @var \DOMElement $newParentNode */
 		$newParentNode = $newParent->userData;
 		while ( $node->firstChild !== $newParentNode ) {
 			$newParentNode->appendChild( $node->firstChild );

@@ -66,6 +66,9 @@ class TokenizerTest extends \PHPUnit\Framework\TestCase {
 	 * unusual unicode characters such as bare surrogates. Just running it through
 	 * json_decode() again appears to work on HHVM, but on PHP invalid characters
 	 * are replaced with U+FFFD.
+	 *
+	 * @param string $value
+	 * @return string
 	 */
 	private function unescape( $value ) {
 		if ( is_array( $value ) ) {

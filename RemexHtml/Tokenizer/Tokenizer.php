@@ -89,6 +89,7 @@ class Tokenizer {
 	protected $ignoreCharRefs;
 	protected $ignoreNulls;
 	protected $skipPreprocess;
+	protected $scriptingFlag;
 	protected $appropriateEndTag;
 	protected $listener;
 	protected $state;
@@ -120,6 +121,10 @@ class Tokenizer {
 	 *     stage, which normalizes line endings and raises errors on certain
 	 *     control characters. Advisable if the input stream is already
 	 *     appropriately normalized.
+	 *   - scriptingFlag: True if the scripting flag is enabled. Default true.
+	 *     Setting this to false cause the contents of <noscript> elements to be
+	 *     processed as normal content. The scriptingFlag option in the
+	 *     TreeBuilder should be set to the same value.
 	 */
 	public function __construct( TokenHandler $listener, $text, $options = [] ) {
 		$this->listener = $listener;
@@ -131,6 +136,8 @@ class Tokenizer {
 		$this->ignoreCharRefs = !empty( $options['ignoreCharRefs'] );
 		$this->ignoreNulls = !empty( $options['ignoreNulls'] );
 		$this->skipPreprocess = !empty( $options['skipPreprocess'] );
+		$this->scriptingFlag = isset( $options['scriptingFlag'] )
+			? $options['scriptingFlag'] : true;
 	}
 
 	public function setEnableCdataCallback( $cb ) {
@@ -548,8 +555,6 @@ class Tokenizer {
 				if ( !$isCdata ) {
 					$m[self::MD_BOGUS_COMMENT] = $m[self::MD_CDATA];
 				}
-			} else {
-				$isCdata = false;
 			}
 
 			if ( strlen( $tagName ) ) {
@@ -963,7 +968,6 @@ class Tokenizer {
 		foreach ( $matches as $m ) {
 			$out .= $m[self::MC_PREFIX];
 			$errorPos = $sourcePos + $pos + strlen( $m[self::MC_PREFIX] );
-			$lastPos = $pos;
 			$pos += strlen( $m[0] );
 
 			if ( isset( $m[self::MC_HASH] ) && strlen( $m[self::MC_HASH] ) ) {
@@ -1218,7 +1222,7 @@ class Tokenizer {
 	 * - @todo: Measure performance improvement, assess whether the LazyAttributes
 	 *   feature is warranted.
 	 *
-	 * @return array Attributes
+	 * @return Attributes
 	 */
 	protected function consumeAttribs() {
 		static $re;

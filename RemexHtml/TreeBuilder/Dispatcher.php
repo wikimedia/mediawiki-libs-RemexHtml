@@ -237,7 +237,6 @@ class Dispatcher implements TokenHandler {
 		$builder = $this->builder;
 		$stack = $builder->stack;
 		$last = false;
-		$node = $stack->current;
 		for ( $idx = $stack->length() - 1; $idx >= 0; $idx-- ) {
 			$node = $stack->item( $idx );
 			if ( $idx === 0 ) {
