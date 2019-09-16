@@ -38,6 +38,9 @@ class DOMBuilder implements TreeHandler {
 	private $suppressHtmlNamespace;
 
 	/** @var bool */
+	private $suppressIdAttribute;
+
+	/** @var bool */
 	private $isFragment;
 
 	/** @var bool */
@@ -48,14 +51,22 @@ class DOMBuilder implements TreeHandler {
 	 *   - errorCallback : A function which is called on parse errors
 	 *   - suppressHtmlNamespace : omit the namespace when creating HTML
 	 *     elements. False by default.
+	 *   - suppressIdAttribute : don't call the nonstandard
+	 *     DOMElement::setIdAttribute() method while constructing elements.
+	 *     False by default (this method is needed for efficient
+	 *     DOMDocument::getElementById() calls).  Set to true if you are
+	 *     using a W3C spec-compliant DOMImplementation and wish to avoid
+	 *     nonstandard calls.
 	 */
 	public function __construct( $options = [] ) {
 		$options = $options + [
 			'suppressHtmlNamespace' => false,
+			'suppressIdAttribute' => false,
 			'errorCallback' => null,
 		];
 		$this->errorCallback = $options['errorCallback'];
 		$this->suppressHtmlNamespace = $options['suppressHtmlNamespace'];
+		$this->suppressIdAttribute = $options['suppressIdAttribute'];
 	}
 
 	/**
@@ -92,7 +103,7 @@ class DOMBuilder implements TreeHandler {
 		$this->doc = $this->createDocument();
 	}
 
-	private function createDocument( $doctypeName = null, $public = null, $system = null ) {
+	protected function createDocument( $doctypeName = null, $public = null, $system = null ) {
 		$impl = new \DOMImplementation;
 		if ( $doctypeName === '' ) {
 			$this->coerced = true;
@@ -193,6 +204,11 @@ class DOMBuilder implements TreeHandler {
 						$attr->value );
 				}
 			}
+		}
+		if ( ( !$this->suppressIdAttribute ) && $node->hasAttribute( 'id' ) ) {
+			// This is a call to a non-standard DOM method required by PHP in
+			// order to implement DOMDocument::getElementById() efficiently.
+			$node->setIdAttribute( 'id', true );
 		}
 		$element->userData = $node;
 		return $node;
