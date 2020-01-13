@@ -289,7 +289,7 @@ class ActiveFormattingElements {
 
 	/**
 	 * Find $a in the list and insert $b after it.
-
+	 *
 	 * @param FormattingElement $a
 	 * @param FormattingElement $b
 	 */

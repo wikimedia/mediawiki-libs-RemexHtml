@@ -2,9 +2,9 @@
 
 namespace RemexHtml\Serializer;
 
-use RemexHtml\HTMLData;
-use RemexHtml\DOM\DOMUtils;
 use RemexHtml\DOM\DOMFormatter;
+use RemexHtml\DOM\DOMUtils;
+use RemexHtml\HTMLData;
 
 /**
  * A formatter which follows the HTML 5 fragment serialization algorithm.

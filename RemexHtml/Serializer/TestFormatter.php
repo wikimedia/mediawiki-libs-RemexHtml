@@ -2,10 +2,10 @@
 
 namespace RemexHtml\Serializer;
 
-use RemexHtml\Tokenizer\Attribute;
-use RemexHtml\HTMLData;
 use RemexHtml\DOM\DOMFormatter;
 use RemexHtml\DOM\DOMUtils;
+use RemexHtml\HTMLData;
+use RemexHtml\Tokenizer\Attribute;
 
 /**
  * A Formatter which is used to format documents in (almost) the way they

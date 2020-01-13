@@ -2,9 +2,9 @@
 
 namespace RemexHtml\Tests;
 
-use RemexHtml\TreeBuilder;
-use RemexHtml\Tokenizer;
 use RemexHtml\Serializer;
+use RemexHtml\Tokenizer;
+use RemexHtml\TreeBuilder;
 
 class DestructTokenizer extends Tokenizer\Tokenizer {
 	private $flag;

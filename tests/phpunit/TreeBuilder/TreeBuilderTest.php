@@ -4,8 +4,8 @@ namespace RemexHtml\TreeBuilder;
 
 use RemexHtml\DOM;
 use RemexHtml\HTMLData;
-use RemexHtml\Tokenizer;
 use RemexHtml\Serializer;
+use RemexHtml\Tokenizer;
 
 class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 	public static $testErrorCounts = false;

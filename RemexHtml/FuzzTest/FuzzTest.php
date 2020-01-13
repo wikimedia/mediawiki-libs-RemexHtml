@@ -2,9 +2,9 @@
 
 namespace RemexHtml\FuzzTest;
 
+use RemexHtml\Serializer;
 use RemexHtml\Tokenizer;
 use RemexHtml\TreeBuilder;
-use RemexHtml\Serializer;
 
 /**
  * Fuzz test implementation. Invoke with bin/fuzz.php

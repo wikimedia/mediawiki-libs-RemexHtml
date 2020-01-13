@@ -3,10 +3,10 @@
 namespace RemexHtml\Serializer;
 
 use RemexHtml\PropGuard;
-use RemexHtml\TreeBuilder\TreeBuilder;
-use RemexHtml\TreeBuilder\Element;
 use RemexHtml\Tokenizer\Attributes;
 use RemexHtml\Tokenizer\PlainAttributes;
+use RemexHtml\TreeBuilder\Element;
+use RemexHtml\TreeBuilder\TreeBuilder;
 
 /**
  * A TreeHandler which builds a serialized representation of a document, by
