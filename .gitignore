@@ -6,3 +6,4 @@ tags
 /vendor
 /composer.lock
 /.idea
+/.phpunit.result.cache
