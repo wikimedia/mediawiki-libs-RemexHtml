@@ -95,7 +95,7 @@ class TokenSalad {
 					$s .= " PUBLIC $quote$public$quote";
 				}
 				if ( $system !== null ) {
-					$s .= " SYSTEM $quote$public$quote";
+					$s .= " SYSTEM $quote$system$quote";
 				}
 				$s .= '>';
 				break;

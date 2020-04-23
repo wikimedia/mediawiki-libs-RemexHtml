@@ -7,6 +7,7 @@ use RemexHtml\Tokenizer;
 use RemexHtml\TreeBuilder;
 
 class SerializerDestructAttacher implements TreeBuilder\TreeHandler {
+	private $serializer;
 	private $count;
 
 	public function __construct( Serializer\Serializer $serializer, &$count ) {
@@ -78,6 +79,8 @@ class SerializerDestructAttacher implements TreeBuilder\TreeHandler {
 }
 
 class DestructNode {
+	private $count;
+
 	public function __construct( &$count ) {
 		$this->count =& $count;
 	}

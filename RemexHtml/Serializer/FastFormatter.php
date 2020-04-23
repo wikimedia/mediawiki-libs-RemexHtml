@@ -19,6 +19,7 @@ class FastFormatter implements Formatter {
 	}
 
 	function doctype( $name, $public, $system ) {
+		return '';
 	}
 
 	function characters( SerializerNode $parent, $text, $start, $length ) {

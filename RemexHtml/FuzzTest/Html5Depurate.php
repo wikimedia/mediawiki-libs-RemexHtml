@@ -7,6 +7,8 @@ namespace RemexHtml\FuzzTest;
  * https://www.mediawiki.org/wiki/Html5Depurate
  */
 class Html5Depurate {
+	private $curl;
+
 	public function __construct( $url ) {
 		$this->curl = curl_init( $url );
 		curl_setopt_array( $this->curl, [

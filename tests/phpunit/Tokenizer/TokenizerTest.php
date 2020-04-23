@@ -35,19 +35,18 @@ class TokenizerTest extends \PHPUnit\Framework\TestCase {
 				continue;
 			}
 			foreach ( $testData['tests'] as $test ) {
-				$states = isset( $test['initialStates'] ) ? $test['initialStates'] : [ 'data state' ];
+				$states = $test['initialStates'] ?? [ 'data state' ];
 				$input = $test['input'];
 				$output = $test['output'];
-				$appropriateEndTag = isset( $test['lastStartTag'] ) ? $test['lastStartTag'] : null;
+				$appropriateEndTag = $test['lastStartTag'] ?? null;
 				if ( !empty( $test['doubleEscaped'] ) ) {
 					$input = $this->unescape( $input );
 					$output = $this->unescape( $output );
 				}
 				foreach ( $states as $state ) {
+					$description = "$lastPart: " . ( $test['description'] ?? '<no description>' );
 					if ( count( $states ) > 1 ) {
-						$description = "$lastPart: {$test['description']} ({$state})";
-					} else {
-						$description = "$lastPart: {$test['description']}";
+						$description .= " ({$state})";
 					}
 					$tests[$description] = [
 						$state,
@@ -67,8 +66,8 @@ class TokenizerTest extends \PHPUnit\Framework\TestCase {
 	 * json_decode() again appears to work on HHVM, but on PHP invalid characters
 	 * are replaced with U+FFFD.
 	 *
-	 * @param string $value
-	 * @return string
+	 * @param string|array $value
+	 * @return string|array
 	 */
 	private function unescape( $value ) {
 		if ( is_array( $value ) ) {
@@ -108,7 +107,7 @@ class TokenizerTest extends \PHPUnit\Framework\TestCase {
 				$errorCount++;
 				continue;
 			}
-			if ( $lastToken[0] === 'Character' && $token[0] === 'Character' ) {
+			if ( $lastToken && $lastToken[0] === 'Character' && $token[0] === 'Character' ) {
 				$output[ count( $output ) - 1 ][1] .= $token[1];
 			} else {
 				$output[] = $token;

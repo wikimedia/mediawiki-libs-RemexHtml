@@ -136,8 +136,7 @@ class Tokenizer {
 		$this->ignoreCharRefs = !empty( $options['ignoreCharRefs'] );
 		$this->ignoreNulls = !empty( $options['ignoreNulls'] );
 		$this->skipPreprocess = !empty( $options['skipPreprocess'] );
-		$this->scriptingFlag = isset( $options['scriptingFlag'] )
-			? $options['scriptingFlag'] : true;
+		$this->scriptingFlag = $options['scriptingFlag'] ?? true;
 	}
 
 	public function setEnableCdataCallback( $cb ) {
@@ -167,8 +166,8 @@ class Tokenizer {
 			$this->fragmentNamespace = null;
 			$this->fragmentName = null;
 		}
-		$this->appropriateEndTag = isset( $options['appropriateEndTag'] ) ?
-			$options['appropriateEndTag'] : null;
+		$this->appropriateEndTag =
+			$options['appropriateEndTag'] ?? null;
 		$this->preprocess();
 		$this->listener->startDocument( $this, $this->fragmentNamespace, $this->fragmentName );
 
@@ -648,7 +647,9 @@ class Tokenizer {
 					// No token emitted
 				} elseif ( $m[0][0] === '</' ) {
 					$this->error( 'EOF in end tag' );
-					$this->listener->characters( '</', 0, 2, $m[0][1], 2 );
+					$sourceStart = $m[0][1];
+					'@phan-var int $sourceStart'; /** @var int $sourceStart */
+					$this->listener->characters( '</', 0, 2, $sourceStart, 2 );
 				} else {
 					$this->error( "unexpected <{$contents[0]} interpreted as bogus comment" );
 					if ( $contents[0] !== '?' ) {
@@ -977,8 +978,8 @@ class Tokenizer {
 				continue;
 			}
 
-			$knownNamed = isset( $m[self::MC_NAMED] ) ? $m[self::MC_NAMED] : '';
-			$attributeSuffix = isset( $m[self::MC_SUFFIX] ) ? $m[self::MC_SUFFIX] : '';
+			$knownNamed = $m[self::MC_NAMED] ?? '';
+			$attributeSuffix = $m[self::MC_SUFFIX] ?? '';
 
 			$haveSemicolon =
 				( isset( $m[self::MC_SEMICOLON] ) && strlen( $m[self::MC_SEMICOLON] ) )
@@ -1026,6 +1027,7 @@ class Tokenizer {
 				continue;
 			} else {
 				$this->fatal( 'unable to identify char ref submatch' );
+				$codepoint = 0; // re-assure phan $codepoint will be defined
 			}
 
 			// Interpret $codepoint
@@ -1295,6 +1297,7 @@ class Tokenizer {
 			PREG_SET_ORDER | PREG_OFFSET_CAPTURE, $this->pos );
 		if ( $count === false ) {
 			$this->throwPregError();
+			$attribs = new PlainAttributes(); // reassure phan
 		} elseif ( $count ) {
 			$this->pos = $m[$count - 1][0][1] + strlen( $m[$count - 1][0][0] );
 			$attribs = new LazyAttributes( $m, function ( $m ) {
@@ -1377,6 +1380,7 @@ class Tokenizer {
 				}
 			} else {
 				$value = '';
+				$pos = -1; // reassure phan
 			}
 			if ( $additionalAllowedChar && !$this->ignoreErrors ) {
 				// After attribute value (quoted) state
@@ -1454,6 +1458,7 @@ class Tokenizer {
 			return $state;
 		} else {
 			$this->fatal( 'failed to find an already-matched ">"' );
+			$selfClose = false; // reassure phan
 		}
 		$this->pos = $pos;
 		if ( $isEndTag ) {
@@ -1586,6 +1591,7 @@ REGEX;
 	 * Throw an exception for a specified reason. This is used for API errors
 	 * and assertion-like sanity checks.
 	 * @param string $text The error message
+	 * @throws TokenizerError
 	 */
 	protected function fatal( $text ) {
 		throw new TokenizerError( __CLASS__ . ": " . $text );

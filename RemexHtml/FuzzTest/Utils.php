@@ -31,7 +31,7 @@ class Utils {
 	 * parsing. The file used here, validatornu-dictionary, is derived from a
 	 * list of string literals in the validator.nu HTML parser code base.
 	 *
-	 * @return string[integer]
+	 * @return string[]
 	 */
 	public static function getBigDictionary() {
 		if ( self::$bigDictionary === null ) {

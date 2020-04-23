@@ -121,7 +121,7 @@ class Dispatcher implements TokenHandler {
 	/**
 	 * The "original insertion mode" index
 	 *
-	 * @var int
+	 * @var ?int
 	 */
 	protected $originalMode;
 
@@ -351,12 +351,16 @@ class Dispatcher implements TokenHandler {
 		}
 	}
 
+	/**
+	 * @inheritDoc
+	 * @suppress PhanTypeMismatchProperty Clears references to null
+	 */
 	public function endDocument( $pos ) {
 		$this->handler->endDocument( $pos );
 
 		// All references to insertion modes must be explicitly released, since
 		// they have a circular reference back to $this
-		$this->dispatchTable = [];
+		$this->dispatchTable = null;
 		$this->handler = null;
 		$this->inHead = null;
 		$this->inBody = null;

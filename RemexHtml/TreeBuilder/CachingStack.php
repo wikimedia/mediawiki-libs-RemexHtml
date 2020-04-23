@@ -133,7 +133,7 @@ class CachingStack extends Stack {
 	 * SLL. The SLL here is maybe not quite so well justified as some other
 	 * SLLs in RemexHtml.
 	 *
-	 * @var Element[int][string]
+	 * @var array<int,array<string,Element>>
 	 */
 	private $scopes = [
 		self::SCOPE_DEFAULT => [],
@@ -146,9 +146,10 @@ class CachingStack extends Stack {
 	/**
 	 * This is the part of the scope cache which stores scope lists for objects
 	 * which are not currently in scope. The first key is the scope ID, the
-	 * second key is the stack index, the third key is the element name.
+	 * second key is the stack index, the third key is the element name,
+	 * and the value is the Element object.
 	 *
-	 * @var Element[int][int][string]
+	 * @var array<int,array<int,array<string,Element>>>
 	 */
 	private $scopeStacks = [
 		self::SCOPE_DEFAULT => [],
@@ -237,7 +238,7 @@ class CachingStack extends Stack {
 		if ( $ns === HTMLData::NS_HTML && isset( self::$predicateMap[$name] ) ) {
 			$type = self::$predicateMap[$name];
 			$scope =& $this->scopes[$type];
-			$elt->nextEltInScope = isset( $scope[$name] ) ? $scope[$name] : null;
+			$elt->nextEltInScope = $scope[$name] ?? null;
 			$scope[$name] = $elt;
 			unset( $scope );
 		}

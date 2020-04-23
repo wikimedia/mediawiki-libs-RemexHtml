@@ -46,6 +46,7 @@ class FuzzTest {
 				'ignoreErrors' => true,
 			] );
 
+			$expected = '???';
 			try {
 				$tokenizer->execute();
 				$result = $serializer->getResult();

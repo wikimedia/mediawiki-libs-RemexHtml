@@ -7,6 +7,8 @@ namespace RemexHtml\FuzzTest;
  * special meaning in HTML.
  */
 class CharacterSalad {
+	private $minLength;
+	private $maxLength;
 	private $bigDictionary;
 	private static $smallDictionary = [
 		'<',
