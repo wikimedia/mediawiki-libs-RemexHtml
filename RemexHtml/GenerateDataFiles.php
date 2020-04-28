@@ -7,7 +7,7 @@ use RemexHtml\Tokenizer\Tokenizer;
 /**
  * Generate HTMLData.php. This can be executed e.g. with
  *
- * echo 'RemexHtml\GenerateDataFiles::run()' | hhvm bin/test.php
+ * echo 'RemexHtml\GenerateDataFiles::run()' | php bin/test.php
  *
  * or, using the psysh shell from the project root directory:
  *
