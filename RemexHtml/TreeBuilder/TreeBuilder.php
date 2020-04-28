@@ -25,14 +25,14 @@ class TreeBuilder {
 	use PropGuard;
 
 	// Quirks
-	const NO_QUIRKS = 0;
-	const LIMITED_QUIRKS = 1;
-	const QUIRKS = 2;
+	public const NO_QUIRKS = 0;
+	public const LIMITED_QUIRKS = 1;
+	public const QUIRKS = 2;
 
 	// Insertion placement
-	const BEFORE = 0;
-	const UNDER = 1;
-	const ROOT = 2;
+	public const BEFORE = 0;
+	public const UNDER = 1;
+	public const ROOT = 2;
 
 	// Configuration
 	public $isIframeSrcdoc;

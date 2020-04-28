@@ -15,12 +15,12 @@ use RemexHtml\Tokenizer\Tokenizer;
  * >>> RemexHtml\GenerateDataFiles::run()
  */
 class GenerateDataFiles {
-	const NS_HTML = 'http://www.w3.org/1999/xhtml';
-	const NS_MATHML = 'http://www.w3.org/1998/Math/MathML';
-	const NS_SVG = 'http://www.w3.org/2000/svg';
-	const NS_XLINK = 'http://www.w3.org/1999/xlink';
-	const NS_XML = 'http://www.w3.org/XML/1998/namespace';
-	const NS_XMLNS = 'http://www.w3.org/2000/xmlns/';
+	private const NS_HTML = 'http://www.w3.org/1999/xhtml';
+	private const NS_MATHML = 'http://www.w3.org/1998/Math/MathML';
+	private const NS_SVG = 'http://www.w3.org/2000/svg';
+	private const NS_XLINK = 'http://www.w3.org/1999/xlink';
+	private const NS_XML = 'http://www.w3.org/XML/1998/namespace';
+	private const NS_XMLNS = 'http://www.w3.org/2000/xmlns/';
 
 	/**
 	 * The only public entry point
@@ -305,6 +305,13 @@ EOT;
 		}
 		$encSpecial = var_export( $special, true );
 
+		$nsHtml = var_export( self::NS_HTML, true );
+		$nsMathML = var_export( self::NS_MATHML, true );
+		$nsSvg = var_export( self::NS_SVG, true );
+		$nsXlink = var_export( self::NS_XLINK, true );
+		$nsXml = var_export( self::NS_XML, true );
+		$nsXmlNs = var_export( self::NS_XMLNS, true );
+
 		$fileContents = '<' . <<<PHP
 ?php
 
@@ -315,12 +322,12 @@ EOT;
 namespace RemexHtml;
 
 class HTMLData {
-	const NS_HTML = 'http://www.w3.org/1999/xhtml';
-	const NS_MATHML = 'http://www.w3.org/1998/Math/MathML';
-	const NS_SVG = 'http://www.w3.org/2000/svg';
-	const NS_XLINK = 'http://www.w3.org/1999/xlink';
-	const NS_XML = 'http://www.w3.org/XML/1998/namespace';
-	const NS_XMLNS = 'http://www.w3.org/2000/xmlns/';
+	public const NS_HTML = $nsHtml;
+	public const NS_MATHML = $nsMathML;
+	public const NS_SVG = $nsSvg;
+	public const NS_XLINK = $nsXlink;
+	public const NS_XML = $nsXml;
+	public const NS_XMLNS = $nsXmlNs;
 
 	static public \$special = $encSpecial;
 	static public \$namedEntityRegex = $encEntityRegex;

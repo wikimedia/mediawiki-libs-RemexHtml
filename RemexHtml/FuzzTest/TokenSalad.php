@@ -9,12 +9,12 @@ use RemexHtml\HTMLData;
  * HTML tokens, with tag names that are often valid HTML tag names.
  */
 class TokenSalad {
-	const TOKEN_CHARACTER = 0;
-	const TOKEN_START = 1;
-	const TOKEN_END = 2;
-	const TOKEN_DOCTYPE = 3;
-	const TOKEN_COMMENT = 4;
-	const TOKEN_MAX = 4;
+	private const TOKEN_CHARACTER = 0;
+	private const TOKEN_START = 1;
+	private const TOKEN_END = 2;
+	private const TOKEN_DOCTYPE = 3;
+	private const TOKEN_COMMENT = 4;
+	private const TOKEN_MAX = 4;
 
 	private $maxLength;
 	private $bigDictionary;

@@ -10,11 +10,11 @@ use RemexHtml\HTMLData;
  * worst-case performance at the expense of somewhat slower updates.
  */
 class CachingStack extends Stack {
-	const SCOPE_DEFAULT = 0;
-	const SCOPE_LIST = 1;
-	const SCOPE_BUTTON = 2;
-	const SCOPE_TABLE = 3;
-	const SCOPE_SELECT = 4;
+	private const SCOPE_DEFAULT = 0;
+	private const SCOPE_LIST = 1;
+	private const SCOPE_BUTTON = 2;
+	private const SCOPE_TABLE = 3;
+	private const SCOPE_SELECT = 4;
 
 	private static $allScopes = [ self::SCOPE_DEFAULT, self::SCOPE_LIST, self::SCOPE_BUTTON,
 		self::SCOPE_TABLE, self::SCOPE_SELECT ];

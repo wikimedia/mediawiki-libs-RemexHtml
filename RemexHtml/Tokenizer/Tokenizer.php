@@ -15,65 +15,65 @@ class Tokenizer {
 	use PropGuard;
 
 	// States
-	const STATE_START = 1;
-	const STATE_DATA = 2;
-	const STATE_RCDATA = 3;
-	const STATE_RAWTEXT = 4;
-	const STATE_SCRIPT_DATA = 5;
-	const STATE_PLAINTEXT = 6;
-	const STATE_EOF = 7;
-	const STATE_CURRENT = 8;
+	public const STATE_START = 1;
+	public const STATE_DATA = 2;
+	public const STATE_RCDATA = 3;
+	public const STATE_RAWTEXT = 4;
+	public const STATE_SCRIPT_DATA = 5;
+	public const STATE_PLAINTEXT = 6;
+	public const STATE_EOF = 7;
+	public const STATE_CURRENT = 8;
 
 	// Match indices for the data state regex
-	const MD_END_TAG_OPEN = 1;
-	const MD_TAG_NAME = 2;
-	const MD_TAG_AFTER_LOWERCASE = 3;
-	const MD_COMMENT = 4;
-	const MD_COMMENT_INNER = 5;
-	const MD_COMMENT_END = 6;
-	const MD_DOCTYPE = 7;
-	const MD_DT_NAME_WS = 8;
-	const MD_DT_NAME = 9;
-	const MD_DT_PUBLIC_WS = 10;
-	const MD_DT_PUBLIC_DQ = 11;
-	const MD_DT_PUBLIC_SQ = 12;
-	const MD_DT_PUBSYS_WS = 13;
-	const MD_DT_PUBSYS_DQ = 14;
-	const MD_DT_PUBSYS_SQ = 15;
-	const MD_DT_SYSTEM_WS = 16;
-	const MD_DT_SYSTEM_DQ = 17;
-	const MD_DT_SYSTEM_SQ = 18;
-	const MD_DT_BOGUS = 19;
-	const MD_DT_END = 20;
-	const MD_CDATA = 21;
-	const MD_BOGUS_COMMENT = 22;
+	private const MD_END_TAG_OPEN = 1;
+	private const MD_TAG_NAME = 2;
+	private const MD_TAG_AFTER_LOWERCASE = 3;
+	private const MD_COMMENT = 4;
+	private const MD_COMMENT_INNER = 5;
+	private const MD_COMMENT_END = 6;
+	private const MD_DOCTYPE = 7;
+	private const MD_DT_NAME_WS = 8;
+	private const MD_DT_NAME = 9;
+	private const MD_DT_PUBLIC_WS = 10;
+	private const MD_DT_PUBLIC_DQ = 11;
+	private const MD_DT_PUBLIC_SQ = 12;
+	private const MD_DT_PUBSYS_WS = 13;
+	private const MD_DT_PUBSYS_DQ = 14;
+	private const MD_DT_PUBSYS_SQ = 15;
+	private const MD_DT_SYSTEM_WS = 16;
+	private const MD_DT_SYSTEM_DQ = 17;
+	private const MD_DT_SYSTEM_SQ = 18;
+	private const MD_DT_BOGUS = 19;
+	private const MD_DT_END = 20;
+	private const MD_CDATA = 21;
+	private const MD_BOGUS_COMMENT = 22;
 
 	// Match indices for the character reference regex
-	const MC_PREFIX = 1;
-	const MC_DECIMAL = 2;
-	const MC_HEXDEC = 3;
-	const MC_SEMICOLON = 4;
-	const MC_HASH = 5;
-	const MC_NAMED = 6;
-	const MC_SUFFIX = 7;
-	const MC_INVALID = 8;
+	private const MC_PREFIX = 1;
+	private const MC_DECIMAL = 2;
+	private const MC_HEXDEC = 3;
+	private const MC_SEMICOLON = 4;
+	private const MC_HASH = 5;
+	private const MC_NAMED = 6;
+	private const MC_SUFFIX = 7;
+	private const MC_INVALID = 8;
 
 	// Match indices for the attribute regex
-	const MA_SLASH = 1;
-	const MA_NAME = 2;
-	const MA_SIMPLE_NAME = 3;
-	const MA_DQUOTED = 4;
-	const MA_DQUOTED_CHARREF = 5;
-	const MA_DQUOTED_UNSIMPLE = 6;
-	const MA_SQUOTED = 7;
-	const MA_SQUOTED_CHARREF = 8;
-	const MA_SQUOTED_UNSIMPLE = 9;
-	const MA_UNQUOTED = 10;
-	const MA_UNQUOTED_UNSIMPLE = 11;
+	private const MA_SLASH = 1;
+	private const MA_NAME = 2;
+	private const MA_SIMPLE_NAME = 3;
+	private const MA_DQUOTED = 4;
+	private const MA_DQUOTED_CHARREF = 5;
+	private const MA_DQUOTED_UNSIMPLE = 6;
+	private const MA_SQUOTED = 7;
+	private const MA_SQUOTED_CHARREF = 8;
+	private const MA_SQUOTED_UNSIMPLE = 9;
+	private const MA_UNQUOTED = 10;
+	private const MA_UNQUOTED_UNSIMPLE = 11;
 
 	// Characters
-	const REPLACEMENT_CHAR = "\xef\xbf\xbd";
-	const BYTE_ORDER_MARK = "\xef\xbb\xbf";
+	protected const REPLACEMENT_CHAR = "\xef\xbf\xbd";
+	protected const BYTE_ORDER_MARK = "\xef\xbb\xbf";
 
 	// A list of "common well-behaved entities", used to optimize fast paths
 	private static $commonEntities = [
@@ -916,7 +916,7 @@ class Tokenizer {
 	// Only compile-time constants are handled efficiently in the
 	// regexp cache; otherwise we pay for a 26k strcmp each time we
 	// fetch the regexp from the cache.
-	const CHARREF_REGEX = '~
+	public const CHARREF_REGEX = '~
 				( .*? )                      # 1. prefix
 				&
 				(?:
