@@ -17,7 +17,7 @@ class DispatchTracer implements TokenHandler {
 	private $dispatcher;
 	private $callback;
 
-	function __construct( $input, Dispatcher $dispatcher, callable $callback ) {
+	public function __construct( $input, Dispatcher $dispatcher, callable $callback ) {
 		$this->input = $input;
 		$this->dispatcher = $dispatcher;
 		$this->callback = $callback;

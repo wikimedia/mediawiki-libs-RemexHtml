@@ -153,6 +153,12 @@ EOT;
 	private static $nameChar = 'NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]';
 	// @codingStandardsIgnoreEnd
 
+	/**
+	 * Build a regex alternation from an array of ampersand-prefixed entity
+	 * names.
+	 * @param string[] $array
+	 * @return string
+	 */
 	private function makeRegexAlternation( $array ) {
 		$regex = '';
 		foreach ( $array as $value ) {
