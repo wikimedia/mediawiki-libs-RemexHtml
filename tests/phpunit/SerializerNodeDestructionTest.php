@@ -107,7 +107,7 @@ class SerializerNodeDestructionTest extends \PHPUnit\Framework\TestCase {
 		for ( $i = 0; $i < 4 && $count == 0 && $continue; $i++ ) {
 			$continue = $tokenizer->step();
 		}
-		$this->assertEquals( 1, $count );
+		$this->assertSame( 1, $count );
 		while ( $tokenizer->step() ) {
 		}
 		$this->assertEquals( 7, $count );
