@@ -57,7 +57,9 @@ class TreeBuilder {
 	// State
 	public $isFragment = false;
 	public $fragmentContext;
+	/** @var Element|null */
 	public $headElement;
+	/** @var Element|null */
 	public $formElement;
 	public $framesetOK = true;
 	public $quirks = self::NO_QUIRKS;
