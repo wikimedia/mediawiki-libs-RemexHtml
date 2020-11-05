@@ -22,7 +22,7 @@ class DOMBuilder implements TreeHandler {
 	public $system;
 
 	/**
-	 * @var int $quirks The quirks mode. May be either TreeBuilder::NO_QUIRKS,
+	 * @var int The quirks mode. May be either TreeBuilder::NO_QUIRKS,
 	 *   TreeBuilder::LIMITED_QUIRKS or TreeBuilder::QUIRKS to indicate
 	 *   no-quirks mode, limited-quirks mode or quirks mode respectively.
 	 */
