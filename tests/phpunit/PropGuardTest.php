@@ -16,14 +16,7 @@ class PropGuardTest extends \PHPUnit\Framework\TestCase {
 		// Should not throw
 		$mock->real = true;
 		// Will throw
-		if ( is_callable( [ $this, 'expectException' ] ) ) {
-			// PHPUnit 6+
-			$this->expectException( Exception::class );
-		} else {
-			// PHPUnit 4.8
-			// @phan-suppress-next-line PhanUndeclaredMethod
-			$this->setExpectedException( Exception::class );
-		}
+		$this->expectException( Exception::class );
 		$mock->fake = true;
 	}
 
