@@ -10,3 +10,4 @@ composer.json export-ignore
 phpunit.xml.dist export-ignore
 build/ export-ignore
 tests/ export-ignore
+.phan/ export-ignore
