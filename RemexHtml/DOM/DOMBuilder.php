@@ -59,7 +59,7 @@ class DOMBuilder implements TreeHandler {
 	 *     nonstandard calls.
 	 */
 	public function __construct( $options = [] ) {
-		$options = $options + [
+		$options += [
 			'suppressHtmlNamespace' => false,
 			'suppressIdAttribute' => false,
 			'errorCallback' => null,
@@ -144,6 +144,7 @@ class DOMBuilder implements TreeHandler {
 			$parent = $refElement->userData;
 			$refNode = null;
 		}
+		// @phan-suppress-next-line PhanTypeMismatchArgumentInternal
 		$parent->insertBefore( $node, $refNode );
 	}
 
@@ -260,6 +261,7 @@ class DOMBuilder implements TreeHandler {
 			$prev->appendData( $data );
 		} else {
 			$node = $this->doc->createTextNode( $data );
+			// @phan-suppress-next-line PhanTypeMismatchArgumentNullableInternal
 			$parent->insertBefore( $node, $refNode );
 		}
 	}
