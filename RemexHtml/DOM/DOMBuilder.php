@@ -108,7 +108,7 @@ class DOMBuilder implements TreeHandler {
 	 * @param string|null $public
 	 * @param string|null $system
 	 * @return \DOMDocument
-	 * @suppress PhanTypeMismatchArgumentInternalProbablyReal
+	 * @suppress PhanTypeMismatchArgumentInternalReal
 	 *   Null args to DOMImplementation::createDocument
 	 */
 	protected function createDocument(

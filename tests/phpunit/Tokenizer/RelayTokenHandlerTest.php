@@ -26,13 +26,26 @@ class RelayTokenHandlerTest extends \PHPUnit\Framework\TestCase {
 
 	public function testEverything() {
 		$trace = $this->parse( '<!doctype html><foo>x<!--y--></bar><' );
-		$this->assertRegExp( '/startDocument/', $trace );
-		$this->assertRegExp( '/doctype/', $trace );
-		$this->assertRegExp( '/startTag/', $trace );
-		$this->assertRegExp( '/characters/', $trace );
-		$this->assertRegExp( '/comment/', $trace );
-		$this->assertRegExp( '/endTag/', $trace );
-		$this->assertRegExp( '/endDocument/', $trace );
-		$this->assertRegExp( '/error/', $trace );
+
+		// PHPUnit 8.x compatibility (for PHP 7.2 support)
+		if ( !method_exists( $this, 'assertMatchesRegularExpression' ) ) {
+			$this->assertRegExp( '/startDocument/', $trace );
+			$this->assertRegExp( '/doctype/', $trace );
+			$this->assertRegExp( '/startTag/', $trace );
+			$this->assertRegExp( '/characters/', $trace );
+			$this->assertRegExp( '/comment/', $trace );
+			$this->assertRegExp( '/endTag/', $trace );
+			$this->assertRegExp( '/endDocument/', $trace );
+			$this->assertRegExp( '/error/', $trace );
+		} else {
+			$this->assertMatchesRegularExpression( '/startDocument/', $trace );
+			$this->assertMatchesRegularExpression( '/doctype/', $trace );
+			$this->assertMatchesRegularExpression( '/startTag/', $trace );
+			$this->assertMatchesRegularExpression( '/characters/', $trace );
+			$this->assertMatchesRegularExpression( '/comment/', $trace );
+			$this->assertMatchesRegularExpression( '/endTag/', $trace );
+			$this->assertMatchesRegularExpression( '/endDocument/', $trace );
+			$this->assertMatchesRegularExpression( '/error/', $trace );
+		}
 	}
 }

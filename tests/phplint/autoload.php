@@ -14,8 +14,8 @@ require_module 'spl';
  * PHPLint fake entry point
  * @param string $className
  */
-function __autoload( /*. string .*/ $className ) {
+spl_autoload_register( function ( /*. string .*/ $className ) {
 	/*. pragma 'autoload' 'schema1' '../..' '/' '.php'; .*/
 	require_once '../../' .
 		str_replace( '\\', '/', $className ) . '.php';
-}
+} );
