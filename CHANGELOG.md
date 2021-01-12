@@ -1,4 +1,6 @@
-# Remex x.x.x (not yet released)
+# Remex 2.2.1 (2021-01-11)
+* Various minor changes for PHP 8.0 support.
+* Remove dead code about old phpunit version
 
 # Remex 2.2.0 (2020-04-29)
 * Update dependencies.
