@@ -1,3 +1,6 @@
+# Remex 2.2.2 (2021-01-30)
+* Support wikimedia/utfnormal ^3.0.1
+
 # Remex 2.2.1 (2021-01-11)
 * Various minor changes for PHP 8.0 support.
 * Remove dead code about old phpunit version
