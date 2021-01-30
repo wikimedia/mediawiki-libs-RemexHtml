@@ -36,7 +36,7 @@ class LazyAttributesTest extends TestCase {
 		$a['a'] = '1';
 		$this->assertSame( '1', $a['a'] );
 		$this->assertSame( 'v1', $a['k1'] );
-		$this->assertSame( 2, count( $a->getObjects() ) );
+		$this->assertCount( 2, $a->getObjects() );
 	}
 
 	public function testOffsetUnset() {
@@ -62,7 +62,7 @@ class LazyAttributesTest extends TestCase {
 	public function testGetObjects() {
 		$a = $this->create( 1 );
 		$objs = $a->getObjects();
-		$this->assertSame( 1, count( $objs ) );
+		$this->assertCount( 1, $objs );
 		$attr = $objs['k1'];
 		$this->assertSame( 'k1', $attr->qualifiedName );
 		$this->assertSame( 'k1', $attr->localName );

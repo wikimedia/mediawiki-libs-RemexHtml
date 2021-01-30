@@ -32,7 +32,7 @@ class PlainAttributesTest extends TestCase {
 		$a->getObjects();
 		$a['a'] = '1';
 		$this->assertSame( '1', $a['a'] );
-		$this->assertSame( 1, count( $a->getObjects() ) );
+		$this->assertCount( 1, $a->getObjects() );
 	}
 
 	public function testOffsetUnset() {
@@ -59,7 +59,7 @@ class PlainAttributesTest extends TestCase {
 	public function testGetObjects() {
 		$a = new PlainAttributes( [ 'a' => '1' ] );
 		$objs = $a->getObjects();
-		$this->assertSame( 1, count( $objs ) );
+		$this->assertCount( 1, $objs );
 		$attr = $objs['a'];
 		$this->assertSame( 'a', $attr->qualifiedName );
 		$this->assertSame( 'a', $attr->localName );
