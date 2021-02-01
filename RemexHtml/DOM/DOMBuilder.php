@@ -9,9 +9,17 @@ use RemexHtml\TreeBuilder\TreeBuilder;
 use RemexHtml\TreeBuilder\TreeHandler;
 
 /**
- * A TreeHandler which constructs a DOMDocument
+ * A TreeHandler which constructs a DOMDocument.
+ *
+ * Note that this class permits third-party `DOMImplementation`s
+ * (documents other than `\DOMDocument`, nodes other than `\DOMNode`,
+ * etc) and so no enforced PHP type hints are used which name these
+ * classes directly.  For the sake of static type checking, the
+ * types *in comments* are given as if the standard PHP `\DOM*`
+ * classes are being used but at runtime everything is duck-typed.
  */
 class DOMBuilder implements TreeHandler {
+
 	/** @var string|null The name of the input document type */
 	public $doctypeName;
 
@@ -40,6 +48,12 @@ class DOMBuilder implements TreeHandler {
 	/** @var bool */
 	private $suppressIdAttribute;
 
+	/** @var class-string */
+	private $domImplementationClass;
+
+	/** @var class-string */
+	private $domExceptionClass;
+
 	/** @var bool */
 	private $isFragment;
 
@@ -57,16 +71,35 @@ class DOMBuilder implements TreeHandler {
 	 *     DOMDocument::getElementById() calls).  Set to true if you are
 	 *     using a W3C spec-compliant DOMImplementation and wish to avoid
 	 *     nonstandard calls.
+	 *   - domImplementationClass: The string name of the DOMImplementation
+	 *     class to use.  Defaults to `\DOMImplementation::class` but
+	 *     you can use a third-party DOM implementation by passing
+	 *     an alternative class name here.
+	 *   - domExceptionClass: The string name of the DOMException
+	 *     class to use.  Defaults to `\DOMException::class` but
+	 *     you can use a third-party DOM implementation by passing
+	 *     an alternative class name here.
 	 */
 	public function __construct( $options = [] ) {
 		$options += [
 			'suppressHtmlNamespace' => false,
 			'suppressIdAttribute' => false,
 			'errorCallback' => null,
+			'domImplementationClass' => \DOMImplementation::class,
+			'domExceptionClass' => \DOMException::class,
 		];
 		$this->errorCallback = $options['errorCallback'];
 		$this->suppressHtmlNamespace = $options['suppressHtmlNamespace'];
 		$this->suppressIdAttribute = $options['suppressIdAttribute'];
+		$this->domImplementationClass = $options['domImplementationClass'];
+		$this->domExceptionClass = $options['domExceptionClass'];
+	}
+
+	private function rethrowIfNotDomException( \Throwable $t ) {
+		if ( is_a( $t, $this->domExceptionClass, false ) ) {
+			return;
+		}
+		throw $t;
 	}
 
 	/**
@@ -116,7 +149,8 @@ class DOMBuilder implements TreeHandler {
 		string $public = null,
 		string $system = null
 	) {
-		$impl = new \DOMImplementation;
+		$impl = new $this->domImplementationClass;
+		'@phan-var \DOMImplementation $impl'; /** @var \DOMImplementation $impl */
 		if ( $doctypeName === '' ) {
 			$this->coerced = true;
 			$doc = $impl->createDocument( null, null );
@@ -172,7 +206,9 @@ class DOMBuilder implements TreeHandler {
 					$element->namespace,
 					$element->name );
 			}
-		} catch ( \DOMException $e ) {
+		} catch ( \Throwable $e ) {
+			$this->rethrowIfNotDomException( $e );
+			'@phan-var \DOMException $e'; /** @var \DOMException $e */
 			// Attempt to escape the name so that it is more acceptable
 			if ( $noNS ) {
 				$node = $this->doc->createElement(
@@ -198,7 +234,9 @@ class DOMBuilder implements TreeHandler {
 				$attrNode->value = $attr->value;
 				try {
 					$node->setAttributeNodeNS( $attrNode );
-				} catch ( \DOMException $e ) {
+				} catch ( \Throwable $e ) {
+					$this->rethrowIfNotDomException( $e );
+					'@phan-var \DOMException $e'; /** @var \DOMException $e */
 					$node->setAttributeNS(
 						$attr->namespaceURI,
 						$this->coerceName( $attr->qualifiedName ),
@@ -210,7 +248,9 @@ class DOMBuilder implements TreeHandler {
 						$attr->namespaceURI,
 						$attr->qualifiedName,
 						$attr->value );
-				} catch ( \DOMException $e ) {
+				} catch ( \Throwable $e ) {
+					$this->rethrowIfNotDomException( $e );
+					'@phan-var \DOMException $e'; /** @var \DOMException $e */
 					$node->setAttributeNS(
 						$attr->namespaceURI,
 						$this->coerceName( $attr->qualifiedName ),
@@ -315,7 +355,9 @@ class DOMBuilder implements TreeHandler {
 				$attrNode->value = $attr->value;
 				try {
 					$replaced = $node->setAttributeNodeNS( $attrNode );
-				} catch ( \DOMException $e ) {
+				} catch ( \Throwable $e ) {
+					$this->rethrowIfNotDomException( $e );
+					'@phan-var \DOMException $e'; /** @var \DOMException $e */
 					$attrNode = $this->doc->createAttribute(
 						$this->coerceName( $attr->localName ) );
 					$attrNode->value = $attr->value;
@@ -330,7 +372,9 @@ class DOMBuilder implements TreeHandler {
 					if ( !$node->hasAttribute( $attr->localName ) ) {
 						$node->setAttribute( $attr->localName, $attr->value );
 					}
-				} catch ( \DOMException $e ) {
+				} catch ( \Throwable $e ) {
+					$this->rethrowIfNotDomException( $e );
+					'@phan-var \DOMException $e'; /** @var \DOMException $e */
 					$name = $this->coerceName( $attr->localName );
 					if ( !$node->hasAttribute( $name ) ) {
 						$node->setAttribute( $name, $attr->value );
@@ -342,7 +386,9 @@ class DOMBuilder implements TreeHandler {
 						$node->setAttributeNS( $attr->namespaceURI,
 							$attr->localName, $attr->value );
 					}
-				} catch ( \DOMException $e ) {
+				} catch ( \Throwable $e ) {
+					$this->rethrowIfNotDomException( $e );
+					'@phan-var \DOMException $e'; /** @var \DOMException $e */
 					$name = $this->coerceName( $attr->localName );
 					if ( !$node->hasAttributeNS( $attr->namespaceURI, $name ) ) {
 						$node->setAttributeNS( $attr->namespaceURI, $name, $attr->value );
