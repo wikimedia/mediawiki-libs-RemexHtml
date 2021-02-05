@@ -1,3 +1,7 @@
+# Remex x.x.x (not yet released)
+* Allow use of third-party DOM implementations (like wikimedia/dodo)
+  via the new `domImplementation` parameter to DOMBuilder.
+
 # Remex 2.2.2 (2021-01-30)
 * Support wikimedia/utfnormal ^3.0.1
 

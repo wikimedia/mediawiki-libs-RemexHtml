@@ -48,8 +48,8 @@ class DOMBuilder implements TreeHandler {
 	/** @var bool */
 	private $suppressIdAttribute;
 
-	/** @var class-string */
-	private $domImplementationClass;
+	/** @var \DOMImplementation */
+	private $domImplementation;
 
 	/** @var class-string */
 	private $domExceptionClass;
@@ -71,6 +71,11 @@ class DOMBuilder implements TreeHandler {
 	 *     DOMDocument::getElementById() calls).  Set to true if you are
 	 *     using a W3C spec-compliant DOMImplementation and wish to avoid
 	 *     nonstandard calls.
+	 *   - domImplementation: The DOMImplementation object to use.  If this
+	 *     parameter is missing or null, a new DOMImplementation object will
+	 *     be constructed using the `domImplementationClass` option value.
+	 *     You can use a third-party DOM implementation by passing in an
+	 *     appropriately duck-typed object here.
 	 *   - domImplementationClass: The string name of the DOMImplementation
 	 *     class to use.  Defaults to `\DOMImplementation::class` but
 	 *     you can use a third-party DOM implementation by passing
@@ -85,13 +90,15 @@ class DOMBuilder implements TreeHandler {
 			'suppressHtmlNamespace' => false,
 			'suppressIdAttribute' => false,
 			'errorCallback' => null,
+			'domImplementation' => null,
 			'domImplementationClass' => \DOMImplementation::class,
 			'domExceptionClass' => \DOMException::class,
 		];
 		$this->errorCallback = $options['errorCallback'];
 		$this->suppressHtmlNamespace = $options['suppressHtmlNamespace'];
 		$this->suppressIdAttribute = $options['suppressIdAttribute'];
-		$this->domImplementationClass = $options['domImplementationClass'];
+		$this->domImplementation = $options['domImplementation'] ??
+			new $options['domImplementationClass'];
 		$this->domExceptionClass = $options['domExceptionClass'];
 	}
 
@@ -149,8 +156,7 @@ class DOMBuilder implements TreeHandler {
 		string $public = null,
 		string $system = null
 	) {
-		$impl = new $this->domImplementationClass;
-		'@phan-var \DOMImplementation $impl'; /** @var \DOMImplementation $impl */
+		$impl = $this->domImplementation;
 		if ( $doctypeName === '' ) {
 			$this->coerced = true;
 			$doc = $impl->createDocument( null, null );
