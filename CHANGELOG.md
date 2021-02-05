@@ -1,4 +1,4 @@
-# Remex x.x.x (not yet released)
+# Remex 2.3.0 (2021-02-05)
 * Allow use of third-party DOM implementations (like wikimedia/dodo)
   via the new `domImplementation` parameter to DOMBuilder.
 
