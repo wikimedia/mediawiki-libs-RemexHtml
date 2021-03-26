@@ -27,12 +27,11 @@ class FuzzTest {
 		for ( $seed = 0; true; $seed++ ) {
 			mt_srand( $seed );
 			$text = $tokenSalad->next();
-			// @codingStandardsIgnoreStart
+			// phpcs:ignore Generic.PHP.NoSilencedErrors
 			if ( @iconv( 'UTF-8', 'UTF-8', $text ) === false ) {
 				// Skip invalid UTF-8 tests
 				continue;
 			}
-			// @codingStandardsIgnoreEnd
 
 			$formatter = new Serializer\DepurateFormatter( [
 				'scriptingFlag' => false

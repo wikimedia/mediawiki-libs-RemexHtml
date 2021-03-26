@@ -141,17 +141,17 @@ EOT;
 		self::NS_SVG => 'foreignObject, desc, title',
 	];
 
-	// @codingStandardsIgnoreStart
+	// phpcs:disable Generic.Files.LineLength
 	/**
 	 * The NameStartChar production from XML 1.0, but with colon excluded since
 	 * there's a lot of ways to break namespace validation, and we actually need
 	 * this for local names
 	 */
 	private static $nameStartChar = '[A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]';
+	// phpcs:enable
 
 	/** The NameChar production from XML 1.0 */
 	private static $nameChar = 'NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]';
-	// @codingStandardsIgnoreEnd
 
 	/**
 	 * Build a regex alternation from an array of ampersand-prefixed entity
