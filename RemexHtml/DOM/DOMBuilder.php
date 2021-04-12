@@ -159,12 +159,12 @@ class DOMBuilder implements TreeHandler {
 		$impl = $this->domImplementation;
 		if ( $doctypeName === '' ) {
 			$this->coerced = true;
-			$doc = $impl->createDocument( null, null );
+			$doc = $impl->createDocument( null, '' );
 		} elseif ( $doctypeName === null ) {
-			$doc = $impl->createDocument( null, null );
+			$doc = $impl->createDocument( null, '' );
 		} else {
 			$doctype = $impl->createDocumentType( $doctypeName, $public, $system );
-			$doc = $impl->createDocument( null, null, $doctype );
+			$doc = $impl->createDocument( null, '', $doctype );
 		}
 		$doc->encoding = 'UTF-8';
 		return $doc;
