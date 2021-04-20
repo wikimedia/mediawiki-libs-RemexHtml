@@ -1,4 +1,7 @@
-# Remex x.x.x (not yet released)
+# Remex 2.3.1 (2021-04-20)
+* Don't pass null arguments to DOMImplementation::createDocument(): nulls
+  are technically allowed and converted to the empty string, but this is
+  deprecated legacy behavior.
 
 # Remex 2.3.0 (2021-02-05)
 * Allow use of third-party DOM implementations (like wikimedia/dodo)
