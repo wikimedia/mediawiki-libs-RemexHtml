@@ -1,3 +1,5 @@
+# Remex x.x.x (not yet released)
+
 # Remex 2.3.1 (2021-04-20)
 * Don't pass null arguments to DOMImplementation::createDocument(): nulls
   are technically allowed and converted to the empty string, but this is
