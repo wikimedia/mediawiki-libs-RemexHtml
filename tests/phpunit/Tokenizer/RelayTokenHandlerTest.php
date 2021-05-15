@@ -14,7 +14,7 @@ class RelayTokenHandlerTest extends \PHPUnit\Framework\TestCase {
 		$dispatcher = new Dispatcher( $treeBuilder );
 		$trace = '';
 		$dispatchTracer = new DispatchTracer( $text, $dispatcher,
-			function ( $message ) use ( &$trace ) {
+			static function ( $message ) use ( &$trace ) {
 				$trace .= $message . "\n";
 			}
 		);

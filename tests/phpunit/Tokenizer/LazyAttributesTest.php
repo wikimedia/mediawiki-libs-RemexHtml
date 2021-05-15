@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 class LazyAttributesTest extends TestCase {
 	private function create( $idx ) {
 		$data = new \stdClass;
-		return new LazyAttributes( $data, function () use ( $idx ) {
+		return new LazyAttributes( $data, static function () use ( $idx ) {
 			return [ "k$idx" => "v$idx" ];
 		} );
 	}

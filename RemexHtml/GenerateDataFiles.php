@@ -193,7 +193,7 @@ EOT;
 				throw new \Exception( "Invalid XML char case \"$case\"" );
 			}
 		}
-		usort( $ranges, function ( $a, $b ) {
+		usort( $ranges, static function ( $a, $b ) {
 			return $a[0] - $b[0];
 		} );
 		return $ranges;
@@ -237,7 +237,7 @@ EOT;
 
 	private function encodeConvTable( $table ) {
 		return "[\n\t\t" . implode( ",\n\t\t", array_map(
-			function ( $a ) {
+			static function ( $a ) {
 				return implode( ', ', $a );
 			},
 			array_chunk( $table, 4 ) ) ) . ' ]';
@@ -261,7 +261,7 @@ EOT;
 		}
 
 		// Sort descending by length
-		uksort( $entities, function ( $a, $b ) {
+		uksort( $entities, static function ( $a, $b ) {
 			if ( strlen( $a ) > strlen( $b ) ) {
 				return -1;
 			} elseif ( strlen( $a ) < strlen( $b ) ) {

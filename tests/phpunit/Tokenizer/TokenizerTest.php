@@ -74,7 +74,7 @@ class TokenizerTest extends \PHPUnit\Framework\TestCase {
 			return array_map( [ $this, 'unescape' ], $value );
 		} elseif ( is_string( $value ) ) {
 			return preg_replace_callback( '/\\\\u([0-9a-fA-F]{4})/',
-				function ( $m ) {
+				static function ( $m ) {
 					return \UtfNormal\Utils::codepointToUtf8( intval( $m[1], 16 ) );
 				},
 				$value );

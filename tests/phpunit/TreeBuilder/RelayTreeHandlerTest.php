@@ -9,7 +9,7 @@ class RelayTreeHandlerTest extends \PHPUnit\Framework\TestCase {
 		$null = new NullTreeHandler;
 		$trace = '';
 		$tracer = new TreeMutationTracer( $null,
-			function ( $message ) use ( &$trace ) {
+			static function ( $message ) use ( &$trace ) {
 				$trace .= $message . "\n";
 			}
 		);
