@@ -42,6 +42,12 @@ class AfterHead extends InsertionMode {
 				$sourceStart, $sourceLength );
 			break;
 
+		case 'body':
+			$builder->insertElement( $name, $attrs, false, $sourceStart, $sourceLength );
+			$builder->framesetOK = false;
+			$dispatcher->switchMode( Dispatcher::IN_BODY );
+			break;
+
 		case 'frameset':
 			$builder->insertElement( $name, $attrs, false, $sourceStart, $sourceLength );
 			$dispatcher->switchMode( Dispatcher::IN_FRAMESET );

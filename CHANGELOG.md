@@ -1,4 +1,6 @@
 # Remex x.x.x (not yet released)
+* Fix handling of <body> tag in "after head" state that would incorrectly
+  result in a parse error being raised.
 
 # Remex 2.3.1 (2021-04-20)
 * Don't pass null arguments to DOMImplementation::createDocument(): nulls
