@@ -18,7 +18,6 @@
 	<file>.</file>
 	<arg name="encoding" value="UTF-8"/>
 	<arg name="extensions" value="php"/>
-	<exclude-pattern type="relative">^src/HTMLData\.php</exclude-pattern>
 	<exclude-pattern type="relative">^bin/test\.php</exclude-pattern>
 	<exclude-pattern type="relative">^doc/html/*</exclude-pattern>
 </ruleset>

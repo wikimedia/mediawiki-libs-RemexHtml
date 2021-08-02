@@ -243,6 +243,27 @@ EOT;
 			array_chunk( $table, 4 ) ) ) . ' ]';
 	}
 
+	/**
+	 * Like var_export(), but more conforming to our standard code style.
+	 * @param mixed $obj
+	 * @param int $indent The desired additional indentation level
+	 * @return string
+	 */
+	private static function phpExport( $obj, $indent = 0 ): string {
+		if ( !is_array( $obj ) ) {
+			return var_export( $obj, true );
+		}
+		$tabs = str_repeat( "\t", $indent );
+		$s = "[\n";
+		foreach ( $obj as $key => $value ) {
+			$s .= "$tabs\t" . var_export( $key, true ) . ' => ';
+			$s .= self::phpExport( $value, $indent + 1 );
+			$s .= ",\n";
+		}
+		$s .= "$tabs]";
+		return $s;
+	}
+
 	private function execute() {
 		$filename = __DIR__ . '/entities.json';
 		$entitiesJson = file_exists( $filename ) ?
@@ -295,11 +316,11 @@ EOT;
 		$nameCharConvTable = $this->makeConvTable( self::$nameChar,
 			[ 'NameStartChar' => self::$nameStartChar ] );
 
-		$encEntityRegex = var_export( $entityRegex, true );
-		$encCharRefRegex = var_export( $charRefRegex, true );
-		$encTranslations = var_export( $entityTranslations, true );
-		$encLegacy = var_export( $legacyNumericEntities, true );
-		$encQuirkyRegex = var_export( $quirkyRegex, true );
+		$encEntityRegex = self::phpExport( $entityRegex, 1 );
+		$encCharRefRegex = self::phpExport( $charRefRegex, 1 );
+		$encTranslations = self::phpExport( $entityTranslations, 1 );
+		$encLegacy = self::phpExport( $legacyNumericEntities, 1 );
+		$encQuirkyRegex = self::phpExport( $quirkyRegex, 1 );
 		$encNameStartCharConvTable = $this->encodeConvTable( $nameStartCharConvTable );
 		$encNameCharConvTable = $this->encodeConvTable( $nameCharConvTable );
 
@@ -309,14 +330,14 @@ EOT;
 				$special[$ns][trim( $name )] = true;
 			}
 		}
-		$encSpecial = var_export( $special, true );
+		$encSpecial = self::phpExport( $special, 1 );
 
-		$nsHtml = var_export( self::NS_HTML, true );
-		$nsMathML = var_export( self::NS_MATHML, true );
-		$nsSvg = var_export( self::NS_SVG, true );
-		$nsXlink = var_export( self::NS_XLINK, true );
-		$nsXml = var_export( self::NS_XML, true );
-		$nsXmlNs = var_export( self::NS_XMLNS, true );
+		$nsHtml = self::phpExport( self::NS_HTML, 1 );
+		$nsMathML = self::phpExport( self::NS_MATHML, 1 );
+		$nsSvg = self::phpExport( self::NS_SVG, 1 );
+		$nsXlink = self::phpExport( self::NS_XLINK, 1 );
+		$nsXml = self::phpExport( self::NS_XML, 1 );
+		$nsXmlNs = self::phpExport( self::NS_XMLNS, 1 );
 
 		$fileContents = '<' . <<<PHP
 ?php
@@ -335,15 +356,16 @@ class HTMLData {
 	public const NS_XML = $nsXml;
 	public const NS_XMLNS = $nsXmlNs;
 
-	static public \$special = $encSpecial;
-	static public \$namedEntityRegex = $encEntityRegex;
-	static public \$charRefRegex = $encCharRefRegex;
-	static public \$namedEntityTranslations = $encTranslations;
-	static public \$legacyNumericEntities = $encLegacy;
-	static public \$quirkyPrefixRegex = $encQuirkyRegex;
-	static public \$nameStartCharConvTable = $encNameStartCharConvTable;
-	static public \$nameCharConvTable = $encNameCharConvTable;
+	public static \$special = $encSpecial;
+	public static \$namedEntityRegex = $encEntityRegex;
+	public static \$charRefRegex = $encCharRefRegex;
+	public static \$namedEntityTranslations = $encTranslations;
+	public static \$legacyNumericEntities = $encLegacy;
+	public static \$quirkyPrefixRegex = $encQuirkyRegex;
+	public static \$nameStartCharConvTable = $encNameStartCharConvTable;
+	public static \$nameCharConvTable = $encNameCharConvTable;
 }
+
 PHP;
 
 		file_put_contents( __DIR__ . '/HTMLData.php', $fileContents );
