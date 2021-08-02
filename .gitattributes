@@ -1,5 +1,5 @@
 /bin export-ignore
-/RemexHtml/FuzzTest export-ignore
+/src/FuzzTest export-ignore
 .editorconfig export-ignore
 .gitattributes export-ignore
 .gitignore export-ignore
