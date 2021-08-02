@@ -1,6 +1,6 @@
 <?php
 
-namespace RemexHtml\Tokenizer;
+namespace Wikimedia\RemexHtml\Tokenizer;
 
 /**
  * A TokenHandler which collects events from the Tokenizer and generates an
@@ -48,3 +48,6 @@ class TestTokenHandler implements TokenHandler {
 		$this->tokens[] = [ 'Comment', $text ];
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( TestTokenHandler::class, 'RemexHtml\Tokenizer\TestTokenHandler' );

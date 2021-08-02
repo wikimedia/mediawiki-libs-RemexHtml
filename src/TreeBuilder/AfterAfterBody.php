@@ -1,8 +1,8 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 /**
  * The "after after body" insertion mode
@@ -57,3 +57,6 @@ class AfterAfterBody extends InsertionMode {
 		$this->builder->comment( [ TreeBuilder::ROOT, null ], $text, $sourceStart, $sourceLength );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( AfterAfterBody::class, 'RemexHtml\TreeBuilder\AfterAfterBody' );

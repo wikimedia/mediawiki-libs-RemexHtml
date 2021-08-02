@@ -1,10 +1,10 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\Tokenizer\Attributes;
-use RemexHtml\Tokenizer\TokenHandler;
-use RemexHtml\Tokenizer\Tokenizer;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\TokenHandler;
+use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
 
 /**
  * This is a debugging helper class which calls a callback function with a
@@ -99,3 +99,6 @@ class DispatchTracer implements TokenHandler {
 		$this->wrap( __FUNCTION__, $sourceStart, $sourceLength, func_get_args() );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( DispatchTracer::class, 'RemexHtml\TreeBuilder\DispatchTracer' );

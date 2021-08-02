@@ -4,7 +4,7 @@
  * This data file is machine generated, see GenerateDataFiles.php
  */
 
-namespace RemexHtml;
+namespace Wikimedia\RemexHtml;
 
 class HTMLData {
 	public const NS_HTML = 'http://www.w3.org/1999/xhtml';
@@ -6956,3 +6956,6 @@ class HTMLData {
 		65534, 65535, 0, 16777215,
 		983040, 1114111, 0, 16777215 ];
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( HTMLData::class, 'RemexHtml\HTMLData' );

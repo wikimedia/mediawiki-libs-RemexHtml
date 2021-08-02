@@ -1,8 +1,8 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 /**
  * A TreeHandler which does nothing
@@ -78,3 +78,6 @@ class NullTreeHandler implements TreeHandler {
 	public function reparentChildren( Element $element, Element $newParent, $sourceStart ) {
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( NullTreeHandler::class, 'RemexHtml\TreeBuilder\NullTreeHandler' );

@@ -1,6 +1,6 @@
 <?php
 
-namespace RemexHtml\Tokenizer;
+namespace Wikimedia\RemexHtml\Tokenizer;
 
 /**
  * A TokenHandler which simply passes all tokens through to another token
@@ -81,3 +81,6 @@ class RelayTokenHandler implements TokenHandler {
 		$this->nextHandler->comment( $text, $sourceStart, $sourceLength );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( RelayTokenHandler::class, 'RemexHtml\Tokenizer\RelayTokenHandler' );

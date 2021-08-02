@@ -1,4 +1,8 @@
 # Remex x.x.x (not yet released)
+* Changed package namespace from RemexHtml to Wikimedia\RemexHtml to match
+  package name.  PHP's `class_alias` has been used so that existing code
+  using the old namespace will continue to work, but this is now deprecated;
+  it is expected the next major release of RemexHtml will remove the aliases.
 * Fix handling of <body> tag in "after head" state that would incorrectly
   result in a parse error being raised.
 

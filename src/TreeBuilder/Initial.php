@@ -1,9 +1,9 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\HTMLData;
-use RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\HTMLData;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 /**
  * The "initial" insertion mode
@@ -109,3 +109,6 @@ class Initial extends InsertionMode {
 			->endDocument( $pos );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( Initial::class, 'RemexHtml\TreeBuilder\Initial' );

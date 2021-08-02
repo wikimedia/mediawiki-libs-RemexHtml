@@ -1,9 +1,9 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\HTMLData;
-use RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\HTMLData;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 /**
  * The rules for parsing tokens in foreign content.
@@ -217,3 +217,6 @@ class InForeignContent extends InsertionMode {
 		throw new TreeBuilderError( "unspecified, presumed unreachable" );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( InForeignContent::class, 'RemexHtml\TreeBuilder\InForeignContent' );

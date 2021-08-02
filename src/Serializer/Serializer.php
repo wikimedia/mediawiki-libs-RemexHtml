@@ -1,12 +1,12 @@
 <?php
 
-namespace RemexHtml\Serializer;
+namespace Wikimedia\RemexHtml\Serializer;
 
-use RemexHtml\PropGuard;
-use RemexHtml\Tokenizer\Attributes;
-use RemexHtml\Tokenizer\PlainAttributes;
-use RemexHtml\TreeBuilder\Element;
-use RemexHtml\TreeBuilder\TreeBuilder;
+use Wikimedia\RemexHtml\PropGuard;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\PlainAttributes;
+use Wikimedia\RemexHtml\TreeBuilder\Element;
+use Wikimedia\RemexHtml\TreeBuilder\TreeBuilder;
 
 /**
  * A TreeHandler which builds a serialized representation of a document, by
@@ -356,3 +356,6 @@ class Serializer implements AbstractSerializer {
 		return substr( $s, 2, -3 ) . "\n";
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( Serializer::class, 'RemexHtml\Serializer\Serializer' );

@@ -1,6 +1,6 @@
 <?php
 
-namespace RemexHtml\FuzzTest;
+namespace Wikimedia\RemexHtml\FuzzTest;
 
 /**
  * A generator for a random strings, biased towards characters that have
@@ -44,3 +44,6 @@ class CharacterSalad {
 		return $s;
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( CharacterSalad::class, 'RemexHtml\FuzzTest\CharacterSalad' );

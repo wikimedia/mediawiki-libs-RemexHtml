@@ -1,6 +1,6 @@
 <?php
 
-namespace RemexHtml\Tokenizer;
+namespace Wikimedia\RemexHtml\Tokenizer;
 
 /**
  * This class provides a convenient iterative view of the token stream,
@@ -50,3 +50,6 @@ class TokenGenerator {
 		}
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( TokenGenerator::class, 'RemexHtml\Tokenizer\TokenGenerator' );

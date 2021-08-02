@@ -1,10 +1,10 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\HTMLData;
-use RemexHtml\Tokenizer\Attribute;
-use RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\HTMLData;
+use Wikimedia\RemexHtml\Tokenizer\Attribute;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 /**
  * An Attributes class for storing attributes on foreign elements, which may
@@ -182,3 +182,6 @@ class ForeignAttributes implements Attributes {
 		throw new TreeBuilderError( __METHOD__ . ': unimplemented' );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( ForeignAttributes::class, 'RemexHtml\TreeBuilder\ForeignAttributes' );

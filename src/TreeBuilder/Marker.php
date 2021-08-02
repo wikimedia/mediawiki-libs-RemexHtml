@@ -1,8 +1,8 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\PropGuard;
+use Wikimedia\RemexHtml\PropGuard;
 
 /**
  * A pseudo-element used as a marker or bookmark in the list of active formatting elements
@@ -19,3 +19,6 @@ class Marker implements FormattingElement {
 		$this->type = $type;
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( Marker::class, 'RemexHtml\TreeBuilder\Marker' );

@@ -1,6 +1,6 @@
 <?php
 
-namespace RemexHtml\FuzzTest;
+namespace Wikimedia\RemexHtml\FuzzTest;
 
 class FuzzData {
 	/**
@@ -224,3 +224,6 @@ class FuzzData {
 		'APPLICATION/XHTML+XML',
 	];
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( FuzzData::class, 'RemexHtml\FuzzTest\FuzzData' );

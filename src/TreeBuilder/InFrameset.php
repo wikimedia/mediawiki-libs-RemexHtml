@@ -1,8 +1,8 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 /**
  * The "in frameset" insertion mode
@@ -76,3 +76,6 @@ class InFrameset extends InsertionMode {
 		$builder->stopParsing( $pos );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( InFrameset::class, 'RemexHtml\TreeBuilder\InFrameset' );

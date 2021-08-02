@@ -1,9 +1,9 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\Tokenizer\Attributes;
-use RemexHtml\Tokenizer\PlainAttributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\PlainAttributes;
 
 /**
  * The "before head" insertion mode
@@ -59,3 +59,6 @@ class BeforeHead extends InsertionMode {
 			->endDocument( $pos );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( BeforeHead::class, 'RemexHtml\TreeBuilder\BeforeHead' );

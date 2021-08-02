@@ -1,18 +1,18 @@
 <?php
 
-namespace RemexHtml;
+namespace Wikimedia\RemexHtml;
 
-use RemexHtml\Tokenizer\Tokenizer;
+use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
 
 /**
  * Generate HTMLData.php. This can be executed e.g. with
  *
- * echo 'RemexHtml\GenerateDataFiles::run()' | php bin/test.php
+ * echo 'Wikimedia\RemexHtml\GenerateDataFiles::run()' | php bin/test.php
  *
  * or, using the psysh shell from the project root directory:
  *
  * >>> require('vendor/autoload.php');
- * >>> RemexHtml\GenerateDataFiles::run()
+ * >>> Wikimedia\RemexHtml\GenerateDataFiles::run()
  */
 class GenerateDataFiles {
 	private const NS_HTML = 'http://www.w3.org/1999/xhtml';
@@ -346,7 +346,7 @@ EOT;
  * This data file is machine generated, see GenerateDataFiles.php
  */
 
-namespace RemexHtml;
+namespace Wikimedia\RemexHtml;
 
 class HTMLData {
 	public const NS_HTML = $nsHtml;
@@ -371,3 +371,6 @@ PHP;
 		file_put_contents( __DIR__ . '/HTMLData.php', $fileContents );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( GenerateDataFiles::class, 'RemexHtml\GenerateDataFiles' );

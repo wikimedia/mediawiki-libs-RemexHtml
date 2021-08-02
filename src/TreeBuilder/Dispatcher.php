@@ -1,11 +1,11 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\HTMLData;
-use RemexHtml\Tokenizer\Attributes;
-use RemexHtml\Tokenizer\TokenHandler;
-use RemexHtml\Tokenizer\Tokenizer;
+use Wikimedia\RemexHtml\HTMLData;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\TokenHandler;
+use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
 
 /**
  * This is the approximate equivalent of the "tree construction dispatcher" in
@@ -441,3 +441,6 @@ class Dispatcher implements TokenHandler {
 		}
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( Dispatcher::class, 'RemexHtml\TreeBuilder\Dispatcher' );

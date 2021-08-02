@@ -1,6 +1,6 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
 /**
  * The list of active formatting elements
@@ -354,3 +354,6 @@ class ActiveFormattingElements {
 		return $this->tail;
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( ActiveFormattingElements::class, 'RemexHtml\TreeBuilder\ActiveFormattingElements' );

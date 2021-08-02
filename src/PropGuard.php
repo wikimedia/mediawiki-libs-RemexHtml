@@ -1,6 +1,6 @@
 <?php
 
-namespace RemexHtml;
+namespace Wikimedia\RemexHtml;
 
 /**
  * This is a statically configurable mechanism for preventing the setting of
@@ -19,3 +19,6 @@ trait PropGuard {
 		}
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( PropGuard::class, 'RemexHtml\PropGuard' );

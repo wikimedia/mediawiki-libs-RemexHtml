@@ -1,8 +1,8 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 /**
  * The "in caption" insertion mode
@@ -103,3 +103,6 @@ class InCaption extends InsertionMode {
 		$this->dispatcher->inBody->endDocument( $pos );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( InCaption::class, 'RemexHtml\TreeBuilder\InCaption' );

@@ -1,6 +1,9 @@
 <?php
 
-namespace RemexHtml\Tokenizer;
+namespace Wikimedia\RemexHtml\Tests\Tokenizer;
+
+use Wikimedia\RemexHtml\Tokenizer\TestTokenHandler;
+use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
 
 class TokenizerTest extends \PHPUnit\Framework\TestCase {
 	public static $testErrorCount = false;

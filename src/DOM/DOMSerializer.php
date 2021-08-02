@@ -1,10 +1,10 @@
 <?php
 
-namespace RemexHtml\DOM;
+namespace Wikimedia\RemexHtml\DOM;
 
-use RemexHtml\Serializer\AbstractSerializer;
-use RemexHtml\Tokenizer\Attributes;
-use RemexHtml\TreeBuilder\Element;
+use Wikimedia\RemexHtml\Serializer\AbstractSerializer;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\TreeBuilder\Element;
 
 /**
  * This class providers a Serializer-like interface to DOMBuilder, allowing
@@ -121,3 +121,6 @@ class DOMSerializer implements AbstractSerializer {
 		$this->builder->reparentChildren( $element, $newParent, $sourceStart );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( DOMSerializer::class, 'RemexHtml\DOM\DOMSerializer' );

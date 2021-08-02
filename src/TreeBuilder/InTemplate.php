@@ -1,8 +1,8 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 /**
  * The "in template" insertion mode
@@ -95,3 +95,6 @@ class InTemplate extends InsertionMode {
 			 ->endDocument( $pos );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( InTemplate::class, 'RemexHtml\TreeBuilder\InTemplate' );

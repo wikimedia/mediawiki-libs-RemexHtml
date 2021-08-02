@@ -1,9 +1,9 @@
 <?php
 
-namespace RemexHtml\Tokenizer;
+namespace Wikimedia\RemexHtml\Tokenizer;
 
-use RemexHtml\HTMLData;
-use RemexHtml\PropGuard;
+use Wikimedia\RemexHtml\HTMLData;
+use Wikimedia\RemexHtml\PropGuard;
 
 /**
  * HTML 5 tokenizer
@@ -1646,3 +1646,6 @@ REGEX;
 		throw new TokenizerError( __CLASS__ . ": $msg" );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( Tokenizer::class, 'RemexHtml\Tokenizer\Tokenizer' );

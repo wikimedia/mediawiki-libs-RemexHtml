@@ -1,11 +1,11 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\HTMLData;
-use RemexHtml\Tokenizer\Attributes;
-use RemexHtml\Tokenizer\PlainAttributes;
-use RemexHtml\Tokenizer\Tokenizer;
+use Wikimedia\RemexHtml\HTMLData;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\PlainAttributes;
+use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
 
 /**
  * The "in body" insertion mode.
@@ -674,3 +674,6 @@ class InBody extends InsertionMode {
 		}
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( InBody::class, 'RemexHtml\TreeBuilder\InBody' );

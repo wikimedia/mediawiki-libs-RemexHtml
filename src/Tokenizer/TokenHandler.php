@@ -1,6 +1,6 @@
 <?php
 
-namespace RemexHtml\Tokenizer;
+namespace Wikimedia\RemexHtml\Tokenizer;
 
 /**
  * This is the interface for handlers receiving events from the Tokenizer.
@@ -95,3 +95,6 @@ interface TokenHandler {
 	 */
 	public function comment( $text, $sourceStart, $sourceLength );
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( TokenHandler::class, 'RemexHtml\Tokenizer\TokenHandler' );

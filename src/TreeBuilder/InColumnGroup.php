@@ -1,8 +1,8 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 /**
  * The "in column group" insertion mode
@@ -115,3 +115,6 @@ class InColumnGroup extends InsertionMode {
 		$this->dispatcher->inBody->endDocument( $pos );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( InColumnGroup::class, 'RemexHtml\TreeBuilder\InColumnGroup' );

@@ -1,6 +1,6 @@
 <?php
 
-namespace RemexHtml\Tokenizer;
+namespace Wikimedia\RemexHtml\Tokenizer;
 
 /**
  * An Attributes implementation which is a simple array proxy.
@@ -64,3 +64,6 @@ class PlainAttributes implements Attributes {
 		return count( $this->data );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( PlainAttributes::class, 'RemexHtml\Tokenizer\PlainAttributes' );

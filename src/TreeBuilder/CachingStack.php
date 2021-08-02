@@ -1,8 +1,8 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\HTMLData;
+use Wikimedia\RemexHtml\HTMLData;
 
 /**
  * An implementation of the "stack of open elements" which includes a cache of
@@ -426,3 +426,6 @@ class CachingStack extends Stack {
 		}
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( CachingStack::class, 'RemexHtml\TreeBuilder\CachingStack' );

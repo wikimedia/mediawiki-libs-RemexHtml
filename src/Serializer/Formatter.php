@@ -1,6 +1,6 @@
 <?php
 
-namespace RemexHtml\Serializer;
+namespace Wikimedia\RemexHtml\Serializer;
 
 /**
  * The interface for classes that help Serializer to convert nodes to strings.
@@ -63,3 +63,6 @@ interface Formatter {
 	 */
 	public function doctype( $name, $public, $system );
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( Formatter::class, 'RemexHtml\Serializer\Formatter' );

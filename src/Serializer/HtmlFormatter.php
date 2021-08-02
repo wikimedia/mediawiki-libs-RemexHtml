@@ -1,10 +1,10 @@
 <?php
 
-namespace RemexHtml\Serializer;
+namespace Wikimedia\RemexHtml\Serializer;
 
-use RemexHtml\DOM\DOMFormatter;
-use RemexHtml\DOM\DOMUtils;
-use RemexHtml\HTMLData;
+use Wikimedia\RemexHtml\DOM\DOMFormatter;
+use Wikimedia\RemexHtml\DOM\DOMUtils;
+use Wikimedia\RemexHtml\HTMLData;
 
 /**
  * A formatter which follows the HTML 5 fragment serialization algorithm.
@@ -277,3 +277,6 @@ class HtmlFormatter implements Formatter, DOMFormatter {
 		return $s;
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( HtmlFormatter::class, 'RemexHtml\Serializer\HtmlFormatter' );

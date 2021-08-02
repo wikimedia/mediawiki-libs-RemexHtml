@@ -1,8 +1,8 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 interface TreeHandler {
 	/**
@@ -164,3 +164,6 @@ interface TreeHandler {
 	public function reparentChildren( Element $element, Element $newParent, $sourceStart );
 
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( TreeHandler::class, 'RemexHtml\TreeBuilder\TreeHandler' );

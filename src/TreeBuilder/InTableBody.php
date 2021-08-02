@@ -1,9 +1,9 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\Tokenizer\Attributes;
-use RemexHtml\Tokenizer\PlainAttributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\PlainAttributes;
 
 /**
  * The "in table body" insertion mode
@@ -107,3 +107,6 @@ class InTableBody extends InsertionMode {
 		$this->dispatcher->inTable->endDocument( $pos );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( InTableBody::class, 'RemexHtml\TreeBuilder\InTableBody' );

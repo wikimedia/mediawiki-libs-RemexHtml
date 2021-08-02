@@ -1,6 +1,6 @@
 <?php
 
-namespace RemexHtml\FuzzTest;
+namespace Wikimedia\RemexHtml\FuzzTest;
 
 /**
  * A simple client for an Html5Depurate web service
@@ -36,3 +36,6 @@ class Html5Depurate {
 		return $result;
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( Html5Depurate::class, 'RemexHtml\FuzzTest\Html5Depurate' );

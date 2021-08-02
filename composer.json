@@ -11,7 +11,13 @@
 	],
 	"autoload": {
 		"psr-4": {
-			"RemexHtml\\": "src/"
+			"RemexHtml\\": "src/",
+			"Wikimedia\\RemexHtml\\": "src/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"Wikimedia\\RemexHtml\\Tests\\": "tests/phpunit/"
 		}
 	},
 	"require": {

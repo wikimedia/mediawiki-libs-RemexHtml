@@ -1,8 +1,8 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 /**
  * The "in cell" insertion mode
@@ -108,3 +108,6 @@ class InCell extends InsertionMode {
 		return $this->dispatcher->switchMode( Dispatcher::IN_ROW );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( InCell::class, 'RemexHtml\TreeBuilder\InCell' );

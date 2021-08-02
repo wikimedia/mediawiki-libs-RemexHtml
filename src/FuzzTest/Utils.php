@@ -1,6 +1,6 @@
 <?php
 
-namespace RemexHtml\FuzzTest;
+namespace Wikimedia\RemexHtml\FuzzTest;
 
 class Utils {
 	private static $bigDictionary = null;
@@ -45,3 +45,6 @@ class Utils {
 		return self::$bigDictionary;
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( Utils::class, 'RemexHtml\FuzzTest\Utils' );

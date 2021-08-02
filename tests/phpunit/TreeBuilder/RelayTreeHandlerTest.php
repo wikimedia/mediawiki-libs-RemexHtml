@@ -1,8 +1,13 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\Tests\TreeBuilder;
 
-use RemexHtml\Tokenizer\Tokenizer;
+use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
+use Wikimedia\RemexHtml\TreeBuilder\Dispatcher;
+use Wikimedia\RemexHtml\TreeBuilder\NullTreeHandler;
+use Wikimedia\RemexHtml\TreeBuilder\RelayTreeHandler;
+use Wikimedia\RemexHtml\TreeBuilder\TreeBuilder;
+use Wikimedia\RemexHtml\TreeBuilder\TreeMutationTracer;
 
 class RelayTreeHandlerTest extends \PHPUnit\Framework\TestCase {
 	private function parse( $text ) {

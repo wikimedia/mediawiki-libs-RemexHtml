@@ -6,7 +6,7 @@
  * Flag any cases where the results differ.
  */
 
-use RemexHtml\FuzzTest;
+use Wikimedia\RemexHtml\FuzzTest;
 
 if ( PHP_SAPI !== 'cli' ) {
 	exit;

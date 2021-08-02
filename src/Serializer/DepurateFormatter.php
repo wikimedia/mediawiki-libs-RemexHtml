@@ -1,8 +1,8 @@
 <?php
 
-namespace RemexHtml\Serializer;
+namespace Wikimedia\RemexHtml\Serializer;
 
-use RemexHtml\HTMLData;
+use Wikimedia\RemexHtml\HTMLData;
 
 /**
  * A formatter which produces a serialization extremely similar to the
@@ -41,3 +41,6 @@ class DepurateFormatter extends HtmlFormatter {
 		return $s;
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( DepurateFormatter::class, 'RemexHtml\Serializer\DepurateFormatter' );

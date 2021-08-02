@@ -1,8 +1,9 @@
 <?php
 
-namespace RemexHtml\Tokenizer;
+namespace Wikimedia\RemexHtml\Tests\Tokenizer;
 
 use PHPUnit\Framework\TestCase;
+use Wikimedia\RemexHtml\Tokenizer\PlainAttributes;
 
 class PlainAttributesTest extends TestCase {
 	public function testMerge() {

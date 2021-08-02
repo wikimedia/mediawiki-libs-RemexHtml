@@ -1,8 +1,8 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 /**
  * The "in select" insertion mode
@@ -132,3 +132,6 @@ class InSelect extends InsertionMode {
 		$this->dispatcher->inBody->endDocument( $pos );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( InSelect::class, 'RemexHtml\TreeBuilder\InSelect' );

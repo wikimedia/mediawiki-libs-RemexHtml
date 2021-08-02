@@ -1,8 +1,8 @@
 <?php
 
-namespace RemexHtml\FuzzTest;
+namespace Wikimedia\RemexHtml\FuzzTest;
 
-use RemexHtml\HTMLData;
+use Wikimedia\RemexHtml\HTMLData;
 
 /**
  * A generator which produces pseudorandom strings that mostly look like valid
@@ -171,3 +171,6 @@ class TokenSalad {
 	}
 
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( TokenSalad::class, 'RemexHtml\FuzzTest\TokenSalad' );

@@ -1,9 +1,9 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\PropGuard;
-use RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\PropGuard;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 abstract class InsertionMode {
 	use PropGuard;
@@ -120,3 +120,6 @@ abstract class InsertionMode {
 
 	abstract public function endDocument( $pos );
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( InsertionMode::class, 'RemexHtml\TreeBuilder\InsertionMode' );

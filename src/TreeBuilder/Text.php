@@ -1,8 +1,8 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 /**
  * The "text" insertion mode
@@ -29,3 +29,6 @@ class Text extends InsertionMode {
 		$this->dispatcher->restoreMode();
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( Text::class, 'RemexHtml\TreeBuilder\Text' );

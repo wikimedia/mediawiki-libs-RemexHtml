@@ -1,8 +1,8 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 /**
  * This is not a tree builder state in the spec. I added it to handle the
@@ -50,3 +50,6 @@ class InTextarea extends InsertionMode {
 			->comment( $text, $sourceStart, $sourceLength );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( InTextarea::class, 'RemexHtml\TreeBuilder\InTextarea' );

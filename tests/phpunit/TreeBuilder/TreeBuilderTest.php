@@ -1,11 +1,13 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\Tests\TreeBuilder;
 
-use RemexHtml\DOM;
-use RemexHtml\HTMLData;
-use RemexHtml\Serializer;
-use RemexHtml\Tokenizer;
+use Wikimedia\RemexHtml\DOM;
+use Wikimedia\RemexHtml\HTMLData;
+use Wikimedia\RemexHtml\Serializer;
+use Wikimedia\RemexHtml\Tokenizer;
+use Wikimedia\RemexHtml\TreeBuilder\Dispatcher;
+use Wikimedia\RemexHtml\TreeBuilder\TreeBuilder;
 
 class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 	public static $testErrorCounts = false;

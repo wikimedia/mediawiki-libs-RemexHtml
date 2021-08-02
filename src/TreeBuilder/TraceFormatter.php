@@ -1,9 +1,9 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\Serializer\SerializerNode;
-use RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Serializer\SerializerNode;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 class TraceFormatter {
 	/**
@@ -122,3 +122,6 @@ class TraceFormatter {
 		return "reparent children of $elementTag under $newParentTag, pos=$sourceStart";
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( TraceFormatter::class, 'RemexHtml\TreeBuilder\TraceFormatter' );

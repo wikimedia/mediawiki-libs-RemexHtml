@@ -1,8 +1,8 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 /**
  * A debugging helper which calls a callback function with a descriptive message
@@ -54,3 +54,6 @@ class DestructTracer implements TreeHandler {
 		$newParent->userData = new DestructTracerNode( $this->callback, $newParent->getDebugTag() );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( DestructTracer::class, 'RemexHtml\TreeBuilder\DestructTracer' );

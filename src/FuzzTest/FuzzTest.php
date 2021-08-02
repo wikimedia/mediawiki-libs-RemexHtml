@@ -1,10 +1,10 @@
 <?php
 
-namespace RemexHtml\FuzzTest;
+namespace Wikimedia\RemexHtml\FuzzTest;
 
-use RemexHtml\Serializer;
-use RemexHtml\Tokenizer;
-use RemexHtml\TreeBuilder;
+use Wikimedia\RemexHtml\Serializer;
+use Wikimedia\RemexHtml\Tokenizer;
+use Wikimedia\RemexHtml\TreeBuilder;
 
 /**
  * Fuzz test implementation. Invoke with bin/fuzz.php
@@ -77,3 +77,6 @@ class FuzzTest {
 			'"';
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( FuzzTest::class, 'RemexHtml\FuzzTest\FuzzTest' );

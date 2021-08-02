@@ -1,8 +1,8 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 /**
  * This is a debugging helper class which calls the supplied callback function
@@ -163,3 +163,6 @@ class TreeMutationTracer implements TreeHandler {
 		$this->handleMutation( __FUNCTION__, func_get_args() );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( TreeMutationTracer::class, 'RemexHtml\TreeBuilder\TreeMutationTracer' );

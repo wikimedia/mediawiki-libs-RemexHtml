@@ -1,6 +1,6 @@
 <?php
 
-namespace RemexHtml\Tokenizer;
+namespace Wikimedia\RemexHtml\Tokenizer;
 
 /**
  * A simple serializer for the token stream, mostly meant for debugging.
@@ -73,3 +73,6 @@ class TokenSerializer implements TokenHandler {
 		$this->output .= '<!--' . $text . '-->';
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( TokenSerializer::class, 'RemexHtml\Tokenizer\TokenSerializer' );

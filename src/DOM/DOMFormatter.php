@@ -1,6 +1,6 @@
 <?php
 
-namespace RemexHtml\DOM;
+namespace Wikimedia\RemexHtml\DOM;
 
 use DOMElement;
 use DOMNode;
@@ -22,3 +22,6 @@ interface DOMFormatter {
 	 */
 	public function formatDOMElement( DOMElement $element, $contents );
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( DOMFormatter::class, 'RemexHtml\DOM\DOMFormatter' );

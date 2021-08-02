@@ -1,8 +1,8 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 /**
  * The "in head noscript" insertion mode
@@ -96,3 +96,6 @@ class InHeadNoscript extends InsertionMode {
 			->endDocument( $pos );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( InHeadNoscript::class, 'RemexHtml\TreeBuilder\InHeadNoscript' );

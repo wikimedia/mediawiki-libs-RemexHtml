@@ -1,9 +1,9 @@
 <?php
 
-namespace RemexHtml\Tests;
+namespace Wikimedia\RemexHtml\Tests;
 
 use Exception;
-use RemexHtml\PropGuard;
+use Wikimedia\RemexHtml\PropGuard;
 
 /**
  * We intentionally test access to an undeclared property in this test case.

@@ -7,10 +7,10 @@ if ( PHP_SAPI !== 'cli' ) {
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use RemexHtml\DOM;
-use RemexHtml\Tokenizer;
-use RemexHtml\TreeBuilder;
-use RemexHtml\Serializer;
+use Wikimedia\RemexHtml\DOM;
+use Wikimedia\RemexHtml\Tokenizer;
+use Wikimedia\RemexHtml\TreeBuilder;
+use Wikimedia\RemexHtml\Serializer;
 
 function reserialize( $text ) {
 	$handler = new Tokenizer\TokenSerializer;

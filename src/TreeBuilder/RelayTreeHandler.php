@@ -1,8 +1,8 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 /**
  * A TreeHandler which simply passes all events through to another handler.
@@ -109,3 +109,6 @@ class RelayTreeHandler implements TreeHandler {
 		$this->nextHandler->reparentChildren( $element, $newParent, $sourceStart );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( RelayTreeHandler::class, 'RemexHtml\TreeBuilder\RelayTreeHandler' );

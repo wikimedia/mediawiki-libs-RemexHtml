@@ -1,10 +1,10 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\HTMLData;
-use RemexHtml\PropGuard;
-use RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\HTMLData;
+use Wikimedia\RemexHtml\PropGuard;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 /**
  * Storage for all the state that TreeBuilder needs to associate with each
@@ -191,3 +191,6 @@ class Element implements FormattingElement {
 		return $this->htmlName . '#' . $this->uid;
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( Element::class, 'RemexHtml\TreeBuilder\Element' );

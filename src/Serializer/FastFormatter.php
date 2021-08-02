@@ -1,6 +1,6 @@
 <?php
 
-namespace RemexHtml\Serializer;
+namespace Wikimedia\RemexHtml\Serializer;
 
 /**
  * A formatter suitable for pre-sanitized input with ignoreEntities enabled
@@ -63,3 +63,6 @@ class FastFormatter implements Formatter {
 		return "<!--$text-->";
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( FastFormatter::class, 'RemexHtml\Serializer\FastFormatter' );

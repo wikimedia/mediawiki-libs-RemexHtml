@@ -1,6 +1,6 @@
 <?php
 
-namespace RemexHtml\Tokenizer;
+namespace Wikimedia\RemexHtml\Tokenizer;
 
 /**
  * The handler which converts events to tokens arrays for TokenGenerator
@@ -73,3 +73,6 @@ class TokenGeneratorHandler implements TokenHandler {
 			'sourceLength' => $sourceLength ];
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( TokenGeneratorHandler::class, 'RemexHtml\Tokenizer\TokenGeneratorHandler' );

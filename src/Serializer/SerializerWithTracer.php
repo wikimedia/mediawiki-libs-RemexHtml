@@ -1,10 +1,10 @@
 <?php
 
-namespace RemexHtml\Serializer;
+namespace Wikimedia\RemexHtml\Serializer;
 
-use RemexHtml\Tokenizer\Attributes;
-use RemexHtml\TreeBuilder\Element;
-use RemexHtml\TreeBuilder\TraceFormatter;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\TreeBuilder\Element;
+use Wikimedia\RemexHtml\TreeBuilder\TraceFormatter;
 
 class SerializerWithTracer extends Serializer {
 	private $traceCallback;
@@ -91,3 +91,6 @@ class SerializerWithTracer extends Serializer {
 		$this->handle( __FUNCTION__, func_get_args() );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( SerializerWithTracer::class, 'RemexHtml\Serializer\SerializerWithTracer' );

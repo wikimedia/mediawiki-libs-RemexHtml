@@ -1,12 +1,12 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\HTMLData;
-use RemexHtml\PropGuard;
-use RemexHtml\Tokenizer\Attributes;
-use RemexHtml\Tokenizer\PlainAttributes;
-use RemexHtml\Tokenizer\Tokenizer;
+use Wikimedia\RemexHtml\HTMLData;
+use Wikimedia\RemexHtml\PropGuard;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\PlainAttributes;
+use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
 
 /**
  * TreeBuilder is the receiver of events from the InsertionMode subclasses,
@@ -889,3 +889,6 @@ class TreeBuilder {
 		$this->tokenizer = null;
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( TreeBuilder::class, 'RemexHtml\TreeBuilder\TreeBuilder' );

@@ -1,11 +1,11 @@
 <?php
 
-namespace RemexHtml\Serializer;
+namespace Wikimedia\RemexHtml\Serializer;
 
-use RemexHtml\DOM\DOMFormatter;
-use RemexHtml\DOM\DOMUtils;
-use RemexHtml\HTMLData;
-use RemexHtml\Tokenizer\Attribute;
+use Wikimedia\RemexHtml\DOM\DOMFormatter;
+use Wikimedia\RemexHtml\DOM\DOMUtils;
+use Wikimedia\RemexHtml\HTMLData;
+use Wikimedia\RemexHtml\Tokenizer\Attribute;
 
 /**
  * A Formatter which is used to format documents in (almost) the way they
@@ -172,3 +172,6 @@ class TestFormatter implements Formatter, DOMFormatter {
 		return $this->formatElement( $node->namespaceURI, $node->nodeName, $attrs, $content );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( TestFormatter::class, 'RemexHtml\Serializer\TestFormatter' );

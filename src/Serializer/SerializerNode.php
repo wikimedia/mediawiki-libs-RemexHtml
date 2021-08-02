@@ -1,9 +1,9 @@
 <?php
 
-namespace RemexHtml\Serializer;
+namespace Wikimedia\RemexHtml\Serializer;
 
-use RemexHtml\PropGuard;
-use RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\PropGuard;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
 
 class SerializerNode {
 	use PropGuard;
@@ -62,3 +62,6 @@ class SerializerNode {
 		return $this->name . '#' . $this->id;
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( SerializerNode::class, 'RemexHtml\Serializer\SerializerNode' );

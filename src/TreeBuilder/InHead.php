@@ -1,9 +1,9 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\Tokenizer\Attributes;
-use RemexHtml\Tokenizer\Tokenizer;
+use Wikimedia\RemexHtml\Tokenizer\Attributes;
+use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
 
 /**
  * The "in head" insertion mode
@@ -162,3 +162,6 @@ class InHead extends InsertionMode {
 			->endDocument( $pos );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( InHead::class, 'RemexHtml\TreeBuilder\InHead' );

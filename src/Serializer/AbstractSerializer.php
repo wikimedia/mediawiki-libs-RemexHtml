@@ -1,7 +1,7 @@
 <?php
-namespace RemexHtml\Serializer;
+namespace Wikimedia\RemexHtml\Serializer;
 
-use RemexHtml\TreeBuilder\TreeHandler;
+use Wikimedia\RemexHtml\TreeBuilder\TreeHandler;
 
 interface AbstractSerializer extends TreeHandler {
 	/**
@@ -11,3 +11,6 @@ interface AbstractSerializer extends TreeHandler {
 	 */
 	public function getResult();
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( AbstractSerializer::class, 'RemexHtml\Serializer\AbstractSerializer' );

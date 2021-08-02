@@ -1,6 +1,6 @@
 <?php
 
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
 /**
  * The stack of template insertion modes. We use a storage model optimised for
@@ -44,3 +44,6 @@ class TemplateModeStack {
 		return $this->current === null;
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( TemplateModeStack::class, 'RemexHtml\TreeBuilder\TemplateModeStack' );

@@ -1,7 +1,7 @@
 <?php
-namespace RemexHtml\TreeBuilder;
+namespace Wikimedia\RemexHtml\TreeBuilder;
 
-use RemexHtml\HTMLData;
+use Wikimedia\RemexHtml\HTMLData;
 
 /**
  * An implementation of the "stack of open elements" which, unlike CachingStack,
@@ -201,3 +201,6 @@ class SimpleStack extends Stack {
 		return false;
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( SimpleStack::class, 'RemexHtml\TreeBuilder\SimpleStack' );

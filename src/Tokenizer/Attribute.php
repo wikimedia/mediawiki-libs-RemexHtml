@@ -1,8 +1,8 @@
 <?php
 
-namespace RemexHtml\Tokenizer;
+namespace Wikimedia\RemexHtml\Tokenizer;
 
-use RemexHtml\PropGuard;
+use Wikimedia\RemexHtml\PropGuard;
 
 /**
  * A namespaced attribute, as returned by Attributes::getObjects()
@@ -24,3 +24,6 @@ class Attribute {
 		$this->value = $value;
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( Attribute::class, 'RemexHtml\Tokenizer\Attribute' );

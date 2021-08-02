@@ -1,10 +1,10 @@
 <?php
 
-namespace RemexHtml\Tests;
+namespace Wikimedia\RemexHtml\Tests;
 
-use RemexHtml\Serializer;
-use RemexHtml\Tokenizer;
-use RemexHtml\TreeBuilder;
+use Wikimedia\RemexHtml\Serializer;
+use Wikimedia\RemexHtml\Tokenizer;
+use Wikimedia\RemexHtml\TreeBuilder;
 
 class DestructTokenizer extends Tokenizer\Tokenizer {
 	private $flag;

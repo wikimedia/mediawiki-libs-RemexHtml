@@ -1,8 +1,8 @@
 <?php
 
-namespace RemexHtml\DOM;
+namespace Wikimedia\RemexHtml\DOM;
 
-use RemexHtml\HTMLData;
+use Wikimedia\RemexHtml\HTMLData;
 
 class DOMUtils {
 	/**
@@ -38,3 +38,6 @@ class DOMUtils {
 			'UTF-8' );
 	}
 }
+
+// Retain the old namespace for backwards compatibility.
+class_alias( DOMUtils::class, 'RemexHtml\DOM\DOMUtils' );
