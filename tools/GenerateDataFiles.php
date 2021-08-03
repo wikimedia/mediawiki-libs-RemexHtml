@@ -1,18 +1,22 @@
 <?php
 
-namespace Wikimedia\RemexHtml;
+namespace Wikimedia\RemexHtml\Tools;
 
 use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
 
 /**
  * Generate HTMLData.php. This can be executed e.g. with
  *
- * echo 'Wikimedia\RemexHtml\GenerateDataFiles::run()' | php bin/test.php
+ * echo 'Wikimedia\RemexHtml\Tools\GenerateDataFiles::run()' | php bin/test.php
  *
  * or, using the psysh shell from the project root directory:
  *
  * >>> require('vendor/autoload.php');
- * >>> Wikimedia\RemexHtml\GenerateDataFiles::run()
+ * >>> Wikimedia\RemexHtml\Tools\GenerateDataFiles::run()
+ *
+ * or, using composer:
+ *
+ * composer generate-htmldata
  */
 class GenerateDataFiles {
 	private const NS_HTML = 'http://www.w3.org/1999/xhtml';
@@ -343,7 +347,7 @@ EOT;
 ?php
 
 /**
- * This data file is machine generated, see GenerateDataFiles.php
+ * This data file is machine generated, see tools/GenerateDataFiles.php
  */
 
 namespace Wikimedia\RemexHtml;

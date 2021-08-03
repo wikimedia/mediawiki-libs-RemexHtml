@@ -1,6 +1,6 @@
 <?php
 
-namespace Wikimedia\RemexHtml\FuzzTest;
+namespace Wikimedia\RemexHtml\Tools\FuzzTest;
 
 class Utils {
 	private static $bigDictionary = null;

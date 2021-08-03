@@ -1,6 +1,6 @@
 <?php
 
-namespace Wikimedia\RemexHtml\FuzzTest;
+namespace Wikimedia\RemexHtml\Tools\FuzzTest;
 
 /**
  * A generator for a random strings, biased towards characters that have

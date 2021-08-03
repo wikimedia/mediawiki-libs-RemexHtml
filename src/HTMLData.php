@@ -1,7 +1,7 @@
 <?php
 
 /**
- * This data file is machine generated, see GenerateDataFiles.php
+ * This data file is machine generated, see tools/GenerateDataFiles.php
  */
 
 namespace Wikimedia\RemexHtml;

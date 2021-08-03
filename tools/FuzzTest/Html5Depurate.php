@@ -1,6 +1,6 @@
 <?php
 
-namespace Wikimedia\RemexHtml\FuzzTest;
+namespace Wikimedia\RemexHtml\Tools\FuzzTest;
 
 /**
  * A simple client for an Html5Depurate web service
