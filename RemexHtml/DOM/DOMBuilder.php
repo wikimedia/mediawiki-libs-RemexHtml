@@ -58,7 +58,7 @@ class DOMBuilder implements TreeHandler {
 	private $isFragment;
 
 	/** @var bool */
-	private $coerced;
+	private $coerced = false;
 
 	/**
 	 * @param array $options An associative array of options:
