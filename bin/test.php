@@ -224,7 +224,8 @@ $executeOptions = [
 	// 'fragmentNamespace' => \RemexHtml\HTMLData::NS_HTML,
 	// 'fragmentName' => 'div'
 ];
-$text = file_get_contents( '/tmp/Australia.html' );
+$text = file_exists( '/tmp/Australia.html') ?
+	file_get_contents( '/tmp/Australia.html' ) : '';
 
 while ( ( $__line = readline( "> " ) ) !== false ) {
 	readline_add_history( $__line );
