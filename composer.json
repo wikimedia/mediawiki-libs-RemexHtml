@@ -44,16 +44,15 @@
 			"phpunit",
 			"covers-validator",
 			"phpcs -sp",
-			"minus-x check .",
-			"@phan"
+			"@phan",
+			"minus-x check ."
 		],
-		"cover": "phpunit --coverage-html coverage",
 		"phan": "phan -p --allow-polyfill-parser --long-progress-bar",
+		"cover": "phpunit --coverage-html coverage",
 		"fix": [
-			"minus-x fix .",
-			"phpcbf"
+			"phpcbf",
+			"minus-x fix ."
 		],
-		"generate-htmldata": "php bin/generate-htmldata",
-		"update-changelog": "php bin/update-changelog"
+		"generate-htmldata": "php bin/generate-htmldata"
 	}
 }

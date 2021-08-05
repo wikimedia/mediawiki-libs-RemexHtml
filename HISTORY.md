@@ -1,4 +1,4 @@
-# Change Log
+# Release History
 
 ## Remex x.x.x (not yet released)
 * Changed package namespace from RemexHtml to Wikimedia\RemexHtml to match

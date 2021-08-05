@@ -1,14 +1,13 @@
-<phpunit colors="true"
-	beStrictAboutTestsThatDoNotTestAnything="true"
-	beStrictAboutOutputDuringTests="true">
+<?xml version="1.0"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" colors="true" beStrictAboutTestsThatDoNotTestAnything="true" beStrictAboutOutputDuringTests="true" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd">
 	<testsuites>
-		<testsuite name="RemexHtml Tests">
-			<directory>./tests/phpunit</directory>
+		<testsuite name="Tests">
+			<directory>./tests</directory>
 		</testsuite>
 	</testsuites>
 	<filter>
 		<whitelist addUncoveredFilesFromWhitelist="true">
-			<directory suffix=".php">./RemexHtml</directory>
+			<directory suffix=".php">./src</directory>
 		</whitelist>
 	</filter>
 </phpunit>

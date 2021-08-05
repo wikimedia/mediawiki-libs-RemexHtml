@@ -1,29 +1,33 @@
-# Doxyfile for RemexHtml
-#
-# See <http://www.stack.nl/~dimitri/doxygen/manual/config.html>
-# for help on how to use this file to configure Doxygen.
-
+# Doxyfile <https://www.doxygen.nl/manual/config.html>
 PROJECT_NAME           = "RemexHtml"
 PROJECT_BRIEF          = "Fast HTML 5 parser"
 OUTPUT_DIRECTORY       = doc
 JAVADOC_AUTOBRIEF      = YES
 QT_AUTOBRIEF           = YES
+QUIET                  = YES
 WARN_NO_PARAMDOC       = YES
-INPUT                  = README.md CHANGELOG.md CODE_OF_CONDUCT.md src/
+ALIASES                = "type{1}=<b> \1 </b>:" \
+                         "types{2}=<b> \1 </b> or <b> \2 </b>:" \
+                         "types{3}=<b> \1 </b>, <b> \2 </b>, or <b> \3 </b>:" \
+                         "access=\par Access:\n" \
+                         "private=\access private" \
+                         "protected=\access protected" \
+                         "copyright=\note" \
+                         "license=\note" \
+                         "inheritDoc=\inheritdoc" \
+                         "codeCoverageIgnore=" \
+                         "phpcs=" \
+                         "phan=" \
+                         "suppress=" \
+                         "stable=Stable"
+INPUT                  = README.md CODE_OF_CONDUCT.md HISTORY.md src/
 FILE_PATTERNS          = *.php *.md
 MARKDOWN_SUPPORT       = YES
 RECURSIVE              = YES
 USE_MDFILE_AS_MAINPAGE = README.md
-FILTER_PATTERNS        = *md=build/doxygen_escape.sh
+FILTER_PATTERNS        = *.php="php build/doxygen_php_filters.php"
 HTML_DYNAMIC_SECTIONS  = YES
 GENERATE_TREEVIEW      = YES
 TREEVIEW_WIDTH         = 250
 GENERATE_LATEX         = NO
-HAVE_DOT               = YES
-DOT_FONTNAME           = Helvetica
-DOT_FONTSIZE           = 10
-TEMPLATE_RELATIONS     = YES
-CALL_GRAPH             = NO
-CALLER_GRAPH           = NO
-DOT_MULTI_TARGETS      = YES
 GENERATE_TAGFILE       = doc/html/tagfile.xml
