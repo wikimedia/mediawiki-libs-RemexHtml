@@ -202,7 +202,7 @@ class DOMBuilder implements TreeHandler {
 		return $coercedName;
 	}
 
-	private function createNode( Element $element ) {
+	protected function createNode( Element $element ) {
 		$noNS = $this->suppressHtmlNamespace && $element->namespace === HTMLData::NS_HTML;
 		try {
 			if ( $noNS ) {
