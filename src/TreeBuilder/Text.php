@@ -20,6 +20,7 @@ class Text extends InsertionMode {
 	}
 
 	public function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
+		// @phan-suppress-previous-line PhanPluginNeverReturnMethod
 		throw new TreeBuilderError( 'unexpected token' );
 	}
 

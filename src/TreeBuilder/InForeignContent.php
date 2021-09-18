@@ -214,6 +214,7 @@ class InForeignContent extends InsertionMode {
 	}
 
 	public function endDocument( $pos ) {
+		// @phan-suppress-previous-line PhanPluginNeverReturnMethod
 		throw new TreeBuilderError( "unspecified, presumed unreachable" );
 	}
 }

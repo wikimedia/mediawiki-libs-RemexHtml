@@ -128,10 +128,12 @@ class ForeignAttributes implements Attributes {
 	}
 
 	public function offsetSet( $offset, $value ) {
+		// @phan-suppress-previous-line PhanPluginNeverReturnMethod
 		throw new TreeBuilderError( "Setting foreign attributes is not supported" );
 	}
 
 	public function offsetUnset( $offset ) {
+		// @phan-suppress-previous-line PhanPluginNeverReturnMethod
 		throw new TreeBuilderError( "Setting foreign attributes is not supported" );
 	}
 
@@ -179,6 +181,7 @@ class ForeignAttributes implements Attributes {
 	}
 
 	public function merge( Attributes $other ) {
+		// @phan-suppress-previous-line PhanPluginNeverReturnMethod
 		throw new TreeBuilderError( __METHOD__ . ': unimplemented' );
 	}
 }

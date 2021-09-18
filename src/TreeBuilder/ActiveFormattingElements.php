@@ -332,6 +332,7 @@ class ActiveFormattingElements {
 			/** @var Element $node */
 			$s .= $node->getDebugTag();
 			if ( $node->nextNoah ) {
+				// @phan-suppress-next-line PhanNonClassMethodCall
 				$s .= " (noah sibling: " . $node->nextNoah->getDebugTag() .
 					')';
 			}
