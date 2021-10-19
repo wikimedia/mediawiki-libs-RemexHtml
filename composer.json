@@ -11,13 +11,11 @@
 	],
 	"autoload": {
 		"psr-4": {
-			"RemexHtml\\": "src/",
 			"Wikimedia\\RemexHtml\\": "src/"
 		}
 	},
 	"autoload-dev": {
 		"psr-4": {
-			"RemexHtml\\FuzzTest\\": "tools/FuzzTest/",
 			"Wikimedia\\RemexHtml\\Tools\\": "tools/",
 			"Wikimedia\\RemexHtml\\Tests\\": "tests/phpunit/"
 		}

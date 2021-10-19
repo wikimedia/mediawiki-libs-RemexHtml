@@ -36,6 +36,3 @@ class Html5Depurate {
 		return $result;
 	}
 }
-
-// Retain the old namespace for backwards compatibility.
-class_alias( Html5Depurate::class, 'RemexHtml\FuzzTest\Html5Depurate' );

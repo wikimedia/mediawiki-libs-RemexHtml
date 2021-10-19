@@ -419,6 +419,3 @@ class DOMBuilder implements TreeHandler {
 		}
 	}
 }
-
-// Retain the old namespace for backwards compatibility.
-class_alias( DOMBuilder::class, 'RemexHtml\DOM\DOMBuilder' );

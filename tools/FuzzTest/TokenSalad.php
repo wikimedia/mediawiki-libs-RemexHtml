@@ -171,6 +171,3 @@ class TokenSalad {
 	}
 
 }
-
-// Retain the old namespace for backwards compatibility.
-class_alias( TokenSalad::class, 'RemexHtml\FuzzTest\TokenSalad' );

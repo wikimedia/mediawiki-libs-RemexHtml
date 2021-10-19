@@ -441,6 +441,3 @@ class Dispatcher implements TokenHandler {
 		}
 	}
 }
-
-// Retain the old namespace for backwards compatibility.
-class_alias( Dispatcher::class, 'RemexHtml\TreeBuilder\Dispatcher' );

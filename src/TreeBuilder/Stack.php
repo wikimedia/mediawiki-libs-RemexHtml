@@ -145,6 +145,3 @@ abstract class Stack {
 		return $s;
 	}
 }
-
-// Retain the old namespace for backwards compatibility.
-class_alias( Stack::class, 'RemexHtml\TreeBuilder\Stack' );

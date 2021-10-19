@@ -37,6 +37,3 @@ interface Attributes extends \ArrayAccess, \IteratorAggregate {
 	 */
 	public function merge( Attributes $other );
 }
-
-// Retain the old namespace for backwards compatibility.
-class_alias( Attributes::class, 'RemexHtml\Tokenizer\Attributes' );

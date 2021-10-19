@@ -122,6 +122,3 @@ class TraceFormatter {
 		return "reparent children of $elementTag under $newParentTag, pos=$sourceStart";
 	}
 }
-
-// Retain the old namespace for backwards compatibility.
-class_alias( TraceFormatter::class, 'RemexHtml\TreeBuilder\TraceFormatter' );

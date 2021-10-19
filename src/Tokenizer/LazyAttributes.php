@@ -117,6 +117,3 @@ class LazyAttributes implements Attributes {
 		}
 	}
 }
-
-// Retain the old namespace for backwards compatibility.
-class_alias( LazyAttributes::class, 'RemexHtml\Tokenizer\LazyAttributes' );

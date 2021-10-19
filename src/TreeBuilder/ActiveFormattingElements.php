@@ -355,6 +355,3 @@ class ActiveFormattingElements {
 		return $this->tail;
 	}
 }
-
-// Retain the old namespace for backwards compatibility.
-class_alias( ActiveFormattingElements::class, 'RemexHtml\TreeBuilder\ActiveFormattingElements' );

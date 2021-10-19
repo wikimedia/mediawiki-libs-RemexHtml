@@ -81,6 +81,3 @@ class InTableText extends InsertionMode {
 		}
 	}
 }
-
-// Retain the old namespace for backwards compatibility.
-class_alias( InTableText::class, 'RemexHtml\TreeBuilder\InTableText' );

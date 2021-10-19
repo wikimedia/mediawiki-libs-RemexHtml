@@ -185,6 +185,3 @@ class ForeignAttributes implements Attributes {
 		throw new TreeBuilderError( __METHOD__ . ': unimplemented' );
 	}
 }
-
-// Retain the old namespace for backwards compatibility.
-class_alias( ForeignAttributes::class, 'RemexHtml\TreeBuilder\ForeignAttributes' );

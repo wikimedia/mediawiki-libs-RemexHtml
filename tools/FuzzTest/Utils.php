@@ -45,6 +45,3 @@ class Utils {
 		return self::$bigDictionary;
 	}
 }
-
-// Retain the old namespace for backwards compatibility.
-class_alias( Utils::class, 'RemexHtml\FuzzTest\Utils' );

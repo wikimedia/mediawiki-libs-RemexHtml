@@ -375,6 +375,3 @@ PHP;
 		file_put_contents( __DIR__ . '/HTMLData.php', $fileContents );
 	}
 }
-
-// Retain the old namespace for backwards compatibility.
-class_alias( GenerateDataFiles::class, 'RemexHtml\GenerateDataFiles' );

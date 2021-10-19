@@ -218,6 +218,3 @@ class InForeignContent extends InsertionMode {
 		throw new TreeBuilderError( "unspecified, presumed unreachable" );
 	}
 }
-
-// Retain the old namespace for backwards compatibility.
-class_alias( InForeignContent::class, 'RemexHtml\TreeBuilder\InForeignContent' );

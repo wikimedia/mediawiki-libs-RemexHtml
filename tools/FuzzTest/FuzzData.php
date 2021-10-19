@@ -224,6 +224,3 @@ class FuzzData {
 		'APPLICATION/XHTML+XML',
 	];
 }
-
-// Retain the old namespace for backwards compatibility.
-class_alias( FuzzData::class, 'RemexHtml\FuzzTest\FuzzData' );

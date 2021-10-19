@@ -77,6 +77,3 @@ class FuzzTest {
 			'"';
 	}
 }
-
-// Retain the old namespace for backwards compatibility.
-class_alias( FuzzTest::class, 'RemexHtml\FuzzTest\FuzzTest' );

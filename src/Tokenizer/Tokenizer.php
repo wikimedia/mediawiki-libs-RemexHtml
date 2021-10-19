@@ -1652,6 +1652,3 @@ REGEX;
 		throw new TokenizerError( __CLASS__ . ": $msg" );
 	}
 }
-
-// Retain the old namespace for backwards compatibility.
-class_alias( Tokenizer::class, 'RemexHtml\Tokenizer\Tokenizer' );

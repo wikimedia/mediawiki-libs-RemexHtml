@@ -30,6 +30,3 @@ class Text extends InsertionMode {
 		$this->dispatcher->restoreMode();
 	}
 }
-
-// Retain the old namespace for backwards compatibility.
-class_alias( Text::class, 'RemexHtml\TreeBuilder\Text' );

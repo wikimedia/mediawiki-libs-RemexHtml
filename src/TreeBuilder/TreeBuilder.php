@@ -889,6 +889,3 @@ class TreeBuilder {
 		$this->tokenizer = null;
 	}
 }
-
-// Retain the old namespace for backwards compatibility.
-class_alias( TreeBuilder::class, 'RemexHtml\TreeBuilder\TreeBuilder' );
