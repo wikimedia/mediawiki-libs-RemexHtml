@@ -219,6 +219,18 @@ class Dispatcher implements TokenHandler {
 	}
 
 	/**
+	 * If the insertion mode is "in table text", flush the pending table text.
+	 * This is a facility allowing users to insert into the DOM more cleanly.
+	 */
+	public function flushTableText() {
+		if ( $this->mode === self::IN_TABLE_TEXT
+			&& $this->handler instanceof InTableText
+		) {
+			$this->handler->flush();
+		}
+	}
+
+	/**
 	 * Reset the insertion mode appropriately, and return the new handler.
 	 *
 	 * @return InsertionMode

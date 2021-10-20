@@ -3,6 +3,7 @@
 ## Remex 3.0.0 (not yet released)
 * Removed the RemexHtml\ namespace aliases.
 * Added Attributes::clone()
+* Added Dispatcher::flushTableText().
 
 ## Remex 2.3.2 (2021-08-07)
 * Changed package namespace from RemexHtml to Wikimedia\RemexHtml to match
