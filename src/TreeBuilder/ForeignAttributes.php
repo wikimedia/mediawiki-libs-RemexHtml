@@ -184,4 +184,8 @@ class ForeignAttributes implements Attributes {
 		// @phan-suppress-previous-line PhanPluginNeverReturnMethod
 		throw new TreeBuilderError( __METHOD__ . ': unimplemented' );
 	}
+
+	public function clone() {
+		return $this;
+	}
 }

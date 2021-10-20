@@ -36,4 +36,14 @@ interface Attributes extends \ArrayAccess, \IteratorAggregate {
 	 * @param Attributes $other
 	 */
 	public function merge( Attributes $other );
+
+	/**
+	 * It's efficient to assume that attributes are immutable when cloning
+	 * nodes due to AFE reconstruction or AAA. So by default, this returns
+	 * $this. But users can override it if attribute cloning needs special
+	 * handling.
+	 *
+	 * @return Attributes
+	 */
+	public function clone();
 }

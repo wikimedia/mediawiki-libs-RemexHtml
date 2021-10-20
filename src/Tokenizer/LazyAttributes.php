@@ -116,4 +116,8 @@ class LazyAttributes implements Attributes {
 			}
 		}
 	}
+
+	public function clone() {
+		return $this;
+	}
 }

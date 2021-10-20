@@ -63,4 +63,8 @@ class PlainAttributes implements Attributes {
 	public function count() {
 		return count( $this->data );
 	}
+
+	public function clone() {
+		return $this;
+	}
 }
