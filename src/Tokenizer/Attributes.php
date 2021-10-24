@@ -25,7 +25,7 @@ interface Attributes extends \ArrayAccess, \IteratorAggregate {
 	 * but is not compliant with the spec, which states that duplicate
 	 * attributes must be removed.
 	 *
-	 * @return integer
+	 * @return int
 	 */
 	public function count();
 

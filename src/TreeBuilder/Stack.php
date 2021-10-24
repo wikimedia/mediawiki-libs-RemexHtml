@@ -116,7 +116,7 @@ abstract class Stack {
 	/**
 	 * Get the number of elements in the stack.
 	 *
-	 * @return integer
+	 * @return int
 	 */
 	abstract public function length();
 
