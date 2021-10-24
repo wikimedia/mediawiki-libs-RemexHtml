@@ -1,6 +1,6 @@
 # Release History
 
-## Remex 3.0.0 (not yet released)
+## Remex 3.0.0 (2021-10-25)
 * Removed the RemexHtml\ namespace aliases.
 * Added Attributes::clone()
 * Added Dispatcher::flushTableText().
