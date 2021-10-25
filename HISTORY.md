@@ -1,5 +1,7 @@
 # Release History
 
+## RemexHtml x.x.x (not yet released)
+
 ## RemexHtml 3.0.0 (2021-10-25)
 * Removed the RemexHtml\ namespace aliases.
 * Added Attributes::clone()
