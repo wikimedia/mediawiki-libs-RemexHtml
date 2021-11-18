@@ -1,8 +1,10 @@
 # Release History
 
-## RemexHtml x.x.x (not yet released)
+## Remex 3.0.1 (2021-11-19)
+* Fix duplicate sourceLength output for <tr></table>.
+* In DOMBuilder, catch invalid character errors from createAttribute.
 
-## RemexHtml 3.0.0 (2021-10-25)
+## Remex 3.0.0 (2021-10-25)
 * Removed the RemexHtml\ namespace aliases.
 * Added Attributes::clone()
 * Added Dispatcher::flushTableText().
