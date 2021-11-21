@@ -1592,7 +1592,7 @@ REGEX;
 
 	/**
 	 * Throw an exception for a specified reason. This is used for API errors
-	 * and assertion-like sanity checks.
+	 * and assertion-like checks.
 	 * @param string $text The error message
 	 * @throws TokenizerError
 	 * @return never
