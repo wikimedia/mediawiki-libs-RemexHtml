@@ -37,6 +37,8 @@ class GenerateDataFiles {
 	/**
 	 * This is the character entity mapping table copied from
 	 * https://www.w3.org/TR/2014/REC-html5-20141028/syntax.html#tokenizing-character-references
+	 *
+	 * @var string
 	 */
 	private static $legacyNumericEntityData = <<<EOT
 0x00 	U+FFFD 	REPLACEMENT CHARACTER
@@ -72,6 +74,8 @@ EOT;
 	/**
 	 * This is the list of public identifier prefixes that cause quirks mode
 	 * to be set, from § 8.2.5.4.1
+	 *
+	 * @var array
 	 */
 	private static $quirkyPublicPrefixes = [
 		"+//Silmaril//dtd html Pro v0r11 19970101//",
@@ -150,11 +154,17 @@ EOT;
 	 * The NameStartChar production from XML 1.0, but with colon excluded since
 	 * there's a lot of ways to break namespace validation, and we actually need
 	 * this for local names
+	 *
+	 * @var string
 	 */
 	private static $nameStartChar = '[A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]';
 	// phpcs:enable
 
-	/** The NameChar production from XML 1.0 */
+	/**
+	 * The NameChar production from XML 1.0
+	 *
+	 * @var string
+	 */
 	private static $nameChar = 'NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]';
 
 	/**

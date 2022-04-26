@@ -22,6 +22,7 @@ class ForeignAttributes implements Attributes {
 
 	/**
 	 * Adjustment tables for the case of attributes on MathML and SVG elements
+	 * @var array
 	 */
 	private static $adjustmentTables = [
 		'math' => [
@@ -93,6 +94,8 @@ class ForeignAttributes implements Attributes {
 	/**
 	 * The potentially namespaced attributes, and the namespaces they belong to.
 	 * Excepting xmlns since it is very special.
+	 *
+	 * @var array
 	 */
 	private static $namespaceMap = [
 		'xlink:actuate' => HTMLData::NS_XLINK,
