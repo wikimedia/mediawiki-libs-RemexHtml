@@ -1,5 +1,7 @@
 # Release History
 
+## RemexHtml x.x.x (not yet released)
+
 ## RemexHtml 3.0.2 (2022-06-27)
 * Specify return types to make PHP 8.1 happy.
 
