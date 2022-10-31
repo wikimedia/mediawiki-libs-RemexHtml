@@ -237,9 +237,9 @@ class HtmlFormatter implements Formatter, DOMFormatter {
 		$ns = $node->namespaceURI;
 		if ( $ns === null
 			|| isset( $this->unqualifiedNamespaces[$ns] )
-			|| $node->prefix === null
+			|| $node->prefix === ''
 		) {
-			$name = $node->localName;
+			$name = (string)$node->localName;
 		} else {
 			$name = $node->prefix . ':' . $node->localName;
 		}
