@@ -84,7 +84,7 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 				break;
 			}
 			if ( $section['name'] !== 'data' ) {
-				throw new \Exception( "Invalid section at start of test: ${section['name']}" );
+				throw new \Exception( "Invalid section at start of test: {$section['name']}" );
 			}
 
 			$test = [
