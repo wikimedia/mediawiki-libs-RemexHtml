@@ -71,3 +71,30 @@ x"
 |             <i>
 |               <b>
 |                 "foo"
+
+#data
+<!doctype html><div id="&"></div><div id="&amp;"></div><div id="&amp;amp;"></div>
+#errors
+#document
+| <!DOCTYPE html>
+| <html>
+|   <head>
+|   <body>
+|     <div>
+|       id="&"
+|     <div>
+|       id="&"
+|     <div>
+|       id="&amp;"
+
+#data
+<!doctype html><svg><g id="&amp;amp;"></g></svg>
+#errors
+#document
+| <!DOCTYPE html>
+| <html>
+|   <head>
+|   <body>
+|     <svg svg>
+|       <svg g>
+|         id="&amp;"
