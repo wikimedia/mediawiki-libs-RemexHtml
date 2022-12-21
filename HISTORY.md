@@ -1,6 +1,8 @@
 # Release History
 
 ## RemexHtml x.x.x (not yet released)
+* Workaround PHP bug which decodes entities when setting attribute values.
+  (T324408, https://github.com/php/php-src/pull/10132 )
 
 ## RemexHtml 3.0.2 (2022-06-27)
 * Specify return types to make PHP 8.1 happy.
