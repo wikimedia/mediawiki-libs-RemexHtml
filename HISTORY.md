@@ -1,6 +1,6 @@
 # Release History
 
-## RemexHtml x.x.x (not yet released)
+## RemexHtml 4.0.0 (2023-02-24)
 * Drop PHP 7.2 and PHP 7.3 support.
 * Update PHPUnit dependency.
 
