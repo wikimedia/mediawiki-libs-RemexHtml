@@ -2,6 +2,14 @@
 
 ## RemexHtml x.x.x (not yet released)
 
+## RemexHtml 4.0.1 (2023-08-29)
+* build: Drop claimed support for utfnormal 1.x and 2.x, we require PHP 7.4 (James D. Forrester)
+* Add support for wikimedia/utfnormal 4.0.0 (Derick Alangi)
+* build: Switch phan to special library mode (James D. Forrester)
+* build: Cleanup of PHPUnit 8.x compatibility (Umherirrender)
+* build: Updating mediawiki/mediawiki-codesniffer to 41.0.0 (libraryupgrader)
+* Bump version after release (C. Scott Ananian)
+
 ## RemexHtml 4.0.0 (2023-02-24)
 * Drop PHP 7.2 and PHP 7.3 support.
 * Update PHPUnit dependency.
