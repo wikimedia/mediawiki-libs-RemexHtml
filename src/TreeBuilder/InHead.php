@@ -2,6 +2,7 @@
 
 namespace Wikimedia\RemexHtml\TreeBuilder;
 
+use LogicException;
 use Wikimedia\RemexHtml\Tokenizer\Attributes;
 use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
 
@@ -28,7 +29,7 @@ class InHead extends InsertionMode {
 
 		$elt = $this->builder->pop( $sourceStart, 0 );
 		if ( $elt->htmlName !== 'head' ) {
-			throw new \Exception( 'In head mode but current element is not <head>' );
+			throw new LogicException( 'In head mode but current element is not <head>' );
 		}
 		$this->dispatcher->switchMode( Dispatcher::AFTER_HEAD )
 			->characters( $text, $start, $length, $sourceStart, $sourceLength );
@@ -97,7 +98,7 @@ class InHead extends InsertionMode {
 			default:
 				$elt = $this->builder->pop( $sourceStart, 0 );
 				if ( $elt->htmlName !== 'head' ) {
-					throw new \Exception( "In head mode but current element is not <head>" );
+					throw new LogicException( "In head mode but current element is not <head>" );
 				}
 				$this->dispatcher->switchMode( Dispatcher::AFTER_HEAD )
 					->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );

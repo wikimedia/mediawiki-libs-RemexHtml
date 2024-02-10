@@ -2,6 +2,7 @@
 
 namespace Wikimedia\RemexHtml\Tests\Tokenizer;
 
+use LogicException;
 use Wikimedia\RemexHtml\Tokenizer\TestTokenHandler;
 use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
 
@@ -97,7 +98,7 @@ class TokenizerTest extends \PHPUnit\Framework\TestCase {
 			case 'PLAINTEXT state':
 				return Tokenizer::STATE_PLAINTEXT;
 			default:
-				throw new \Exception( "Unrecognised state \"$state\"" );
+				throw new LogicException( "Unrecognised state \"$state\"" );
 		}
 	}
 

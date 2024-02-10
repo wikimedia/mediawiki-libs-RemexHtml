@@ -2,6 +2,7 @@
 
 namespace Wikimedia\RemexHtml\Tools;
 
+use InvalidArgumentException;
 use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
 
 /**
@@ -226,7 +227,7 @@ EOT;
 			} elseif ( isset( $nonterminals[$case] ) ) {
 				$ranges = array_merge( $ranges, $this->getCharRanges( $nonterminals[$case] ) );
 			} else {
-				throw new \Exception( "Invalid XML char case \"$case\"" );
+				throw new InvalidArgumentException( "Invalid XML char case \"$case\"" );
 			}
 		}
 		usort( $ranges, static function ( $a, $b ) {
@@ -306,7 +307,7 @@ EOT;
 			file_get_contents( $filename ) : false;
 
 		if ( $entitiesJson === false ) {
-			throw new \Exception( "Please download entities.json from " .
+			throw new InvalidArgumentException( "Please download entities.json from " .
 				"https://www.w3.org/TR/2016/REC-html51-20161101/entities.json" );
 		}
 

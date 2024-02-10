@@ -5,6 +5,7 @@
   support the special HTML5 insertion logic for <template> nodes.
 * Workaround PHP bug which limits the set of characters allowed for
   tag and attribute names even more than the XML spec does.
+* Refined exception types thrown in PropGuard and TreeBuilder.
 
 ## RemexHtml 4.0.1 (2023-08-29)
 * build: Drop claimed support for utfnormal 1.x and 2.x, we require PHP 7.4 (James D. Forrester)

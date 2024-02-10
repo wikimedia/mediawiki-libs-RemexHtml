@@ -2,6 +2,8 @@
 
 namespace Wikimedia\RemexHtml\Tools\FuzzTest;
 
+use InvalidArgumentException;
+
 /**
  * A simple client for an Html5Depurate web service
  * https://www.mediawiki.org/wiki/Html5Depurate
@@ -30,7 +32,7 @@ class Html5Depurate {
 				$code = curl_getinfo( $this->curl, CURLINFO_HTTP_CODE );
 				$error = "Html5Depurate returned code $code";
 			}
-			throw new \Exception( $error );
+			throw new InvalidArgumentException( $error );
 		}
 
 		return $result;

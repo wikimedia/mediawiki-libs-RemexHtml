@@ -2,6 +2,7 @@
 
 namespace Wikimedia\RemexHtml\Tests\TreeBuilder;
 
+use InvalidArgumentException;
 use Wikimedia\RemexHtml\DOM;
 use Wikimedia\RemexHtml\HTMLData;
 use Wikimedia\RemexHtml\Serializer;
@@ -71,7 +72,7 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 	private function readFile( $fileName, $type ) {
 		$text = file_get_contents( $fileName );
 		if ( $text === false ) {
-			throw new \Exception( "Cannot read test file: $fileName" );
+			throw new InvalidArgumentException( "Cannot read test file: $fileName" );
 		}
 		$baseName = "tree-construction/" . basename( $fileName );
 		$pos = 0;
@@ -84,7 +85,7 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 				break;
 			}
 			if ( $section['name'] !== 'data' ) {
-				throw new \Exception( "Invalid section at start of test: {$section['name']}" );
+				throw new InvalidArgumentException( "Invalid section at start of test: {$section['name']}" );
 			}
 
 			$test = [
@@ -217,7 +218,7 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 		$normalizeTextNodes = false
 	) {
 		if ( !isset( $params['document'] ) ) {
-			throw new \Exception( "Test lacks #document: {$params['file']}:{$params['line']}" );
+			throw new InvalidArgumentException( "Test lacks #document: {$params['file']}:{$params['line']}" );
 		}
 		$treeBuilder = new TreeBuilder( $serializer, [
 			'scriptingFlag' => $params['scripting']
