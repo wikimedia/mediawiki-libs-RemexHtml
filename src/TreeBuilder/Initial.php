@@ -94,9 +94,9 @@ class Initial extends InsertionMode {
 			$quirks = TreeBuilder::LIMITED_QUIRKS;
 		}
 
-		$name = $name ?? '';
-		$public = $public ?? '';
-		$system = $system ?? '';
+		$name ??= '';
+		$public ??= '';
+		$system ??= '';
 		$this->builder->doctype( $name, $public, $system, $quirks,
 			$sourceStart, $sourceLength );
 		$this->dispatcher->switchMode( Dispatcher::BEFORE_HTML );
