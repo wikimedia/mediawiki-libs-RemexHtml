@@ -42,10 +42,10 @@ foreach ( $tokens as $key => $token ) {
 }
 
 if ( !empty( $classes ) ) {
-	list( $source, $tail ) = explode( 'class ' . $classes[0], $source, 2 );
+	[ $source, $tail ] = explode( 'class ' . $classes[0], $source, 2 );
 	$class_code = '';
 	for ( $i = 1; $i < count( $classes ); $i++ ) {
-		list( $class_code, $tail ) = explode( 'class ' . $classes[$i], $tail, 2 );
+		[ $class_code, $tail ] = explode( 'class ' . $classes[$i], $tail, 2 );
 		$class_code = str_replace( '@return $this', '@return ' . $classes[$i - 1], $class_code );
 		$source .= 'class ' . $classes[$i - 1] . $class_code;
 	}

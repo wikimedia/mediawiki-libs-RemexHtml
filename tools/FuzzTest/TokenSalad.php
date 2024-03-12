@@ -88,7 +88,7 @@ class TokenSalad {
 					$s .= '<!DOCTYPE';
 				}
 
-				list( $name, $public, $system ) = $this->getDoctype();
+				[ $name, $public, $system ] = $this->getDoctype();
 				$quote = $this->getQuote();
 				$s .= " $name";
 				if ( $public !== null ) {
@@ -119,8 +119,7 @@ class TokenSalad {
 			} else {
 				$name = Utils::pickRandom( $this->bigDictionary );
 			}
-		}
-		while ( preg_match( self::$elementNameBlacklist, $name ) );
+		} while ( preg_match( self::$elementNameBlacklist, $name ) );
 		return $name;
 	}
 

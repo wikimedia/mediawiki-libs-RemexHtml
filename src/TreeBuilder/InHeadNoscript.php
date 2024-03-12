@@ -13,19 +13,19 @@ class InHeadNoscript extends InsertionMode {
 		$dispatcher = $this->dispatcher;
 
 		// Insert whitespace
-		list( $part1, $part2 ) = $this->splitInitialMatch( true, "\t\n\f\r ",
+		[ $part1, $part2 ] = $this->splitInitialMatch( true, "\t\n\f\r ",
 			$text, $start, $length, $sourceStart, $sourceLength );
-		list( $start, $length, $sourceStart, $sourceLength ) = $part1;
+		[ $start, $length, $sourceStart, $sourceLength ] = $part1;
 		if ( $length ) {
 			$dispatcher->inHead->characters(
 				$text, $start, $length, $sourceStart, $sourceLength );
 		}
 
 		// Switch mode on non-whitespace
-		list( $start, $length, $sourceStart, $sourceLength ) = $part2;
+		[ $start, $length, $sourceStart, $sourceLength ] = $part2;
 		if ( $length ) {
 			$builder->error( "unexpected non-whitespace character in head in noscript, " .
-				"closing noscript",  $sourceStart );
+				"closing noscript", $sourceStart );
 			$builder->pop( $sourceStart, 0 );
 			$dispatcher->switchMode( Dispatcher::IN_HEAD )
 				->characters( $text, $start, $length, $sourceStart, $sourceLength );

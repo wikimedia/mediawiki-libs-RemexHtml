@@ -11,17 +11,17 @@ use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
 class InHead extends InsertionMode {
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		// Split and insert whitespace
-		list( $part1, $part2 ) = $this->splitInitialMatch(
+		[ $part1, $part2 ] = $this->splitInitialMatch(
 			true, "\t\n\f\r ", $text, $start, $length, $sourceStart, $sourceLength );
 
-		list( $start, $length, $sourceStart, $sourceLength ) = $part1;
+		[ $start, $length, $sourceStart, $sourceLength ] = $part1;
 		if ( $length ) {
 			$this->builder->insertCharacters( $text, $start, $length, $sourceStart,
 				$sourceLength );
 		}
 
 		// Handle non-whitespace specially
-		list( $start, $length, $sourceStart, $sourceLength ) = $part2;
+		[ $start, $length, $sourceStart, $sourceLength ] = $part2;
 		if ( !$length ) {
 			return;
 		}

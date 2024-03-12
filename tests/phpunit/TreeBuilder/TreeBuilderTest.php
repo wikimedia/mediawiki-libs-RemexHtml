@@ -269,8 +269,8 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 		$this->assertEquals( $expected, $result, "{$params['file']}:{$params['line']}" );
 
 		if ( self::$testErrorCounts ) {
-			$this->assertCount(
-				count( $params['errors'] ),
+			$this->assertSameSize(
+				$params['errors'],
 				$this->errors,
 				"{$params['file']}:{$params['line']} error count" );
 		}

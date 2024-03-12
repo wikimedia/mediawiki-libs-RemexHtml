@@ -14,16 +14,16 @@ class AfterHead extends InsertionMode {
 		$dispatcher = $this->dispatcher;
 
 		// Insert whitespace
-		list( $part1, $part2 ) = $this->splitInitialMatch(
+		[ $part1, $part2 ] = $this->splitInitialMatch(
 			true, "\t\n\f\r ", $text, $start, $length, $sourceStart, $sourceLength );
-		list( $start, $length, $sourceStart, $sourceLength ) = $part1;
+		[ $start, $length, $sourceStart, $sourceLength ] = $part1;
 		if ( $length ) {
 			$builder->insertCharacters( $text, $start, $length,
 				$sourceStart, $sourceLength );
 		}
 
 		// Switch mode on non-whitespace
-		list( $start, $length, $sourceStart, $sourceLength ) = $part2;
+		[ $start, $length, $sourceStart, $sourceLength ] = $part2;
 		if ( $length ) {
 			$builder->insertElement( 'body', new PlainAttributes, false, $sourceStart, 0 );
 			$dispatcher->switchMode( Dispatcher::IN_BODY )

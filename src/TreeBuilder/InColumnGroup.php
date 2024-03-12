@@ -9,16 +9,16 @@ use Wikimedia\RemexHtml\Tokenizer\Attributes;
  */
 class InColumnGroup extends InsertionMode {
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
-		list( $part1, $part2 ) = $this->splitInitialMatch(
+		[ $part1, $part2 ] = $this->splitInitialMatch(
 			true, "\t\n\f\r ", $text, $start, $length, $sourceStart, $sourceLength );
 
-		list( $start, $length, $sourceStart, $sourceLength ) = $part1;
+		[ $start, $length, $sourceStart, $sourceLength ] = $part1;
 		if ( $length !== 0 ) {
 			$this->builder->insertCharacters( $text, $start, $length,
 				$sourceStart, $sourceLength );
 		}
 
-		list( $start, $length, $sourceStart, $sourceLength ) = $part2;
+		[ $start, $length, $sourceStart, $sourceLength ] = $part2;
 
 		if ( $length === 0 ) {
 			// All done with this sequence
