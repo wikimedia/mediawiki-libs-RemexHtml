@@ -738,7 +738,7 @@ class TreeBuilder {
 		$stack = $this->stack;
 		$current = $stack->current;
 		while ( $current && $current->htmlName !== $name &&
-		  isset( self::$impliedEndTags[$current->htmlName] )
+			isset( self::$impliedEndTags[$current->htmlName] )
 		) {
 			$popped = $stack->pop();
 			$this->handler->endTag( $popped, $pos, 0 );

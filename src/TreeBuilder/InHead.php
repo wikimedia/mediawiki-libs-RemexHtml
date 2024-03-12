@@ -42,66 +42,66 @@ class InHead extends InsertionMode {
 		$dispatcher = $this->dispatcher;
 
 		switch ( $name ) {
-		case 'html':
-			$this->dispatcher->inBody->startTag( $name, $attrs, $selfClose,
-				$sourceStart, $sourceLength );
-			return;
+			case 'html':
+				$this->dispatcher->inBody->startTag( $name, $attrs, $selfClose,
+					$sourceStart, $sourceLength );
+				return;
 
-		case 'base':
-		case 'basefont':
-		case 'bgsound':
-		case 'link':
-			$void = true;
-			$dispatcher->ack = true;
-			break;
-
-		case 'meta':
-			$void = true;
-			$dispatcher->ack = true;
-			// charset handling omitted
-			break;
-
-		case 'title':
-			$tokenizerState = Tokenizer::STATE_RCDATA;
-			$textMode = Dispatcher::TEXT;
-			break;
-
-		case 'noscript':
-			if ( !$this->builder->scriptingFlag ) {
-				$mode = Dispatcher::IN_HEAD_NOSCRIPT;
+			case 'base':
+			case 'basefont':
+			case 'bgsound':
+			case 'link':
+				$void = true;
+				$dispatcher->ack = true;
 				break;
-			}
-			/*. missing_break; .*/
-		case 'noframes':
-		case 'style':
-			$tokenizerState = Tokenizer::STATE_RAWTEXT;
-			$textMode = Dispatcher::TEXT;
-			break;
 
-		case 'script':
-			$tokenizerState = Tokenizer::STATE_SCRIPT_DATA;
-			$textMode = Dispatcher::TEXT;
-			break;
+			case 'meta':
+				$void = true;
+				$dispatcher->ack = true;
+				// charset handling omitted
+				break;
 
-		case 'template':
-			$this->builder->afe->insertMarker();
-			$this->builder->framesetOK = false;
-			$mode = Dispatcher::IN_TEMPLATE;
-			$this->dispatcher->templateModeStack->push( Dispatcher::IN_TEMPLATE );
-			break;
+			case 'title':
+				$tokenizerState = Tokenizer::STATE_RCDATA;
+				$textMode = Dispatcher::TEXT;
+				break;
 
-		case 'head':
-			$this->builder->error( 'unexpected head tag in head, ignoring', $sourceStart );
-			return;
+			case 'noscript':
+				if ( !$this->builder->scriptingFlag ) {
+					$mode = Dispatcher::IN_HEAD_NOSCRIPT;
+					break;
+				}
+				/*. missing_break; .*/
+			case 'noframes':
+			case 'style':
+				$tokenizerState = Tokenizer::STATE_RAWTEXT;
+				$textMode = Dispatcher::TEXT;
+				break;
 
-		default:
-			$elt = $this->builder->pop( $sourceStart, 0 );
-			if ( $elt->htmlName !== 'head' ) {
-				throw new \Exception( "In head mode but current element is not <head>" );
-			}
-			$this->dispatcher->switchMode( Dispatcher::AFTER_HEAD )
-				->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
-			return;
+			case 'script':
+				$tokenizerState = Tokenizer::STATE_SCRIPT_DATA;
+				$textMode = Dispatcher::TEXT;
+				break;
+
+			case 'template':
+				$this->builder->afe->insertMarker();
+				$this->builder->framesetOK = false;
+				$mode = Dispatcher::IN_TEMPLATE;
+				$this->dispatcher->templateModeStack->push( Dispatcher::IN_TEMPLATE );
+				break;
+
+			case 'head':
+				$this->builder->error( 'unexpected head tag in head, ignoring', $sourceStart );
+				return;
+
+			default:
+				$elt = $this->builder->pop( $sourceStart, 0 );
+				if ( $elt->htmlName !== 'head' ) {
+					throw new \Exception( "In head mode but current element is not <head>" );
+				}
+				$this->dispatcher->switchMode( Dispatcher::AFTER_HEAD )
+					->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
+				return;
 		}
 
 		// Generic element insertion, for all cases that didn't return above
@@ -122,37 +122,37 @@ class InHead extends InsertionMode {
 		$stack = $builder->stack;
 
 		switch ( $name ) {
-		case 'head':
-			$builder->pop( $sourceStart, $sourceLength );
-			$this->dispatcher->switchMode( Dispatcher::AFTER_HEAD );
-			break;
+			case 'head':
+				$builder->pop( $sourceStart, $sourceLength );
+				$this->dispatcher->switchMode( Dispatcher::AFTER_HEAD );
+				break;
 
-		case 'body':
-		case 'html':
-		case 'br':
-			$builder->pop( $sourceStart, 0 );
-			$this->dispatcher->switchMode( Dispatcher::AFTER_HEAD )
-				->endTag( $name, $sourceStart, $sourceLength );
-			break;
+			case 'body':
+			case 'html':
+			case 'br':
+				$builder->pop( $sourceStart, 0 );
+				$this->dispatcher->switchMode( Dispatcher::AFTER_HEAD )
+					->endTag( $name, $sourceStart, $sourceLength );
+				break;
 
-		case 'template':
-			if ( !$stack->hasTemplate() ) {
-				$builder->error( 'found </template> but there is no open template, ignoring',
-					$sourceStart );
-				return;
-			}
-			$builder->generateImpliedEndTagsThoroughly( $sourceStart );
-			if ( $stack->current->htmlName !== 'template' ) {
-				$builder->error( 'found </template> when other tags are still open', $sourceStart );
-			}
-			$builder->popAllUpToName( 'template', $sourceStart, $sourceLength );
-			$builder->afe->clearToMarker();
-			$this->dispatcher->templateModeStack->pop();
-			$this->dispatcher->reset();
-			break;
+			case 'template':
+				if ( !$stack->hasTemplate() ) {
+					$builder->error( 'found </template> but there is no open template, ignoring',
+						$sourceStart );
+					return;
+				}
+				$builder->generateImpliedEndTagsThoroughly( $sourceStart );
+				if ( $stack->current->htmlName !== 'template' ) {
+					$builder->error( 'found </template> when other tags are still open', $sourceStart );
+				}
+				$builder->popAllUpToName( 'template', $sourceStart, $sourceLength );
+				$builder->afe->clearToMarker();
+				$this->dispatcher->templateModeStack->pop();
+				$this->dispatcher->reset();
+				break;
 
-		default:
-			$builder->error( "ignoring </$name> in head", $sourceStart );
+			default:
+				$builder->error( "ignoring </$name> in head", $sourceStart );
 		}
 	}
 

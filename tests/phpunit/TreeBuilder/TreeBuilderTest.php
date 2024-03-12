@@ -99,29 +99,29 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 					break;
 				}
 				switch ( $section['name'] ) {
-				case 'errors':
-					if ( $section['value'] === '' ) {
-						$test['errors'] = [];
-					} else {
-						$test['errors'] = explode( "\n", $section['value'] );
-					}
-					break;
+					case 'errors':
+						if ( $section['value'] === '' ) {
+							$test['errors'] = [];
+						} else {
+							$test['errors'] = explode( "\n", $section['value'] );
+						}
+						break;
 
-				case 'document':
-					$test['document'] = $section['value'];
-					break;
+					case 'document':
+						$test['document'] = $section['value'];
+						break;
 
-				case 'document-fragment':
-					$test['fragment'] = trim( $section['value'] );
-					break;
+					case 'document-fragment':
+						$test['fragment'] = trim( $section['value'] );
+						break;
 
-				case 'script-on':
-					$test['scripting'] = true;
-					break;
+					case 'script-on':
+						$test['scripting'] = true;
+						break;
 
-				case 'script-off':
-					$test['scripting'] = false;
-					break;
+					case 'script-off':
+						$test['scripting'] = false;
+						break;
 				}
 			} while ( !$section['end'] );
 

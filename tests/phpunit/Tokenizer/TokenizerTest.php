@@ -88,16 +88,16 @@ class TokenizerTest extends \PHPUnit\Framework\TestCase {
 
 	private function convertState( $state ) {
 		switch ( $state ) {
-		case 'data state':
-			return Tokenizer::STATE_DATA;
-		case 'RCDATA state':
-			return Tokenizer::STATE_RCDATA;
-		case 'RAWTEXT state':
-			return Tokenizer::STATE_RAWTEXT;
-		case 'PLAINTEXT state':
-			return Tokenizer::STATE_PLAINTEXT;
-		default:
-			throw new \Exception( "Unrecognised state \"$state\"" );
+			case 'data state':
+				return Tokenizer::STATE_DATA;
+			case 'RCDATA state':
+				return Tokenizer::STATE_RCDATA;
+			case 'RAWTEXT state':
+				return Tokenizer::STATE_RAWTEXT;
+			case 'PLAINTEXT state':
+				return Tokenizer::STATE_PLAINTEXT;
+			default:
+				throw new \Exception( "Unrecognised state \"$state\"" );
 		}
 	}
 

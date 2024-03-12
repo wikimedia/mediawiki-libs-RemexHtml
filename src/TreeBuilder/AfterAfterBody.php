@@ -31,15 +31,15 @@ class AfterAfterBody extends InsertionMode {
 		$dispatcher = $this->dispatcher;
 
 		switch ( $name ) {
-		case 'html':
-			$dispatcher->inBody->startTag(
-				$name, $attrs, $selfClose, $sourceStart, $sourceLength );
-			break;
+			case 'html':
+				$dispatcher->inBody->startTag(
+					$name, $attrs, $selfClose, $sourceStart, $sourceLength );
+				break;
 
-		default:
-			$builder->error( "unexpected start tag after after body", $sourceStart );
-			$dispatcher->switchMode( Dispatcher::IN_BODY )
-				->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
+			default:
+				$builder->error( "unexpected start tag after after body", $sourceStart );
+				$dispatcher->switchMode( Dispatcher::IN_BODY )
+					->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
 		}
 	}
 

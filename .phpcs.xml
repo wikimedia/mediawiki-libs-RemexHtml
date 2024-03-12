@@ -10,7 +10,6 @@
 		<exclude name="MediaWiki.Commenting.PropertyDocumentation.MissingDocumentationPublic" />
 		<exclude name="MediaWiki.Commenting.PropertyDocumentation.MissingVar" />
 		<exclude name="MediaWiki.Commenting.PropertyDocumentation.WrongStyle" />
-		<exclude name="Generic.WhiteSpace.ScopeIndent" />
 	</rule>
 	<rule ref="Generic.Files.OneObjectStructurePerFile.MultipleFound">
 		<exclude-pattern>tests/phpunit/DestructionTest\.php</exclude-pattern>

@@ -46,63 +46,63 @@ class TokenSalad {
 				$type = mt_rand( 0, self::TOKEN_MAX );
 			}
 			switch ( $type ) {
-			case self::TOKEN_CHARACTER:
-				if ( Utils::coinToss( 0.2 ) ) {
-					$s .= '&' . Utils::pickRandom( $this->entities );
-				} else {
-					$s .= $this->characterSalad->next();
-				}
-				break;
+				case self::TOKEN_CHARACTER:
+					if ( Utils::coinToss( 0.2 ) ) {
+						$s .= '&' . Utils::pickRandom( $this->entities );
+					} else {
+						$s .= $this->characterSalad->next();
+					}
+					break;
 
-			case self::TOKEN_START:
-			case self::TOKEN_END:
-				$name = $this->getElementName();
-				$s .= '<';
-				if ( $type === self::TOKEN_END ) {
-					$s .= '/';
-				}
-				$s .= "<$name";
-				if ( Utils::coinToss( 0.5 ) ) {
-					$numAttribs = mt_rand( 1, 3 );
-					for ( $j = 0; $j < $numAttribs; $j++ ) {
-						$name = $this->getAttributeName();
-						$value = $this->getAttributeValue();
-						if ( Utils::coinToss( 0.25 ) ) {
-							$s .= " $name";
-						} else {
-							$quote = $this->getQuote();
-							$s .= " $name=$quote$value$quote";
+				case self::TOKEN_START:
+				case self::TOKEN_END:
+					$name = $this->getElementName();
+					$s .= '<';
+					if ( $type === self::TOKEN_END ) {
+						$s .= '/';
+					}
+					$s .= "<$name";
+					if ( Utils::coinToss( 0.5 ) ) {
+						$numAttribs = mt_rand( 1, 3 );
+						for ( $j = 0; $j < $numAttribs; $j++ ) {
+							$name = $this->getAttributeName();
+							$value = $this->getAttributeValue();
+							if ( Utils::coinToss( 0.25 ) ) {
+								$s .= " $name";
+							} else {
+								$quote = $this->getQuote();
+								$s .= " $name=$quote$value$quote";
+							}
 						}
 					}
-				}
-				if ( Utils::coinToss( 0.2 ) ) {
-					$s .= '/';
-				}
-				$s .= '>';
-				break;
+					if ( Utils::coinToss( 0.2 ) ) {
+						$s .= '/';
+					}
+					$s .= '>';
+					break;
 
-			case self::TOKEN_DOCTYPE:
-				if ( Utils::coinToss( 0.5 ) ) {
-					$s .= '<!doctype';
-				} else {
-					$s .= '<!DOCTYPE';
-				}
+				case self::TOKEN_DOCTYPE:
+					if ( Utils::coinToss( 0.5 ) ) {
+						$s .= '<!doctype';
+					} else {
+						$s .= '<!DOCTYPE';
+					}
 
-				[ $name, $public, $system ] = $this->getDoctype();
-				$quote = $this->getQuote();
-				$s .= " $name";
-				if ( $public !== null ) {
-					$s .= " PUBLIC $quote$public$quote";
-				}
-				if ( $system !== null ) {
-					$s .= " SYSTEM $quote$system$quote";
-				}
-				$s .= '>';
-				break;
+					[ $name, $public, $system ] = $this->getDoctype();
+					$quote = $this->getQuote();
+					$s .= " $name";
+					if ( $public !== null ) {
+						$s .= " PUBLIC $quote$public$quote";
+					}
+					if ( $system !== null ) {
+						$s .= " SYSTEM $quote$system$quote";
+					}
+					$s .= '>';
+					break;
 
-			case self::TOKEN_COMMENT:
-				$s .= '<!--' . $this->characterSalad->next() . '-->';
-				break;
+				case self::TOKEN_COMMENT:
+					$s .= '<!--' . $this->characterSalad->next() . '-->';
+					break;
 			}
 		}
 		return $s;
@@ -141,12 +141,12 @@ class TokenSalad {
 
 	private function getQuote() {
 		switch ( mt_rand( 0, 2 ) ) {
-		case 0:
-			return '';
-		case 1:
-			return '"';
-		default:
-			return "'";
+			case 0:
+				return '';
+			case 1:
+				return '"';
+			default:
+				return "'";
 		}
 	}
 

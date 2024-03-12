@@ -28,15 +28,15 @@ class AfterBody extends InsertionMode {
 		$dispatcher = $this->dispatcher;
 
 		switch ( $name ) {
-		case 'html':
-			$dispatcher->inBody->startTag(
-				$name, $attrs, $selfClose, $sourceStart, $sourceLength );
-			break;
+			case 'html':
+				$dispatcher->inBody->startTag(
+					$name, $attrs, $selfClose, $sourceStart, $sourceLength );
+				break;
 
-		default:
-			$builder->error( "unexpected start tag after body", $sourceStart );
-			$dispatcher->switchMode( Dispatcher::IN_BODY )
-				->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
+			default:
+				$builder->error( "unexpected start tag after body", $sourceStart );
+				$dispatcher->switchMode( Dispatcher::IN_BODY )
+					->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
 		}
 	}
 
@@ -45,18 +45,18 @@ class AfterBody extends InsertionMode {
 		$dispatcher = $this->dispatcher;
 
 		switch ( $name ) {
-		case 'html':
-			if ( $builder->isFragment ) {
-				$builder->error( "unexpected </html> in fragment", $sourceStart );
-				return;
-			}
-			$dispatcher->switchMode( Dispatcher::AFTER_AFTER_BODY );
-			break;
+			case 'html':
+				if ( $builder->isFragment ) {
+					$builder->error( "unexpected </html> in fragment", $sourceStart );
+					return;
+				}
+				$dispatcher->switchMode( Dispatcher::AFTER_AFTER_BODY );
+				break;
 
-		default:
-			$builder->error( "unexpected end tag after body", $sourceStart );
-			$dispatcher->switchMode( Dispatcher::IN_BODY )
-				->endTag( $name, $sourceStart, $sourceLength );
+			default:
+				$builder->error( "unexpected end tag after body", $sourceStart );
+				$dispatcher->switchMode( Dispatcher::IN_BODY )
+					->endTag( $name, $sourceStart, $sourceLength );
 		}
 	}
 
