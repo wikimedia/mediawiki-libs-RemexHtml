@@ -1,11 +1,13 @@
 # Release History
 
-## RemexHtml x.x.x (not yet released)
+## RemexHtml 4.1.0 (2024-03-16)
 * In DOMBuilder, make ::insertNode() protected to allow clients to
   support the special HTML5 insertion logic for <template> nodes.
 * Workaround PHP bug which limits the set of characters allowed for
   tag and attribute names even more than the XML spec does.
-* Refined exception types thrown in PropGuard and TreeBuilder.
+* Refine exception types thrown in PropGuard and TreeBuilder.
+* build: Updating mediawiki/mediawiki-codesniffer to 43.0.0.
+* build: Update PHPUnit to 9.6.16.
 
 ## RemexHtml 4.0.1 (2023-08-29)
 * build: Drop claimed support for utfnormal 1.x and 2.x, we require PHP 7.4 (James D. Forrester)
