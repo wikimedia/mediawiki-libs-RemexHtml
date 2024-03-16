@@ -1,5 +1,7 @@
 # Release History
 
+## RemexHtml x.x.x (not yet released)
+
 ## RemexHtml 4.1.0 (2024-03-16)
 * In DOMBuilder, make ::insertNode() protected to allow clients to
   support the special HTML5 insertion logic for <template> nodes.
