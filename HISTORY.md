@@ -1,5 +1,7 @@
 # Release History
 
+## RemexHtml x.x.x (not yet released)
+
 ## RemexHtml 4.1.1 (2024-11-05)
 * build: Updating composer dependencies (libraryupgrader)
 * build: Updating mediawiki/mediawiki-codesniffer to 44.0.0 (libraryupgrader)
