@@ -1,6 +1,11 @@
 # Release History
 
-## RemexHtml x.x.x (not yet released)
+## RemexHtml 4.1.1 (2024-11-05)
+* build: Updating composer dependencies (libraryupgrader)
+* build: Updating mediawiki/mediawiki-codesniffer to 44.0.0 (libraryupgrader)
+* build: Updating mediawiki/mediawiki-codesniffer to 45.0.0 (libraryupgrader)
+* build: Updating mediawiki/mediawiki-phan-config to 0.14.0 (libraryupgrader)
+* Bump version after release (C. Scott Ananian)
 
 ## RemexHtml 4.1.0 (2024-03-16)
 * In DOMBuilder, make ::insertNode() protected to allow clients to
