@@ -184,7 +184,6 @@ class DOMBuilder implements TreeHandler {
 			$parent = $refElement->userData;
 			$refNode = null;
 		}
-		// @phan-suppress-next-line PhanTypeMismatchArgumentInternal
 		$parent->insertBefore( $node, $refNode );
 	}
 
