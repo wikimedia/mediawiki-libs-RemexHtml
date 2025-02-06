@@ -16,7 +16,7 @@ class SerializerDestructAttacher implements TreeBuilder\TreeHandler {
 	}
 
 	private function wrap( $name, $args ) {
-		call_user_func_array( [ $this->serializer, $name ], $args );
+		$this->serializer->$name( ...$args );
 	}
 
 	public function startDocument( $fragmentNamespace, $fragmentName ) {

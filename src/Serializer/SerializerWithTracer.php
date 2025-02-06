@@ -19,8 +19,8 @@ class SerializerWithTracer extends Serializer {
 	}
 
 	private function handle( $funcName, $args ) {
-		$this->trace( call_user_func_array( [ TraceFormatter::class, $funcName ], $args ) );
-		call_user_func_array( [ parent::class, $funcName ], $args );
+		$this->trace( TraceFormatter::$funcName( ...$args ) );
+		parent::$funcName( ...$args );
 		if ( $this->verbosity > 0 && $funcName !== 'endDocument' ) {
 			$this->trace( "Dump after $funcName: " . $this->dump() );
 		}

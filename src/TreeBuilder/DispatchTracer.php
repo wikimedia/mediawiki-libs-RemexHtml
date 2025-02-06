@@ -39,7 +39,7 @@ class DispatchTracer implements TokenHandler {
 		$excerpt = $this->excerpt( substr( $this->input, $sourceStart, $sourceLength ) );
 		$msg = "$funcName $prevHandler \"$excerpt\"";
 		$this->trace( $msg );
-		call_user_func_array( [ $this->dispatcher, $funcName ], $args );
+		$this->dispatcher->$funcName( ...$args );
 		$handler = $this->getHandlerName();
 		if ( $prevHandler !== $handler ) {
 			$this->trace( "$prevHandler -> $handler" );
