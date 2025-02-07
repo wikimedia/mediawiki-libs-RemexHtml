@@ -27,7 +27,7 @@ class SerializerWithTracer extends Serializer {
 	}
 
 	private function trace( $msg ) {
-		call_user_func( $this->traceCallback, "[Serializer] $msg" );
+		( $this->traceCallback )( "[Serializer] $msg" );
 	}
 
 	public function startDocument( $fragmentNamespace, $fragmentName ) {

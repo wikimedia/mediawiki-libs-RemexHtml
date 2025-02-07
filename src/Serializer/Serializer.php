@@ -312,7 +312,7 @@ class Serializer implements AbstractSerializer {
 
 	public function error( $text, $pos ) {
 		if ( $this->errorCallback ) {
-			call_user_func( $this->errorCallback, $text, $pos );
+			( $this->errorCallback )( $text, $pos );
 		}
 	}
 

@@ -551,7 +551,7 @@ class Tokenizer {
 
 			if ( isset( $m[self::MD_CDATA] ) && $m[self::MD_CDATA][1] >= 0 ) {
 				if ( $this->enableCdataCallback ) {
-					$isCdata = call_user_func( $this->enableCdataCallback );
+					$isCdata = ( $this->enableCdataCallback )();
 				} else {
 					$isCdata = false;
 				}
@@ -611,7 +611,7 @@ class Tokenizer {
 			} elseif ( isset( $m[self::MD_CDATA] ) && $m[self::MD_CDATA][1] >= 0 ) {
 				// CDATA
 				if ( $this->enableCdataCallback
-					&& call_user_func( $this->enableCdataCallback )
+					&& ( $this->enableCdataCallback )()
 				) {
 					$this->pos += strlen( $m[self::MD_CDATA][0] ) + 1;
 					$endPos = strpos( $this->text, ']]>', $this->pos );

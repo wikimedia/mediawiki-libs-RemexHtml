@@ -12,6 +12,6 @@ class DestructTracerNode {
 	}
 
 	public function __destruct() {
-		call_user_func( $this->callback, "[Destruct] {$this->tag}" );
+		( $this->callback )( "[Destruct] {$this->tag}" );
 	}
 }

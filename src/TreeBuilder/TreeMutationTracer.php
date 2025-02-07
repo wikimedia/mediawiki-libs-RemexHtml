@@ -39,7 +39,7 @@ class TreeMutationTracer implements TreeHandler {
 	 * @param string $msg
 	 */
 	private function trace( $msg ) {
-		call_user_func( $this->callback, "[Tree] $msg" );
+		( $this->callback )( "[Tree] $msg" );
 	}
 
 	/**

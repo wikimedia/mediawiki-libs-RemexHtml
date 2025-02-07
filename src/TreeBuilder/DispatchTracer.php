@@ -24,7 +24,7 @@ class DispatchTracer implements TokenHandler {
 	}
 
 	private function trace( $msg ) {
-		call_user_func( $this->callback, "[Dispatch] $msg" );
+		( $this->callback )( "[Dispatch] $msg" );
 	}
 
 	private function excerpt( $text ) {
