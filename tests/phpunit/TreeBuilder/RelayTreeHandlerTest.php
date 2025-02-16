@@ -9,6 +9,9 @@ use Wikimedia\RemexHtml\TreeBuilder\RelayTreeHandler;
 use Wikimedia\RemexHtml\TreeBuilder\TreeBuilder;
 use Wikimedia\RemexHtml\TreeBuilder\TreeMutationTracer;
 
+/**
+ * @covers \Wikimedia\RemexHtml\TreeBuilder\RelayTreeHandler
+ */
 class RelayTreeHandlerTest extends \PHPUnit\Framework\TestCase {
 	private function parse( $text ) {
 		$null = new NullTreeHandler;

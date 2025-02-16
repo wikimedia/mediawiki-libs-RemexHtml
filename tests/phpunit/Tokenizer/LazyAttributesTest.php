@@ -5,6 +5,9 @@ namespace Wikimedia\RemexHtml\Tests\Tokenizer;
 use PHPUnit\Framework\TestCase;
 use Wikimedia\RemexHtml\Tokenizer\LazyAttributes;
 
+/**
+ * @covers \Wikimedia\RemexHtml\Tokenizer\LazyAttributes
+ */
 class LazyAttributesTest extends TestCase {
 	private function create( $idx ) {
 		$data = new \stdClass;

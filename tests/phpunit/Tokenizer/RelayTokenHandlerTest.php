@@ -9,6 +9,9 @@ use Wikimedia\RemexHtml\TreeBuilder\DispatchTracer;
 use Wikimedia\RemexHtml\TreeBuilder\NullTreeHandler;
 use Wikimedia\RemexHtml\TreeBuilder\TreeBuilder;
 
+/**
+ * @covers \Wikimedia\RemexHtml\Tokenizer\RelayTokenHandler
+ */
 class RelayTokenHandlerTest extends \PHPUnit\Framework\TestCase {
 	private function parse( $text ) {
 		$null = new NullTreeHandler;

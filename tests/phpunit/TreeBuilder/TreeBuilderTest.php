@@ -10,6 +10,9 @@ use Wikimedia\RemexHtml\Tokenizer;
 use Wikimedia\RemexHtml\TreeBuilder\Dispatcher;
 use Wikimedia\RemexHtml\TreeBuilder\TreeBuilder;
 
+/**
+ * @covers \Wikimedia\RemexHtml\TreeBuilder\TreeBuilder
+ */
 class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 	public static $testErrorCounts = false;
 

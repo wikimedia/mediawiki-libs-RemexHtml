@@ -6,6 +6,9 @@ use LogicException;
 use Wikimedia\RemexHtml\Tokenizer\TestTokenHandler;
 use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
 
+/**
+ * @covers \Wikimedia\RemexHtml\Tokenizer\Tokenizer
+ */
 class TokenizerTest extends \PHPUnit\Framework\TestCase {
 	public static $testErrorCount = false;
 

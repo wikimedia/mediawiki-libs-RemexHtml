@@ -8,6 +8,7 @@ use Wikimedia\RemexHtml\PropGuard;
 /**
  * We intentionally test access to an undeclared property in this test case.
  * @phan-file-suppress PhanUndeclaredProperty
+ * @covers \Wikimedia\RemexHtml\PropGuard
  */
 class PropGuardTest extends \PHPUnit\Framework\TestCase {
 	public function testArmed() {

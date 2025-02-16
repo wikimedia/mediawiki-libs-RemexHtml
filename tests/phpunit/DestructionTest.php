@@ -45,6 +45,9 @@ class DestructTreeBuilder extends TreeBuilder\TreeBuilder {
 	}
 }
 
+/**
+ * @coversNothing
+ */
 class DestructionTest extends \PHPUnit\Framework\TestCase {
 
 	public function provider() {
