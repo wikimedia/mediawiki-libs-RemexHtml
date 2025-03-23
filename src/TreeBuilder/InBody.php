@@ -13,9 +13,8 @@ use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
 class InBody extends InsertionMode {
 	/**
 	 * The tag names h1-h6, which are referred to at a couple of points.
-	 * @var array<string,bool>
 	 */
-	private static $headingNames = [
+	private const HEADING_NAMES = [
 		'h1' => true,
 		'h2' => true,
 		'h3' => true,
@@ -27,10 +26,8 @@ class InBody extends InsertionMode {
 	/**
 	 * The tag names which can be closed by </body> or </html> without causing
 	 * an error.
-	 *
-	 * @var array<string,bool>
 	 */
-	private static $implicitClose = [
+	private const IMPLICIT_CLOSE = [
 		'dd' => true,
 		'dt' => true,
 		'li' => true,
@@ -171,7 +168,7 @@ class InBody extends InsertionMode {
 			case 'h5':
 			case 'h6':
 				$builder->closePInButtonScope( $sourceStart );
-				if ( isset( self::$headingNames[$stack->current->htmlName] ) ) {
+				if ( isset( self::HEADING_NAMES[$stack->current->htmlName] ) ) {
 					$builder->error( 'invalid nested heading, closing previous', $sourceStart );
 					$builder->pop( $sourceStart, 0 );
 				}
@@ -206,7 +203,7 @@ class InBody extends InsertionMode {
 						$builder->generateImpliedEndTagsAndPop( 'li', $sourceStart, 0 );
 						break;
 					}
-					if ( isset( HTMLData::$special[$node->namespace][$node->name] )
+					if ( isset( HTMLData::SPECIAL[$node->namespace][$node->name] )
 					&& $htmlName !== 'address' && $htmlName !== 'div' && $htmlName !== 'p'
 					) {
 						break;
@@ -225,7 +222,7 @@ class InBody extends InsertionMode {
 						$builder->generateImpliedEndTagsAndPop( $htmlName, $sourceStart, 0 );
 						break;
 					}
-					if ( isset( HTMLData::$special[$node->namespace][$node->name] )
+					if ( isset( HTMLData::SPECIAL[$node->namespace][$node->name] )
 					&& $htmlName !== 'address' && $htmlName !== 'div' && $htmlName !== 'p'
 					) {
 						break;
@@ -484,7 +481,7 @@ class InBody extends InsertionMode {
 					$builder->error( '</body> has no matching start tag in scope', $sourceStart );
 					break;
 				}
-				$builder->checkUnclosed( self::$implicitClose, $sourceStart );
+				$builder->checkUnclosed( self::IMPLICIT_CLOSE, $sourceStart );
 				$dispatcher->switchMode( Dispatcher::AFTER_BODY );
 				break;
 
@@ -494,7 +491,7 @@ class InBody extends InsertionMode {
 						$sourceStart );
 					break;
 				}
-				$builder->checkUnclosed( self::$implicitClose, $sourceStart );
+				$builder->checkUnclosed( self::IMPLICIT_CLOSE, $sourceStart );
 				$dispatcher->switchMode( Dispatcher::AFTER_BODY )
 					->endTag( $name, $sourceStart, $sourceLength );
 				break;
@@ -601,7 +598,7 @@ class InBody extends InsertionMode {
 			case 'h4':
 			case 'h5':
 			case 'h6':
-				if ( !$stack->isOneOfSetInScope( self::$headingNames ) ) {
+				if ( !$stack->isOneOfSetInScope( self::HEADING_NAMES ) ) {
 					$builder->error( "found </$name> when there is no heading tag in scope, ignoring",
 						$sourceStart );
 					break;
@@ -611,7 +608,7 @@ class InBody extends InsertionMode {
 					$builder->error( "end tag </$name> assumed to close non-matching heading tag",
 						$sourceStart );
 				}
-				$builder->popAllUpToNames( self::$headingNames, $sourceStart, $sourceLength );
+				$builder->popAllUpToNames( self::HEADING_NAMES, $sourceStart, $sourceLength );
 				break;
 
 			case 'a':

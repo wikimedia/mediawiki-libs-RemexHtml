@@ -15,9 +15,8 @@ class SimpleStack extends Stack {
 	 * A 2-d array giving the element types which break a scope region for the
 	 * default scope, i.e. the one for phrases of the form "has an X element
 	 * in scope".
-	 * @var array<string,array<string,bool>>
 	 */
-	private static $defaultScope = [
+	private const DEFAULT_SCOPE = [
 		HTMLData::NS_HTML => [
 			'applet' => true,
 			'caption' => true,
@@ -46,9 +45,8 @@ class SimpleStack extends Stack {
 
 	/**
 	 * The element types which break the table scope.
-	 * @var array<string,array<string,bool>>
 	 */
-	private static $tableScope = [
+	private const TABLE_SCOPE = [
 		HTMLData::NS_HTML => [
 			'html' => true,
 			'table' => true,
@@ -103,7 +101,7 @@ class SimpleStack extends Stack {
 	}
 
 	public function isInScope( $name ) {
-		return $this->isInSpecificScope( $name, self::$defaultScope );
+		return $this->isInSpecificScope( $name, self::DEFAULT_SCOPE );
 	}
 
 	public function isElementInScope( Element $elt ) {
@@ -112,7 +110,7 @@ class SimpleStack extends Stack {
 			if ( $node === $elt ) {
 				return true;
 			}
-			if ( isset( self::$defaultScope[$node->namespace][$node->name] ) ) {
+			if ( isset( self::DEFAULT_SCOPE[$node->namespace][$node->name] ) ) {
 				return false;
 			}
 		}
@@ -125,7 +123,7 @@ class SimpleStack extends Stack {
 			if ( $node->namespace === HTMLData::NS_HTML && isset( $names[$node->name] ) ) {
 				return true;
 			}
-			if ( isset( self::$defaultScope[$node->namespace][$node->name] ) ) {
+			if ( isset( self::DEFAULT_SCOPE[$node->namespace][$node->name] ) ) {
 				return false;
 			}
 		}
@@ -134,7 +132,7 @@ class SimpleStack extends Stack {
 
 	public function isInListScope( $name ) {
 		if ( self::$listScope === null ) {
-			self::$listScope = self::$defaultScope;
+			self::$listScope = self::DEFAULT_SCOPE;
 			self::$listScope[HTMLData::NS_HTML] += [
 				'ol' => true,
 				'li' => true
@@ -145,14 +143,14 @@ class SimpleStack extends Stack {
 
 	public function isInButtonScope( $name ) {
 		if ( self::$buttonScope === null ) {
-			self::$buttonScope = self::$defaultScope;
+			self::$buttonScope = self::DEFAULT_SCOPE;
 			self::$buttonScope[HTMLData::NS_HTML]['button'] = true;
 		}
 		return $this->isInSpecificScope( $name, self::$buttonScope );
 	}
 
 	public function isInTableScope( $name ) {
-		return $this->isInSpecificScope( $name, self::$tableScope );
+		return $this->isInSpecificScope( $name, self::TABLE_SCOPE );
 	}
 
 	public function isInSelectScope( $name ) {

@@ -49,10 +49,8 @@ class Dispatcher implements TokenHandler {
 
 	/**
 	 * The handler class for each insertion mode
-	 *
-	 * @var array
 	 */
-	protected static $handlerClasses = [
+	protected const HANDLER_CLASSES = [
 		self::INITIAL => Initial::class,
 		self::BEFORE_HTML => BeforeHtml::class,
 		self::BEFORE_HEAD => BeforeHead::class,
@@ -340,7 +338,7 @@ class Dispatcher implements TokenHandler {
 
 	public function startDocument( Tokenizer $tokenizer, $namespace, $name ) {
 		$this->dispatchTable = [];
-		foreach ( self::$handlerClasses as $mode => $class ) {
+		foreach ( self::HANDLER_CLASSES as $mode => $class ) {
 			$this->dispatchTable[$mode] = new $class( $this->builder, $this );
 		}
 

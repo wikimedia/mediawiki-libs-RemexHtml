@@ -77,10 +77,8 @@ class Tokenizer {
 
 	/**
 	 * A list of "common well-behaved entities", used to optimize fast paths
-	 *
-	 * @var array<string,string>
 	 */
-	private static $commonEntities = [
+	private const COMMON_ENTITIES = [
 		'&amp;' => '&',
 		'&apos;' => "'",
 		'&lt;' => '<',
@@ -916,7 +914,7 @@ class Tokenizer {
 
 	// This string isn't used directly: it's input to GenerateDataFiles.php
 	// which will substitute in the named entities and create a
-	// compile-time constant string in HtmlData::$charRefRegex
+	// compile-time constant string in HtmlData::CHAR_REF_REGEX
 	// Only compile-time constants are handled efficiently in the
 	// regexp cache; otherwise we pay for a 26k strcmp each time we
 	// fetch the regexp from the cache.
@@ -965,7 +963,7 @@ class Tokenizer {
 		$pos = 0;
 		$length = strlen( $text );
 		$matches = [];
-		$count = preg_match_all( HTMLData::$charRefRegex, $text, $matches, PREG_SET_ORDER );
+		$count = preg_match_all( HTMLData::CHAR_REF_REGEX, $text, $matches, PREG_SET_ORDER );
 		if ( $count === false ) {
 			$this->throwPregError();
 		}
@@ -1021,7 +1019,7 @@ class Tokenizer {
 				}
 				$codepoint = intval( $m[self::MC_HEXDEC], 16 );
 			} elseif ( $knownNamed !== '' ) {
-				$out .= HTMLData::$namedEntityTranslations[$knownNamed] . $attributeSuffix;
+				$out .= HTMLData::NAMED_ENTITY_TRANSLATION[$knownNamed] . $attributeSuffix;
 				continue;
 			} elseif ( isset( $m[self::MC_INVALID] ) && strlen( $m[self::MC_INVALID] ) ) {
 				if ( !$this->ignoreErrors ) {
@@ -1044,11 +1042,11 @@ class Tokenizer {
 					$this->error( 'invalid numeric reference', $errorPos );
 				}
 				$out .= self::REPLACEMENT_CHAR;
-			} elseif ( isset( HTMLData::$legacyNumericEntities[$codepoint] ) ) {
+			} elseif ( isset( HTMLData::LEGACY_NUMERIC_ENTITIES[$codepoint] ) ) {
 				if ( !$this->ignoreErrors ) {
 					$this->error( 'invalid reference to non-ASCII control character', $errorPos );
 				}
-				$out .= HTMLData::$legacyNumericEntities[$codepoint];
+				$out .= HTMLData::LEGACY_NUMERIC_ENTITIES[$codepoint];
 			} else {
 				if ( !$this->ignoreErrors ) {
 					$disallowedCodepoints = [
@@ -1100,7 +1098,7 @@ class Tokenizer {
 	 * @param bool $isSimple True if you know that the data range does not
 	 *  contain < \0 or &; false is safe if you're not sure
 	 * @param bool $hasSimpleRefs True if you know that any character
-	 *  references are semicolon terminated and in the list of $commonEntities;
+	 *  references are semicolon terminated and in the list of self::COMMON_ENTITIES;
 	 *  false is safe if you're not sure
 	 */
 	protected function emitDataRange( $pos, $length, $isSimple = false, $hasSimpleRefs = false ) {
@@ -1123,7 +1121,7 @@ class Tokenizer {
 
 			$text = substr( $this->text, $pos, $length );
 			if ( $hasSimpleRefs ) {
-				$text = strtr( $text, self::$commonEntities );
+				$text = strtr( $text, self::COMMON_ENTITIES );
 			} else {
 				$text = $this->handleCharRefs( $text, $pos );
 			}
@@ -1357,7 +1355,7 @@ class Tokenizer {
 				$isSimple = !strlen( $m[self::MA_DQUOTED_UNSIMPLE][0] );
 				if ( $isSimple && strlen( $m[self::MA_DQUOTED_CHARREF][0] ) && !$this->ignoreCharRefs ) {
 					// Efficiently handle well-behaved character references
-					$value = strtr( $value, self::$commonEntities );
+					$value = strtr( $value, self::COMMON_ENTITIES );
 				}
 			} elseif ( isset( $m[self::MA_SQUOTED] ) && $m[self::MA_SQUOTED][1] >= 0 ) {
 				// Single-quoted attribute value
@@ -1367,7 +1365,7 @@ class Tokenizer {
 				$isSimple = !strlen( $m[self::MA_SQUOTED_UNSIMPLE][0] );
 				if ( $isSimple && strlen( $m[self::MA_SQUOTED_CHARREF][0] ) && !$this->ignoreCharRefs ) {
 					// Efficiently handle well-behaved character references
-					$value = strtr( $value, self::$commonEntities );
+					$value = strtr( $value, self::COMMON_ENTITIES );
 				}
 			} elseif ( isset( $m[self::MA_UNQUOTED] ) && $m[self::MA_UNQUOTED][1] >= 0 ) {
 				// Unquoted attribute value

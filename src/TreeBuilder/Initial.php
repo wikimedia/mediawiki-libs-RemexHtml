@@ -13,10 +13,8 @@ class Initial extends InsertionMode {
 	 * The doctypes listed in the spec which are allowed without generating a
 	 * parse error. A 2-d array where each row gives the doctype name, the
 	 * public identifier and the system identifier.
-	 *
-	 * @var array
 	 */
-	private static $allowedDoctypes = [
+	private const ALLOWED_DOCTYPES = [
 		[ 'html', '-//W3C//DTD HTML 4.0//EN', null ],
 		[ 'html', '-//W3C//DTD HTML 4.0//EN', 'http://www.w3.org/TR/REC-html40/strict.dtd' ],
 		[ 'html', '-//W3C//DTD HTML 4.01//EN', null ],
@@ -64,7 +62,8 @@ class Initial extends InsertionMode {
 		if ( ( $name !== 'html' || $public !== null
 				|| ( $system !== null && $system !== 'about:legacy-compat' )
 			)
-			&& !in_array( [ $name, $public, $system ], self::$allowedDoctypes, true )
+			// @phan-suppress-next-line PhanImpossibleTypeComparison False positive
+			&& !in_array( [ $name, $public, $system ], self::ALLOWED_DOCTYPES, true )
 		) {
 			$this->error( 'invalid doctype', $sourceStart );
 		}
@@ -82,7 +81,7 @@ class Initial extends InsertionMode {
 			|| $public === 'HTML'
 			|| $system === 'http://www.ibm.com/data/dtd/v11/ibmxhtml1-transitional.dtd'
 			|| ( $system === null && preg_match( $quirksIfNoSystem, $public ?? '' ) )
-			|| preg_match( HTMLData::$quirkyPrefixRegex, $public ?? '' )
+			|| preg_match( HTMLData::QUIRKY_PREFIX_REGEX, $public ?? '' )
 		) {
 			$quirks = TreeBuilder::QUIRKS;
 		} elseif ( !$this->builder->isIframeSrcdoc

@@ -28,10 +28,10 @@ class TokenSalad {
 		$this->maxLength = $maxLength;
 		$this->bigDictionary = Utils::getBigDictionary();
 		$this->specialTags = array_keys(
-			HTMLData::$special[HTMLData::NS_HTML] +
-			HTMLData::$special[HTMLData::NS_MATHML] +
-			HTMLData::$special[HTMLData::NS_SVG] );
-		$this->entities = array_keys( HTMLData::$namedEntityTranslations );
+			HTMLData::SPECIAL[HTMLData::NS_HTML] +
+			HTMLData::SPECIAL[HTMLData::NS_MATHML] +
+			HTMLData::SPECIAL[HTMLData::NS_SVG] );
+		$this->entities = array_keys( HTMLData::NAMED_ENTITY_TRANSLATION );
 		$this->characterSalad = new CharacterSalad( 0, 4 );
 	}
 

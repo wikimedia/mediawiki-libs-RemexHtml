@@ -9,7 +9,7 @@ use Wikimedia\RemexHtml\Tokenizer\PlainAttributes;
  * The "in table body" insertion mode
  */
 class InTableBody extends InsertionMode {
-	private static $tableBodyContext = [
+	private const TABLE_BODY_CONTEXT = [
 		'tbody' => true,
 		'tfoot' => true,
 		'thead' => true,
@@ -29,7 +29,7 @@ class InTableBody extends InsertionMode {
 
 		switch ( $name ) {
 			case 'tr':
-				$builder->clearStackBack( self::$tableBodyContext, $sourceStart );
+				$builder->clearStackBack( self::TABLE_BODY_CONTEXT, $sourceStart );
 				$builder->insertElement( $name, $attrs, false, $sourceStart, $sourceLength );
 				$dispatcher->switchMode( Dispatcher::IN_ROW );
 				break;
@@ -37,7 +37,7 @@ class InTableBody extends InsertionMode {
 			case 'th':
 			case 'td':
 				$builder->error( "<$name> encountered in table body (not row) mode", $sourceStart );
-				$builder->clearStackBack( self::$tableBodyContext, $sourceStart );
+				$builder->clearStackBack( self::TABLE_BODY_CONTEXT, $sourceStart );
 				$builder->insertElement( 'tr', new PlainAttributes, false, $sourceStart, 0 );
 				$dispatcher->switchMode( Dispatcher::IN_ROW )
 					->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
@@ -57,7 +57,7 @@ class InTableBody extends InsertionMode {
 						"when there is no tbody/thead/tfoot in scope", $sourceStart );
 					return;
 				}
-				$builder->clearStackBack( self::$tableBodyContext, $sourceStart );
+				$builder->clearStackBack( self::TABLE_BODY_CONTEXT, $sourceStart );
 				$builder->pop( $sourceStart, 0 );
 				$dispatcher->switchMode( Dispatcher::IN_TABLE )
 					->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
@@ -82,7 +82,7 @@ class InTableBody extends InsertionMode {
 					$builder->error( "</$name> found but no $name in scope", $sourceStart );
 					return;
 				}
-				$builder->clearStackBack( self::$tableBodyContext, $sourceStart );
+				$builder->clearStackBack( self::TABLE_BODY_CONTEXT, $sourceStart );
 				$builder->pop( $sourceStart, $sourceLength );
 				$dispatcher->switchMode( Dispatcher::IN_TABLE );
 				break;

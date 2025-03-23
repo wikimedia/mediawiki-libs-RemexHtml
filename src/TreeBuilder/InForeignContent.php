@@ -15,9 +15,8 @@ class InForeignContent extends InsertionMode {
 	/**
 	 * The list of tag names which unconditionally generate a parse error when
 	 * seen in foreign content.
-	 * @var array<string,bool>
 	 */
-	private static $notAllowed = [
+	private const NOT_ALLOWED = [
 		'b' => true,
 		'big' => true,
 		'blockquote' => true,
@@ -67,9 +66,8 @@ class InForeignContent extends InsertionMode {
 	/**
 	 * The table for correcting the tag names of SVG elements, given in the
 	 * "Any other start tag" section of the spec.
-	 * @var array<string,string>
 	 */
-	private static $svgElementCase = [
+	private const SVG_ELEMENT_CASE = [
 		'altglyph' => 'altGlyph',
 		'altglyphdef' => 'altGlyphDef',
 		'altglyphitem' => 'altGlyphItem',
@@ -158,7 +156,7 @@ class InForeignContent extends InsertionMode {
 		$stack = $builder->stack;
 		$dispatcher = $this->dispatcher;
 
-		if ( isset( self::$notAllowed[$name] ) ) {
+		if ( isset( self::NOT_ALLOWED[$name] ) ) {
 			$allowed = false;
 		} elseif ( $name === 'font' && (
 			isset( $attrs['color'] ) || isset( $attrs['face'] ) || isset( $attrs['size'] ) )
@@ -184,7 +182,8 @@ class InForeignContent extends InsertionMode {
 			$attrs = new ForeignAttributes( $attrs, 'math' );
 		} elseif ( $acnNs === HTMLData::NS_SVG ) {
 			$attrs = new ForeignAttributes( $attrs, 'svg' );
-			$name = self::$svgElementCase[$name] ?? $name;
+			// @phan-suppress-next-line PhanCoalescingAlwaysNull
+			$name = self::SVG_ELEMENT_CASE[$name] ?? $name;
 		} else {
 			$attrs = new ForeignAttributes( $attrs, 'other' );
 		}

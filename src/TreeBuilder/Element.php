@@ -105,9 +105,8 @@ class Element implements FormattingElement {
 	/**
 	 * The element types in the MathML namespace which are MathML text
 	 * integration points.
-	 * @var array<string,bool>
 	 */
-	private static $mathmlIntegration = [
+	private const MATHML_INTEGRATION = [
 		'mi' => true,
 		'mo' => true,
 		'mn' => true,
@@ -118,9 +117,8 @@ class Element implements FormattingElement {
 	/**
 	 * The element types in the SVG namespace which are SVG text integration
 	 * points.
-	 * @var array<string,bool>
 	 */
-	private static $svgHtmlIntegration = [
+	private const SVG_HTML_INTEGRATION = [
 		'foreignObject' => true,
 		'desc' => true,
 		'title' => true
@@ -156,7 +154,7 @@ class Element implements FormattingElement {
 	 */
 	public function isMathmlTextIntegration() {
 		return $this->namespace === HTMLData::NS_MATHML
-			&& isset( self::$mathmlIntegration[$this->name] );
+			&& isset( self::MATHML_INTEGRATION[$this->name] );
 	}
 
 	/**
@@ -172,7 +170,7 @@ class Element implements FormattingElement {
 				return false;
 			}
 		} elseif ( $this->namespace === HTMLData::NS_SVG ) {
-			return isset( self::$svgHtmlIntegration[$this->name] );
+			return isset( self::SVG_HTML_INTEGRATION[$this->name] );
 		} else {
 			return false;
 		}

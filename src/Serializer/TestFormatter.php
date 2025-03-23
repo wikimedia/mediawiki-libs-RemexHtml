@@ -13,7 +13,7 @@ use Wikimedia\RemexHtml\Tokenizer\Attribute;
  * in the PHPUnit tests.
  */
 class TestFormatter implements Formatter, DOMFormatter {
-	private static $attrNamespaces = [
+	private const ATTR_NAMESPACES = [
 		HTMLData::NS_XML => 'xml',
 		HTMLData::NS_XLINK => 'xlink',
 		HTMLData::NS_XMLNS => 'xmlns',
@@ -68,8 +68,8 @@ class TestFormatter implements Formatter, DOMFormatter {
 				|| isset( $attr->reallyNoNamespace )
 			) {
 				$prefix = '';
-			} elseif ( isset( self::$attrNamespaces[$attr->namespaceURI] ) ) {
-				$prefix = self::$attrNamespaces[$attr->namespaceURI] . ' ';
+			} elseif ( isset( self::ATTR_NAMESPACES[$attr->namespaceURI] ) ) {
+				$prefix = self::ATTR_NAMESPACES[$attr->namespaceURI] . ' ';
 			} else {
 				$prefix = '';
 			}

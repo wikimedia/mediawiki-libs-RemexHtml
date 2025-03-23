@@ -11,9 +11,8 @@ use Wikimedia\RemexHtml\Tokenizer\PlainAttributes;
 class InTable extends InsertionMode {
 	/**
 	 * The tag names that are cleared when we "clear the stack back to a table context"
-	 * @var array<string,bool>
 	 */
-	private static $tableContext = [
+	private const TABLE_CONTEXT = [
 		'table' => true,
 		'template' => true,
 		'html' => true
@@ -47,7 +46,7 @@ class InTable extends InsertionMode {
 
 		switch ( $name ) {
 			case 'caption':
-				$builder->clearStackBack( self::$tableContext, $sourceStart );
+				$builder->clearStackBack( self::TABLE_CONTEXT, $sourceStart );
 				$builder->afe->insertMarker();
 				$dispatcher->switchMode( Dispatcher::IN_CAPTION );
 				$builder->insertElement( $name, $attrs, false,
@@ -55,14 +54,14 @@ class InTable extends InsertionMode {
 				break;
 
 			case 'colgroup':
-				$builder->clearStackBack( self::$tableContext, $sourceStart );
+				$builder->clearStackBack( self::TABLE_CONTEXT, $sourceStart );
 				$dispatcher->switchMode( Dispatcher::IN_COLUMN_GROUP );
 				$builder->insertElement( $name, $attrs, false,
 					$sourceStart, $sourceLength );
 				break;
 
 			case 'col':
-				$builder->clearStackBack( self::$tableContext, $sourceStart );
+				$builder->clearStackBack( self::TABLE_CONTEXT, $sourceStart );
 				$builder->insertElement( 'colgroup', new PlainAttributes, false,
 					$sourceStart, 0 );
 				$dispatcher->switchMode( Dispatcher::IN_COLUMN_GROUP )
@@ -72,7 +71,7 @@ class InTable extends InsertionMode {
 			case 'tbody':
 			case 'tfoot':
 			case 'thead':
-				$builder->clearStackBack( self::$tableContext, $sourceStart );
+				$builder->clearStackBack( self::TABLE_CONTEXT, $sourceStart );
 				$builder->insertElement( $name, $attrs, false,
 					$sourceStart, $sourceLength );
 				$dispatcher->switchMode( Dispatcher::IN_TABLE_BODY );
@@ -81,7 +80,7 @@ class InTable extends InsertionMode {
 			case 'td':
 			case 'th':
 			case 'tr':
-				$builder->clearStackBack( self::$tableContext, $sourceStart );
+				$builder->clearStackBack( self::TABLE_CONTEXT, $sourceStart );
 				$builder->insertElement( 'tbody', new PlainAttributes, false,
 					$sourceStart, $sourceLength );
 				$dispatcher->switchMode( Dispatcher::IN_TABLE_BODY )
