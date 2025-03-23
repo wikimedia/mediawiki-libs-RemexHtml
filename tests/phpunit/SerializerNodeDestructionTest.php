@@ -8,6 +8,7 @@ use Wikimedia\RemexHtml\TreeBuilder;
 
 class SerializerDestructAttacher implements TreeBuilder\TreeHandler {
 	private Serializer\Serializer $serializer;
+	/** @var int */
 	private $count;
 
 	public function __construct( Serializer\Serializer $serializer, &$count ) {
@@ -79,6 +80,7 @@ class SerializerDestructAttacher implements TreeBuilder\TreeHandler {
 }
 
 class DestructNode {
+	/** @var int */
 	private $count;
 
 	public function __construct( &$count ) {

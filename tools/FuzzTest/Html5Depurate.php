@@ -9,6 +9,7 @@ use InvalidArgumentException;
  * https://www.mediawiki.org/wiki/Html5Depurate
  */
 class Html5Depurate {
+	/** @var CurlHandle|false */
 	private $curl;
 
 	public function __construct( $url ) {

@@ -7,6 +7,7 @@ namespace Wikimedia\RemexHtml\Tokenizer;
  * array compatible with the html5lib tokenizer tests.
  */
 class TestTokenHandler implements TokenHandler {
+	/** @var array<string|array> */
 	private $tokens = [];
 
 	public function getTokens() {

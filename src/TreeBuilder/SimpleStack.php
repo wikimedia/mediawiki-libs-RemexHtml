@@ -9,6 +9,7 @@ use Wikimedia\RemexHtml\HTMLData;
  * are in scope. This is presumably faster for best case input.
  */
 class SimpleStack extends Stack {
+	/** @var array<int,Element> */
 	private $elements;
 
 	/**

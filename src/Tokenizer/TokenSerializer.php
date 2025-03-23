@@ -11,7 +11,9 @@ namespace Wikimedia\RemexHtml\Tokenizer;
  * on its parent element, including its namespace.
  */
 class TokenSerializer implements TokenHandler {
+	/** @var string */
 	private $output;
+	/** @var array[] */
 	private $errors = [];
 
 	public function getOutput() {

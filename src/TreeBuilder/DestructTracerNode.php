@@ -3,7 +3,9 @@
 namespace Wikimedia\RemexHtml\TreeBuilder;
 
 class DestructTracerNode {
+	/** @var callable */
 	private $callback;
+	/** @var string */
 	private $tag;
 
 	public function __construct( $callback, $tag ) {

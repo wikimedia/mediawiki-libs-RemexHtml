@@ -9,6 +9,7 @@ use Wikimedia\RemexHtml\Tokenizer\Attributes;
  * each time an Element node is destroyed.
  */
 class DestructTracer implements TreeHandler {
+	/** @var callable */
 	private $callback;
 
 	public function __construct( $callback ) {

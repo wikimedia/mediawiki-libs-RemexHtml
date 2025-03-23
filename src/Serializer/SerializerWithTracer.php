@@ -7,7 +7,9 @@ use Wikimedia\RemexHtml\TreeBuilder\Element;
 use Wikimedia\RemexHtml\TreeBuilder\TraceFormatter;
 
 class SerializerWithTracer extends Serializer {
+	/** @var callable|null */
 	private $traceCallback;
+	/** @var int */
 	private $verbosity;
 
 	public function __construct( Formatter $formatter, $errorCallback = null, $traceCallback = null,

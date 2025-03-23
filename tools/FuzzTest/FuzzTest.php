@@ -13,7 +13,9 @@ use Wikimedia\RemexHtml\TreeBuilder;
  * Flag any cases where the results differ.
  */
 class FuzzTest {
+	/** @var int */
 	private $length;
+	/** @var Html5Depurate */
 	private $depurate;
 
 	public function __construct( $length, $depurateUrl ) {

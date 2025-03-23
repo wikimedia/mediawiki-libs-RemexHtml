@@ -36,6 +36,7 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 		'tree-construction/tests6.dat:48',
 	];
 
+	/** @var string[] */
 	private $errors;
 
 	public function serializerProvider() {

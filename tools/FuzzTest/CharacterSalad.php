@@ -7,8 +7,11 @@ namespace Wikimedia\RemexHtml\Tools\FuzzTest;
  * special meaning in HTML.
  */
 class CharacterSalad {
+	/** @var int */
 	private $minLength;
+	/** @var int */
 	private $maxLength;
+	/** @var mixed[] */
 	private $bigDictionary;
 	private const SMALL_DICTIONARY = [
 		'<',

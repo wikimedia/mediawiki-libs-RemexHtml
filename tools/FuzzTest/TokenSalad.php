@@ -16,10 +16,15 @@ class TokenSalad {
 	private const TOKEN_COMMENT = 4;
 	private const TOKEN_MAX = 4;
 
+	/** @var int */
 	private $maxLength;
+	/** @var mixed[] */
 	private $bigDictionary;
+	/** @var string[] */
 	private $specialTags;
+	/** @var CharacterSalad */
 	private $characterSalad;
+	/** @var string[] */
 	private $entities;
 
 	private const ELEMENT_NAME_BLACKLIST = '/^(menu|isindex)/i';

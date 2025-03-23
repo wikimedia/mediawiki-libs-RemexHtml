@@ -7,6 +7,7 @@ use Wikimedia\RemexHtml\Tokenizer;
 use Wikimedia\RemexHtml\TreeBuilder;
 
 class DestructTokenizer extends Tokenizer\Tokenizer {
+	/** @var bool */
 	private $flag;
 
 	public function __construct( Tokenizer\TokenHandler $listener, $text, $options, &$flag ) {
@@ -20,6 +21,7 @@ class DestructTokenizer extends Tokenizer\Tokenizer {
 }
 
 class DestructDispatcher extends TreeBuilder\Dispatcher {
+	/** @var bool */
 	private $flag;
 
 	public function __construct( TreeBuilder\TreeBuilder $builder, &$flag ) {
@@ -33,6 +35,7 @@ class DestructDispatcher extends TreeBuilder\Dispatcher {
 }
 
 class DestructTreeBuilder extends TreeBuilder\TreeBuilder {
+	/** @var bool */
 	private $flag;
 
 	public function __construct( TreeBuilder\TreeHandler $handler, $options, &$flag ) {

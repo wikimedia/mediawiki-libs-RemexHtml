@@ -13,8 +13,10 @@ use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
  * Dispatcher which is the next stage in the pipeline.
  */
 class DispatchTracer implements TokenHandler {
+	/** @var string */
 	private $input;
 	private Dispatcher $dispatcher;
+	/** @var callable */
 	private $callback;
 
 	public function __construct( $input, Dispatcher $dispatcher, callable $callback ) {

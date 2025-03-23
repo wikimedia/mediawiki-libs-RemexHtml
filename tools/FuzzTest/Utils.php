@@ -3,6 +3,7 @@
 namespace Wikimedia\RemexHtml\Tools\FuzzTest;
 
 class Utils {
+	/** @var mixed[]|null */
 	private static $bigDictionary = null;
 
 	/**
