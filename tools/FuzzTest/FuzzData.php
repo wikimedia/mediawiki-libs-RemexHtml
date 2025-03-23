@@ -5,10 +5,8 @@ namespace Wikimedia\RemexHtml\Tools\FuzzTest;
 class FuzzData {
 	/**
 	 * All tag names listed in w3schools.com as of 2016-12-14
-	 *
-	 * @var array
 	 */
-	public static $w3schoolsTagNames = [
+	public const W3SCHOOLS_TAG_NAMES = [
 		'a',
 		'abbr',
 		'acronym',
@@ -129,10 +127,8 @@ class FuzzData {
 
 	/**
 	 * Some interesting attribute names
-	 *
-	 * @var array
 	 */
-	public static $attributeNames = [
+	public const ATTRIBUTE_NAMES = [
 		// SVG camel case
 		'definitionurl',
 		'attributename',
@@ -218,10 +214,8 @@ class FuzzData {
 
 	/**
 	 * Special attribute values which are referred to in the standard.
-	 *
-	 * @var array
 	 */
-	public static $attributeValues = [
+	public const ATTRIBUTE_VALUES = [
 		'hidden',
 		'text/html',
 		'application/xhtml+xml',

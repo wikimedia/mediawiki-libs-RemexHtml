@@ -14,22 +14,22 @@ use Wikimedia\RemexHtml\TreeBuilder\TreeBuilder;
  * @covers \Wikimedia\RemexHtml\TreeBuilder\TreeBuilder
  */
 class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
-	public static $testErrorCounts = false;
+	public const TEST_ERROR_COUNTS = false;
 
-	private static $testDirs = [
+	private const TEST_DIRS = [
 		'html5lib/tree-construction',
 		'local/tree-construction',
 	];
 
-	private static $fileBlacklist = [
+	private const FILE_BLACKLIST = [
 		// Refers to a newer version of the HTML spec
 		'tree-construction/menuitem-element.dat',
 	];
 
-	private static $testBlacklist = [
+	private const TEST_BLACKLIST = [
 	];
 
-	private static $domTestBlacklist = [
+	private const DOM_TEST_BLACKLIST = [
 		// Invalid doctype
 		'tree-construction/doctype01.dat:32',
 		'tree-construction/doctype01.dat:45',
@@ -48,12 +48,12 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 
 	private function provider( $type ) {
 		$testFiles = [];
-		foreach ( self::$testDirs as $testDir ) {
+		foreach ( self::TEST_DIRS as $testDir ) {
 			$testFiles = array_merge( $testFiles, glob( __DIR__ . "/../../$testDir/*.dat" ) );
 		}
 		$args = [];
 		foreach ( $testFiles as $fileName ) {
-			if ( in_array( 'tree-construction/' . basename( $fileName ), self::$fileBlacklist ) ) {
+			if ( in_array( 'tree-construction/' . basename( $fileName ), self::FILE_BLACKLIST ) ) {
 				continue;
 			}
 			$tests = $this->readFile( $fileName, $type );
@@ -129,11 +129,12 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 				}
 			} while ( !$section['end'] );
 
-			if ( in_array( "$baseName:$startLine", self::$testBlacklist ) ) {
+			// @phan-suppress-next-line PhanSuspiciousWeakTypeComparisonInLoop
+			if ( in_array( "$baseName:$startLine", self::TEST_BLACKLIST ) ) {
 				continue;
 			}
 			if ( $type === 'dom'
-				&& in_array( "$baseName:$startLine", self::$domTestBlacklist )
+				&& in_array( "$baseName:$startLine", self::DOM_TEST_BLACKLIST )
 			) {
 				continue;
 			}
@@ -272,7 +273,8 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 
 		$this->assertEquals( $expected, $result, "{$params['file']}:{$params['line']}" );
 
-		if ( self::$testErrorCounts ) {
+		// @phan-suppress-next-line PhanImpossibleCondition
+		if ( self::TEST_ERROR_COUNTS ) {
 			$this->assertSameSize(
 				$params['errors'],
 				$this->errors,

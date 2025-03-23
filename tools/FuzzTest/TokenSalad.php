@@ -22,7 +22,7 @@ class TokenSalad {
 	private $characterSalad;
 	private $entities;
 
-	private static $elementNameBlacklist = '/^(menu|isindex)/i';
+	private const ELEMENT_NAME_BLACKLIST = '/^(menu|isindex)/i';
 
 	public function __construct( $maxLength ) {
 		$this->maxLength = $maxLength;
@@ -114,18 +114,18 @@ class TokenSalad {
 				if ( Utils::coinToss( 0.5 ) ) {
 					$name = Utils::pickRandom( $this->specialTags );
 				} else {
-					$name = Utils::pickRandom( FuzzData::$w3schoolsTagNames );
+					$name = Utils::pickRandom( FuzzData::W3SCHOOLS_TAG_NAMES );
 				}
 			} else {
 				$name = Utils::pickRandom( $this->bigDictionary );
 			}
-		} while ( preg_match( self::$elementNameBlacklist, $name ) );
+		} while ( preg_match( self::ELEMENT_NAME_BLACKLIST, $name ) );
 		return $name;
 	}
 
 	private function getAttributeName() {
 		if ( Utils::coinToss( 0.5 ) ) {
-			return Utils::pickRandom( FuzzData::$attributeNames );
+			return Utils::pickRandom( FuzzData::ATTRIBUTE_NAMES );
 		} else {
 			return Utils::pickRandom( $this->bigDictionary );
 		}
@@ -133,7 +133,7 @@ class TokenSalad {
 
 	private function getAttributeValue() {
 		if ( Utils::coinToss( 0.5 ) ) {
-			return Utils::pickRandom( FuzzData::$attributeValues );
+			return Utils::pickRandom( FuzzData::ATTRIBUTE_VALUES );
 		} else {
 			return $this->characterSalad->next();
 		}

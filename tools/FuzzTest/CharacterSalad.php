@@ -10,7 +10,7 @@ class CharacterSalad {
 	private $minLength;
 	private $maxLength;
 	private $bigDictionary;
-	private static $smallDictionary = [
+	private const SMALL_DICTIONARY = [
 		'<',
 		'>',
 		'&',
@@ -38,7 +38,7 @@ class CharacterSalad {
 			if ( Utils::coinToss( 0.5 ) ) {
 				$s .= Utils::pickRandom( $this->bigDictionary );
 			} else {
-				$s .= Utils::pickRandom( self::$smallDictionary );
+				$s .= Utils::pickRandom( self::SMALL_DICTIONARY );
 			}
 		}
 		return $s;

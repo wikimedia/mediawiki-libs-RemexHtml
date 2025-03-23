@@ -38,10 +38,8 @@ class GenerateDataFiles {
 	/**
 	 * This is the character entity mapping table copied from
 	 * https://www.w3.org/TR/2014/REC-html5-20141028/syntax.html#tokenizing-character-references
-	 *
-	 * @var string
 	 */
-	private static $legacyNumericEntityData = <<<EOT
+	private const LEGACY_NUMERIC_ENTITY_DATA = <<<EOT
 0x00 	U+FFFD 	REPLACEMENT CHARACTER
 0x80 	U+20AC 	EURO SIGN (€)
 0x82 	U+201A 	SINGLE LOW-9 QUOTATION MARK (‚)
@@ -75,10 +73,8 @@ EOT;
 	/**
 	 * This is the list of public identifier prefixes that cause quirks mode
 	 * to be set, from § 8.2.5.4.1
-	 *
-	 * @var array
 	 */
-	private static $quirkyPublicPrefixes = [
+	private const QUIRKY_PUBLIC_PREFIXES = [
 		"+//Silmaril//dtd html Pro v0r11 19970101//",
 		"-//AS//DTD HTML 3.0 asWedit + extensions//",
 		"-//AdvaSoft Ltd//DTD HTML 3.0 asWedit + extensions//",
@@ -136,7 +132,7 @@ EOT;
 		"-//WebTechs//DTD Mozilla HTML//",
 	];
 
-	private static $special = [
+	private const SPECIAL = [
 		self::NS_HTML => 'address, applet, area, article, aside, base,
 			basefont, bgsound, blockquote, body, br, button, caption, center,
 			col, colgroup, dd, details, dir, div, dl, dt, embed, fieldset,
@@ -155,17 +151,13 @@ EOT;
 	 * The NameStartChar production from XML 1.0, but with colon excluded since
 	 * there's a lot of ways to break namespace validation, and we actually need
 	 * this for local names
-	 *
-	 * @var string
 	 */
-	private static $nameStartChar = '[A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]';
+	private const NAME_START_CHAR = '[A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]';
 
 	/**
 	 * The NameChar production from XML 1.0
-	 *
-	 * @var string
 	 */
-	private static $nameChar = 'NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]';
+	private const NAME_CHAR = 'NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]';
 
 	/**
 	 * The actual set of allowed NameStartChar characters from libxml2's
@@ -173,21 +165,17 @@ EOT;
 	 *   IS_LETTER = IS_BASECHAR || IS_IDEOGRAPHIC
 	 * plus '_'.
 	 *
-	 * We exclude ':' for the same reason as for $nameStartChar.
-	 *
-	 * @var string
+	 * We exclude ':' for the same reason as for self::NAME_START_CHAR.
 	 */
-	private static $libxml2NameStartChar = '[A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x131] | [#x134-#x13E] | [#x141-#x148] | [#x14A-#x17E] | [#x180-#x1C3] | [#x1CD-#x1F0] | [#x1F4-#x1F5] | [#x1FA-#x217] | [#x250-#x2A8] | [#x2BB-#x2C1] | #x386 | [#x388-#x38A] | #x38C | [#x38E-#x3A1] | [#x3A3-#x3CE] | [#x3D0-#x3D6] | #x3DA | #x3DC | #x3DE | #x3E0 | [#x3E2-#x3F3] | [#x401-#x40C] | [#x40E-#x44F] | [#x451-#x45C] | [#x45E-#x481] | [#x490-#x4C4] | [#x4C7-#x4C8] | [#x4CB-#x4CC] | [#x4D0-#x4EB] | [#x4EE-#x4F5] | [#x4F8-#x4F9] | [#x531-#x556] | #x559 | [#x561-#x586] | [#x5D0-#x5EA] | [#x5F0-#x5F2] | [#x621-#x63A] | [#x641-#x64A] | [#x671-#x6B7] | [#x6BA-#x6BE] | [#x6C0-#x6CE] | [#x6D0-#x6D3] | #x6D5 | [#x6E5-#x6E6] | [#x905-#x939] | #x93D | [#x958-#x961] | [#x985-#x98C] | [#x98F-#x990] | [#x993-#x9A8] | [#x9AA-#x9B0] | #x9B2 | [#x9B6-#x9B9] | [#x9DC-#x9DD] | [#x9DF-#x9E1] | [#x9F0-#x9F1] | [#xA05-#xA0A] | [#xA0F-#xA10] | [#xA13-#xA28] | [#xA2A-#xA30] | [#xA32-#xA33] | [#xA35-#xA36] | [#xA38-#xA39] | [#xA59-#xA5C] | #xA5E | [#xA72-#xA74] | [#xA85-#xA8B] | #xA8D | [#xA8F-#xA91] | [#xA93-#xAA8] | [#xAAA-#xAB0] | [#xAB2-#xAB3] | [#xAB5-#xAB9] | #xABD | #xAE0 | [#xB05-#xB0C] | [#xB0F-#xB10] | [#xB13-#xB28] | [#xB2A-#xB30] | [#xB32-#xB33] | [#xB36-#xB39] | #xB3D | [#xB5C-#xB5D] | [#xB5F-#xB61] | [#xB85-#xB8A] | [#xB8E-#xB90] | [#xB92-#xB95] | [#xB99-#xB9A] | #xB9C | [#xB9E-#xB9F] | [#xBA3-#xBA4] | [#xBA8-#xBAA] | [#xBAE-#xBB5] | [#xBB7-#xBB9] | [#xC05-#xC0C] | [#xC0E-#xC10] | [#xC12-#xC28] | [#xC2A-#xC33] | [#xC35-#xC39] | [#xC60-#xC61] | [#xC85-#xC8C] | [#xC8E-#xC90] | [#xC92-#xCA8] | [#xCAA-#xCB3] | [#xCB5-#xCB9] | #xCDE | [#xCE0-#xCE1] | [#xD05-#xD0C] | [#xD0E-#xD10] | [#xD12-#xD28] | [#xD2A-#xD39] | [#xD60-#xD61] | [#xE01-#xE2E] | #xE30 | [#xE32-#xE33] | [#xE40-#xE45] | [#xE81-#xE82] | #xE84 | [#xE87-#xE88] | #xE8A | #xE8D | [#xE94-#xE97] | [#xE99-#xE9F] | [#xEA1-#xEA3] | #xEA5 | #xEA7 | [#xEAA-#xEAB] | [#xEAD-#xEAE] | #xEB0 | [#xEB2-#xEB3] | #xEBD | [#xEC0-#xEC4] | [#xF40-#xF47] | [#xF49-#xF69] | [#x10A0-#x10C5] | [#x10D0-#x10F6] | #x1100 | [#x1102-#x1103] | [#x1105-#x1107] | #x1109 | [#x110B-#x110C] | [#x110E-#x1112] | #x113C | #x113E | #x1140 | #x114C | #x114E | #x1150 | [#x1154-#x1155] | #x1159 | [#x115F-#x1161] | #x1163 | #x1165 | #x1167 | #x1169 | [#x116D-#x116E] | [#x1172-#x1173] | #x1175 | #x119E | #x11A8 | #x11AB | [#x11AE-#x11AF] | [#x11B7-#x11B8] | #x11BA | [#x11BC-#x11C2] | #x11EB | #x11F0 | #x11F9 | [#x1E00-#x1E9B] | [#x1EA0-#x1EF9] | [#x1F00-#x1F15] | [#x1F18-#x1F1D] | [#x1F20-#x1F45] | [#x1F48-#x1F4D] | [#x1F50-#x1F57] | #x1F59 | #x1F5B | #x1F5D | [#x1F5F-#x1F7D] | [#x1F80-#x1FB4] | [#x1FB6-#x1FBC] | #x1FBE | [#x1FC2-#x1FC4] | [#x1FC6-#x1FCC] | [#x1FD0-#x1FD3] | [#x1FD6-#x1FDB] | [#x1FE0-#x1FEC] | [#x1FF2-#x1FF4] | [#x1FF6-#x1FFC] | #x2126 | [#x212A-#x212B] | #x212E | [#x2180-#x2182] | #x3007 | [#x3021-#x3029] | [#x3041-#x3094] | [#x30A1-#x30FA] | [#x3105-#x312C] | [#x4E00-#x9FA5] | [#xAC00-#xD7A3]';
+	private const LIBXML2_NAME_START_CHAR = '[A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x131] | [#x134-#x13E] | [#x141-#x148] | [#x14A-#x17E] | [#x180-#x1C3] | [#x1CD-#x1F0] | [#x1F4-#x1F5] | [#x1FA-#x217] | [#x250-#x2A8] | [#x2BB-#x2C1] | #x386 | [#x388-#x38A] | #x38C | [#x38E-#x3A1] | [#x3A3-#x3CE] | [#x3D0-#x3D6] | #x3DA | #x3DC | #x3DE | #x3E0 | [#x3E2-#x3F3] | [#x401-#x40C] | [#x40E-#x44F] | [#x451-#x45C] | [#x45E-#x481] | [#x490-#x4C4] | [#x4C7-#x4C8] | [#x4CB-#x4CC] | [#x4D0-#x4EB] | [#x4EE-#x4F5] | [#x4F8-#x4F9] | [#x531-#x556] | #x559 | [#x561-#x586] | [#x5D0-#x5EA] | [#x5F0-#x5F2] | [#x621-#x63A] | [#x641-#x64A] | [#x671-#x6B7] | [#x6BA-#x6BE] | [#x6C0-#x6CE] | [#x6D0-#x6D3] | #x6D5 | [#x6E5-#x6E6] | [#x905-#x939] | #x93D | [#x958-#x961] | [#x985-#x98C] | [#x98F-#x990] | [#x993-#x9A8] | [#x9AA-#x9B0] | #x9B2 | [#x9B6-#x9B9] | [#x9DC-#x9DD] | [#x9DF-#x9E1] | [#x9F0-#x9F1] | [#xA05-#xA0A] | [#xA0F-#xA10] | [#xA13-#xA28] | [#xA2A-#xA30] | [#xA32-#xA33] | [#xA35-#xA36] | [#xA38-#xA39] | [#xA59-#xA5C] | #xA5E | [#xA72-#xA74] | [#xA85-#xA8B] | #xA8D | [#xA8F-#xA91] | [#xA93-#xAA8] | [#xAAA-#xAB0] | [#xAB2-#xAB3] | [#xAB5-#xAB9] | #xABD | #xAE0 | [#xB05-#xB0C] | [#xB0F-#xB10] | [#xB13-#xB28] | [#xB2A-#xB30] | [#xB32-#xB33] | [#xB36-#xB39] | #xB3D | [#xB5C-#xB5D] | [#xB5F-#xB61] | [#xB85-#xB8A] | [#xB8E-#xB90] | [#xB92-#xB95] | [#xB99-#xB9A] | #xB9C | [#xB9E-#xB9F] | [#xBA3-#xBA4] | [#xBA8-#xBAA] | [#xBAE-#xBB5] | [#xBB7-#xBB9] | [#xC05-#xC0C] | [#xC0E-#xC10] | [#xC12-#xC28] | [#xC2A-#xC33] | [#xC35-#xC39] | [#xC60-#xC61] | [#xC85-#xC8C] | [#xC8E-#xC90] | [#xC92-#xCA8] | [#xCAA-#xCB3] | [#xCB5-#xCB9] | #xCDE | [#xCE0-#xCE1] | [#xD05-#xD0C] | [#xD0E-#xD10] | [#xD12-#xD28] | [#xD2A-#xD39] | [#xD60-#xD61] | [#xE01-#xE2E] | #xE30 | [#xE32-#xE33] | [#xE40-#xE45] | [#xE81-#xE82] | #xE84 | [#xE87-#xE88] | #xE8A | #xE8D | [#xE94-#xE97] | [#xE99-#xE9F] | [#xEA1-#xEA3] | #xEA5 | #xEA7 | [#xEAA-#xEAB] | [#xEAD-#xEAE] | #xEB0 | [#xEB2-#xEB3] | #xEBD | [#xEC0-#xEC4] | [#xF40-#xF47] | [#xF49-#xF69] | [#x10A0-#x10C5] | [#x10D0-#x10F6] | #x1100 | [#x1102-#x1103] | [#x1105-#x1107] | #x1109 | [#x110B-#x110C] | [#x110E-#x1112] | #x113C | #x113E | #x1140 | #x114C | #x114E | #x1150 | [#x1154-#x1155] | #x1159 | [#x115F-#x1161] | #x1163 | #x1165 | #x1167 | #x1169 | [#x116D-#x116E] | [#x1172-#x1173] | #x1175 | #x119E | #x11A8 | #x11AB | [#x11AE-#x11AF] | [#x11B7-#x11B8] | #x11BA | [#x11BC-#x11C2] | #x11EB | #x11F0 | #x11F9 | [#x1E00-#x1E9B] | [#x1EA0-#x1EF9] | [#x1F00-#x1F15] | [#x1F18-#x1F1D] | [#x1F20-#x1F45] | [#x1F48-#x1F4D] | [#x1F50-#x1F57] | #x1F59 | #x1F5B | #x1F5D | [#x1F5F-#x1F7D] | [#x1F80-#x1FB4] | [#x1FB6-#x1FBC] | #x1FBE | [#x1FC2-#x1FC4] | [#x1FC6-#x1FCC] | [#x1FD0-#x1FD3] | [#x1FD6-#x1FDB] | [#x1FE0-#x1FEC] | [#x1FF2-#x1FF4] | [#x1FF6-#x1FFC] | #x2126 | [#x212A-#x212B] | #x212E | [#x2180-#x2182] | #x3007 | [#x3021-#x3029] | [#x3041-#x3094] | [#x30A1-#x30FA] | [#x3105-#x312C] | [#x4E00-#x9FA5] | [#xAC00-#xD7A3]';
 
 	/**
 	 * The actual set of allowed NameChar characters from libxml2's
 	 * xmlValidateName function, which extends the NameStartChar characters
 	 * with
 	 *   IS_DIGIT || '.' || '-' || IS_COMBINING || IS_EXTENDER
-	 *
-	 * @var string
 	 */
-	private static $libxml2NameChar = 'NameStartChar | "-" | "." | [0-9] | #xB7 | [#x2D0-#x2D1] | [#x300-#x345] | [#x360-#x361] | #x387 | [#x483-#x486] | [#x591-#x5A1] | [#x5A3-#x5B9] | [#x5BB-#x5BD] | #x5BF | [#x5C1-#x5C2] | #x5C4 | #x640 | [#x64B-#x652] | [#x660-#x669] | #x670 | [#x6D6-#x6E4] | [#x6E7-#x6E8] | [#x6EA-#x6ED] | [#x6F0-#x6F9] | [#x901-#x903] | #x93C | [#x93E-#x94D] | [#x951-#x954] | [#x962-#x963] | [#x966-#x96F] | [#x981-#x983] | #x9BC | [#x9BE-#x9C4] | [#x9C7-#x9C8] | [#x9CB-#x9CD] | #x9D7 | [#x9E2-#x9E3] | [#x9E6-#x9EF] | #xA02 | #xA3C | [#xA3E-#xA42] | [#xA47-#xA48] | [#xA4B-#xA4D] | [#xA66-#xA71] | [#xA81-#xA83] | #xABC | [#xABE-#xAC5] | [#xAC7-#xAC9] | [#xACB-#xACD] | [#xAE6-#xAEF] | [#xB01-#xB03] | #xB3C | [#xB3E-#xB43] | [#xB47-#xB48] | [#xB4B-#xB4D] | [#xB56-#xB57] | [#xB66-#xB6F] | [#xB82-#xB83] | [#xBBE-#xBC2] | [#xBC6-#xBC8] | [#xBCA-#xBCD] | #xBD7 | [#xBE7-#xBEF] | [#xC01-#xC03] | [#xC3E-#xC44] | [#xC46-#xC48] | [#xC4A-#xC4D] | [#xC55-#xC56] | [#xC66-#xC6F] | [#xC82-#xC83] | [#xCBE-#xCC4] | [#xCC6-#xCC8] | [#xCCA-#xCCD] | [#xCD5-#xCD6] | [#xCE6-#xCEF] | [#xD02-#xD03] | [#xD3E-#xD43] | [#xD46-#xD48] | [#xD4A-#xD4D] | #xD57 | [#xD66-#xD6F] | #xE31 | [#xE34-#xE3A] | [#xE46-#xE4E] | [#xE50-#xE59] | #xEB1 | [#xEB4-#xEB9] | [#xEBB-#xEBC] | #xEC6 | [#xEC8-#xECD] | [#xED0-#xED9] | [#xF18-#xF19] | [#xF20-#xF29] | #xF35 | #xF37 | #xF39 | [#xF3E-#xF3F] | [#xF71-#xF84] | [#xF86-#xF8B] | [#xF90-#xF95] | #xF97 | [#xF99-#xFAD] | [#xFB1-#xFB7] | #xFB9 | [#x20D0-#x20DC] | #x20E1 | #x3005 | [#x302A-#x302F] | [#x3031-#x3035] | [#x3099-#x309A] | [#x309D-#x309E] | [#x30FC-#x30FE]';
+	private const LIBXML2_NAME_CHAR = 'NameStartChar | "-" | "." | [0-9] | #xB7 | [#x2D0-#x2D1] | [#x300-#x345] | [#x360-#x361] | #x387 | [#x483-#x486] | [#x591-#x5A1] | [#x5A3-#x5B9] | [#x5BB-#x5BD] | #x5BF | [#x5C1-#x5C2] | #x5C4 | #x640 | [#x64B-#x652] | [#x660-#x669] | #x670 | [#x6D6-#x6E4] | [#x6E7-#x6E8] | [#x6EA-#x6ED] | [#x6F0-#x6F9] | [#x901-#x903] | #x93C | [#x93E-#x94D] | [#x951-#x954] | [#x962-#x963] | [#x966-#x96F] | [#x981-#x983] | #x9BC | [#x9BE-#x9C4] | [#x9C7-#x9C8] | [#x9CB-#x9CD] | #x9D7 | [#x9E2-#x9E3] | [#x9E6-#x9EF] | #xA02 | #xA3C | [#xA3E-#xA42] | [#xA47-#xA48] | [#xA4B-#xA4D] | [#xA66-#xA71] | [#xA81-#xA83] | #xABC | [#xABE-#xAC5] | [#xAC7-#xAC9] | [#xACB-#xACD] | [#xAE6-#xAEF] | [#xB01-#xB03] | #xB3C | [#xB3E-#xB43] | [#xB47-#xB48] | [#xB4B-#xB4D] | [#xB56-#xB57] | [#xB66-#xB6F] | [#xB82-#xB83] | [#xBBE-#xBC2] | [#xBC6-#xBC8] | [#xBCA-#xBCD] | #xBD7 | [#xBE7-#xBEF] | [#xC01-#xC03] | [#xC3E-#xC44] | [#xC46-#xC48] | [#xC4A-#xC4D] | [#xC55-#xC56] | [#xC66-#xC6F] | [#xC82-#xC83] | [#xCBE-#xCC4] | [#xCC6-#xCC8] | [#xCCA-#xCCD] | [#xCD5-#xCD6] | [#xCE6-#xCEF] | [#xD02-#xD03] | [#xD3E-#xD43] | [#xD46-#xD48] | [#xD4A-#xD4D] | #xD57 | [#xD66-#xD6F] | #xE31 | [#xE34-#xE3A] | [#xE46-#xE4E] | [#xE50-#xE59] | #xEB1 | [#xEB4-#xEB9] | [#xEBB-#xEBC] | #xEC6 | [#xEC8-#xECD] | [#xED0-#xED9] | [#xF18-#xF19] | [#xF20-#xF29] | #xF35 | #xF37 | #xF39 | [#xF3E-#xF3F] | [#xF71-#xF84] | [#xF86-#xF8B] | [#xF90-#xF95] | #xF97 | [#xF99-#xFAD] | [#xFB1-#xFB7] | #xFB9 | [#x20D0-#x20DC] | #x20E1 | #x3005 | [#x302A-#x302F] | [#x3031-#x3035] | [#x3099-#x309A] | [#x309D-#x309E] | [#x30FC-#x30FE]';
 	// phpcs:enable
 
 	/**
@@ -336,7 +324,7 @@ EOT;
 
 		$matches = [];
 		preg_match_all( '/^0x([0-9A-F]+)\s+U\+([0-9A-F]+)/m',
-			self::$legacyNumericEntityData, $matches, PREG_SET_ORDER );
+			self::LEGACY_NUMERIC_ENTITY_DATA, $matches, PREG_SET_ORDER );
 
 		$legacyNumericEntities = [];
 		foreach ( $matches as $match ) {
@@ -346,12 +334,12 @@ EOT;
 
 		$quirkyRegex =
 			'~' .
-			$this->makeRegexAlternation( self::$quirkyPublicPrefixes ) .
+			$this->makeRegexAlternation( self::QUIRKY_PUBLIC_PREFIXES ) .
 			'~xAi';
 
-		$nameStartCharConvTable = $this->makeConvTable( self::$libxml2NameStartChar );
-		$nameCharConvTable = $this->makeConvTable( self::$libxml2NameChar,
-			[ 'NameStartChar' => self::$libxml2NameStartChar ] );
+		$nameStartCharConvTable = $this->makeConvTable( self::LIBXML2_NAME_START_CHAR );
+		$nameCharConvTable = $this->makeConvTable( self::LIBXML2_NAME_CHAR,
+			[ 'NameStartChar' => self::LIBXML2_NAME_START_CHAR ] );
 
 		$encEntityRegex = self::phpExport( $entityRegex, 1 );
 		$encCharRefRegex = self::phpExport( $charRefRegex, 1 );
@@ -362,7 +350,7 @@ EOT;
 		$encNameCharConvTable = $this->encodeConvTable( $nameCharConvTable );
 
 		$special = [];
-		foreach ( self::$special as $ns => $str ) {
+		foreach ( self::SPECIAL as $ns => $str ) {
 			foreach ( explode( ',', $str ) as $name ) {
 				$special[$ns][trim( $name )] = true;
 			}

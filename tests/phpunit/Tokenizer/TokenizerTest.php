@@ -10,9 +10,9 @@ use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
  * @covers \Wikimedia\RemexHtml\Tokenizer\Tokenizer
  */
 class TokenizerTest extends \PHPUnit\Framework\TestCase {
-	public static $testErrorCount = false;
+	public const TEST_ERROR_COUNTS = false;
 
-	private static $skippedFiles = [
+	private const SKIPPED_FILES = [
 		// We don't implement draft changes
 		'pendingSpecChanges.test',
 		// Feeding invalid UTF-8 into the tokenizer causes an exception, which I
@@ -22,19 +22,19 @@ class TokenizerTest extends \PHPUnit\Framework\TestCase {
 		'unicodeCharsProblematic.test'
 	];
 
-	private static $testDirs = [
+	private const TEST_DIRS = [
 		'html5lib/tokenizer'
 	];
 
 	public function provider() {
 		$tests = [];
 		$testFiles = [];
-		foreach ( self::$testDirs as $testDir ) {
+		foreach ( self::TEST_DIRS as $testDir ) {
 			$testFiles = array_merge( $testFiles, glob( __DIR__ . "/../../$testDir/*.test" ) );
 		}
 		foreach ( $testFiles as $fileName ) {
 			$lastPart = preg_replace( "/^.*\//s", '', $fileName );
-			if ( in_array( $lastPart, self::$skippedFiles ) ) {
+			if ( in_array( $lastPart, self::SKIPPED_FILES ) ) {
 				continue;
 			}
 			$testData = json_decode( file_get_contents( $fileName ), true );
@@ -122,7 +122,8 @@ class TokenizerTest extends \PHPUnit\Framework\TestCase {
 			$lastToken = $token;
 		}
 		if ( $errorCount && !$remove ) {
-			if ( self::$testErrorCount ) {
+			// @phan-suppress-next-line PhanImpossibleCondition
+			if ( self::TEST_ERROR_COUNTS ) {
 				array_splice( $output, 0, 0, array_fill( 0, $errorCount, 'ParseError' ) );
 			} else {
 				array_unshift( $output, 'ParseError' );
