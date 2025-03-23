@@ -31,10 +31,8 @@ class Serializer implements AbstractSerializer {
 
 	/**
 	 * The Formatter implementation
-	 *
-	 * @var Formatter
 	 */
-	private $formatter;
+	private Formatter $formatter;
 
 	/**
 	 * All active SerializerNode objects in an array, so that they can be

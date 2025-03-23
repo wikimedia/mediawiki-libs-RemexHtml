@@ -10,8 +10,7 @@ use Wikimedia\RemexHtml\Tokenizer\Attributes;
  * then forwards the event through to the supplied handler.
  */
 class TreeMutationTracer implements TreeHandler {
-	/** @var TreeHandler */
-	private $handler;
+	private TreeHandler $handler;
 
 	/** @var callable */
 	private $callback;

@@ -96,8 +96,7 @@ class Dispatcher implements TokenHandler {
 	/** @var InForeignContent */
 	public $inForeign;
 
-	/** @var TreeBuilder */
-	protected $builder;
+	protected TreeBuilder $builder;
 
 	/**
 	 * The InsertionMode object for the current insertion mode in HTML content
@@ -137,10 +136,8 @@ class Dispatcher implements TokenHandler {
 
 	/**
 	 * The stack of template insertion modes
-	 *
-	 * @var TemplateModeStack
 	 */
-	public $templateModeStack;
+	public TemplateModeStack $templateModeStack;
 
 	/**
 	 * @param TreeBuilder $builder

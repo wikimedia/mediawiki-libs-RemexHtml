@@ -95,7 +95,7 @@ class Tokenizer {
 	protected $skipPreprocess;
 	protected $scriptingFlag;
 	protected $appropriateEndTag;
-	protected $listener;
+	protected TokenHandler $listener;
 	protected $state;
 	protected $preprocessed;
 	protected $text;
