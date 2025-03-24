@@ -33,5 +33,6 @@ class PropGuardTest extends \PHPUnit\Framework\TestCase {
 class MockPropGuard {
 	use PropGuard;
 
+	/** @var bool */
 	public $real;
 }

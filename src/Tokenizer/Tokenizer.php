@@ -87,20 +87,34 @@ class Tokenizer {
 		'&nbsp;' => "\u{00A0}",
 	];
 
+	/** @var bool */
 	protected $ignoreErrors;
+	/** @var bool */
 	protected $ignoreCharRefs;
+	/** @var bool */
 	protected $ignoreNulls;
+	/** @var bool */
 	protected $skipPreprocess;
+	/** @var bool */
 	protected $scriptingFlag;
+	/** @var string|null */
 	protected $appropriateEndTag;
 	protected TokenHandler $listener;
+	/** @var int */
 	protected $state;
+	/** @var bool */
 	protected $preprocessed;
+	/** @var string */
 	protected $text;
+	/** @var int */
 	protected $pos;
+	/** @var int */
 	protected $length;
+	/** @var callable|null */
 	protected $enableCdataCallback;
+	/** @var string|null */
 	protected $fragmentNamespace;
+	/** @var string|null */
 	protected $fragmentName;
 
 	/**

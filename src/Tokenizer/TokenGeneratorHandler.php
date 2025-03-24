@@ -6,6 +6,7 @@ namespace Wikimedia\RemexHtml\Tokenizer;
  * The handler which converts events to tokens arrays for TokenGenerator
  */
 class TokenGeneratorHandler implements TokenHandler {
+	/** @var array[] */
 	public $tokens = [];
 
 	public function startDocument( Tokenizer $tokenizer, $fragmentNamespace, $fragmentName ) {

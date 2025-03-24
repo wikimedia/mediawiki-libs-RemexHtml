@@ -10,9 +10,13 @@ use Wikimedia\RemexHtml\PropGuard;
 class Marker implements FormattingElement {
 	use PropGuard;
 
+	/** @var self|null */
 	public $nextAFE;
+	/** @var self|null */
 	public $prevAFE;
+	/** @var self|null */
 	public $nextNoah;
+	/** @var string */
 	public $type;
 
 	public function __construct( $type ) {

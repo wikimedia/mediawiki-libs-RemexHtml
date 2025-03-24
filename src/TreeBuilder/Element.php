@@ -53,32 +53,38 @@ class Element implements FormattingElement {
 
 	/**
 	 * Internal to CachingStack. A link in the scope list.
+	 * @var self|null
 	 */
 	public $nextEltInScope;
 
 	/**
 	 * Internal to CachingStack and SimpleStack. The current stack index, or
 	 * null if the element is not in the stack.
+	 * @var int|null
 	 */
 	public $stackIndex;
 
 	/**
 	 * Internal to ActiveFormattingElements.
+	 * @var FormattingElement|null
 	 */
 	public $prevAFE;
 
 	/**
 	 * Internal to ActiveFormattingElements.
+	 * @var FormattingElement|null
 	 */
 	public $nextAFE;
 
 	/**
 	 * Internal to ActiveFormattingElements.
+	 * @var FormattingElement|null
 	 */
 	public $nextNoah;
 
 	/**
 	 * The cache for getNoahKey()
+	 * @var string|null
 	 */
 	private $noahKey;
 
@@ -86,6 +92,7 @@ class Element implements FormattingElement {
 	 * This member variable can be written to by the TreeHandler, to store any
 	 * state associated with the element (such as a DOM node). It is not used
 	 * by TreeBuilder.
+	 * @var mixed
 	 */
 	public $userData;
 

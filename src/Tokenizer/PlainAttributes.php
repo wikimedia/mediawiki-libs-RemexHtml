@@ -6,7 +6,9 @@ namespace Wikimedia\RemexHtml\Tokenizer;
  * An Attributes implementation which is a simple array proxy.
  */
 class PlainAttributes implements Attributes {
+	/** @var array */
 	protected $data;
+	/** @var array<string,Attribute> */
 	protected $attrObjects;
 
 	public function __construct( $data = [] ) {

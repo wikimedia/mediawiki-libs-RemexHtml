@@ -98,7 +98,9 @@ class HtmlFormatter implements Formatter, DOMFormatter {
 		HTMLData::NS_SVG => true,
 	];
 
+	/** @var bool */
 	protected $useSourceDoctype;
+	/** @var bool */
 	protected $reverseCoercion;
 
 	/**

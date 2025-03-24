@@ -35,9 +35,13 @@ class TreeBuilder {
 	public const ROOT = 2;
 
 	// Configuration
+	/** @var bool */
 	public $isIframeSrcdoc;
+	/** @var bool */
 	public $scriptingFlag;
+	/** @var bool */
 	public $ignoreErrors;
+	/** @var bool */
 	public $ignoreNulls;
 
 	// Objects
@@ -53,15 +57,21 @@ class TreeBuilder {
 	public $tokenizer;
 
 	// State
+	/** @var bool */
 	public $isFragment = false;
+	/** @var Element|null */
 	public $fragmentContext;
 	/** @var Element|null */
 	public $headElement;
 	/** @var Element|null */
 	public $formElement;
+	/** @var bool */
 	public $framesetOK = true;
+	/** @var int */
 	public $quirks = self::NO_QUIRKS;
+	/** @var bool */
 	public $fosterParenting = false;
+	/** @var array[] */
 	public $pendingTableCharacters = [];
 
 	private const FOSTER_TRIGGERS = [
