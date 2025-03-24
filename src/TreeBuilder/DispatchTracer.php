@@ -14,7 +14,7 @@ use Wikimedia\RemexHtml\Tokenizer\Tokenizer;
  */
 class DispatchTracer implements TokenHandler {
 	private $input;
-	private $dispatcher;
+	private Dispatcher $dispatcher;
 	private $callback;
 
 	public function __construct( $input, Dispatcher $dispatcher, callable $callback ) {

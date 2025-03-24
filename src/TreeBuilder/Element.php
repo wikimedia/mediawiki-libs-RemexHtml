@@ -41,10 +41,7 @@ class Element implements FormattingElement {
 	 */
 	public $htmlName;
 
-	/**
-	 * @var Attributes
-	 */
-	public $attrs;
+	public Attributes $attrs;
 
 	/**
 	 * This is true if the element was created by the TreeBuilder either as a

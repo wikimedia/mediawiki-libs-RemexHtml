@@ -8,11 +8,8 @@ use Wikimedia\RemexHtml\Tokenizer\Attributes;
 abstract class InsertionMode {
 	use PropGuard;
 
-	/** @var TreeBuilder */
-	protected $builder;
-
-	/** @var Dispatcher */
-	protected $dispatcher;
+	protected TreeBuilder $builder;
+	protected Dispatcher $dispatcher;
 
 	public function __construct( TreeBuilder $builder, Dispatcher $dispatcher ) {
 		$this->builder = $builder;

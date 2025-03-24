@@ -7,7 +7,7 @@ use Wikimedia\RemexHtml\Tokenizer;
 use Wikimedia\RemexHtml\TreeBuilder;
 
 class SerializerDestructAttacher implements TreeBuilder\TreeHandler {
-	private $serializer;
+	private Serializer\Serializer $serializer;
 	private $count;
 
 	public function __construct( Serializer\Serializer $serializer, &$count ) {

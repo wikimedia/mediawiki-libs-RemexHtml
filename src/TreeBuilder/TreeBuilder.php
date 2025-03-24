@@ -42,14 +42,12 @@ class TreeBuilder {
 
 	// Objects
 
-	/** @var TreeHandler */
-	public $handler;
+	public TreeHandler $handler;
 
 	/** @var SimpleStack */
 	public $stack;
 
-	/** @var ActiveFormattingElements */
-	public $afe;
+	public ActiveFormattingElements $afe;
 
 	/** @var Tokenizer */
 	public $tokenizer;
