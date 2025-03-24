@@ -336,13 +336,15 @@ class Serializer implements AbstractSerializer {
 
 	public function reparentChildren( Element $element, Element $newParent, $sourceStart ) {
 		$self = $element->userData;
+		'@phan-var SerializerNode $self';
 		$children = $self->children;
 		$self->children = [];
 		$this->insertElement( TreeBuilder::UNDER, $element, $newParent, false, $sourceStart, 0 );
 		$newParentNode = $newParent->userData;
+		'@phan-var SerializerNode $newParentNode';
 		$newParentId = $newParentNode->id;
 		foreach ( $children as $child ) {
-			if ( is_object( $child ) ) {
+			if ( $child instanceof SerializerNode ) {
 				$child->parentId = $newParentId;
 			}
 		}
