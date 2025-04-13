@@ -136,6 +136,11 @@ class Serializer implements AbstractSerializer {
 		$this->nodes = [];
 	}
 
+	/**
+	 * @param int $preposition
+	 * @param Element $refElement
+	 * @return array
+	 */
 	protected function interpretPlacement( $preposition, $refElement ) {
 		if ( $preposition === TreeBuilder::ROOT ) {
 			return [ $this->root, null ];

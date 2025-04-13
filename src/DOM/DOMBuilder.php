@@ -173,6 +173,11 @@ class DOMBuilder implements TreeHandler {
 	public function endDocument( $pos ) {
 	}
 
+	/**
+	 * @param int $preposition
+	 * @param Element $refElement
+	 * @param \DOMNode $node
+	 */
 	protected function insertNode( $preposition, $refElement, $node ) {
 		if ( $preposition === TreeBuilder::ROOT ) {
 			$parent = $this->doc;
@@ -201,6 +206,9 @@ class DOMBuilder implements TreeHandler {
 		return $coercedName;
 	}
 
+	/**
+	 * @return \DOMNode
+	 */
 	protected function createNode( Element $element ) {
 		$noNS = $this->suppressHtmlNamespace && $element->namespace === HTMLData::NS_HTML;
 		try {

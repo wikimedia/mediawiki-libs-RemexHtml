@@ -182,7 +182,6 @@ class InForeignContent extends InsertionMode {
 			$attrs = new ForeignAttributes( $attrs, 'math' );
 		} elseif ( $acnNs === HTMLData::NS_SVG ) {
 			$attrs = new ForeignAttributes( $attrs, 'svg' );
-			// @phan-suppress-next-line PhanCoalescingAlwaysNull
 			$name = self::SVG_ELEMENT_CASE[$name] ?? $name;
 		} else {
 			$attrs = new ForeignAttributes( $attrs, 'other' );

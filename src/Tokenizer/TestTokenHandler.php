@@ -10,6 +10,7 @@ class TestTokenHandler implements TokenHandler {
 	/** @var array<string|array> */
 	private $tokens = [];
 
+	/** @return array<string|array> */
 	public function getTokens() {
 		return $this->tokens;
 	}

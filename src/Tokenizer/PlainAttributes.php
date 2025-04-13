@@ -11,6 +11,9 @@ class PlainAttributes implements Attributes {
 	/** @var array<string,Attribute> */
 	protected $attrObjects;
 
+	/**
+	 * @param array $data
+	 */
 	public function __construct( $data = [] ) {
 		$this->data = $data;
 	}

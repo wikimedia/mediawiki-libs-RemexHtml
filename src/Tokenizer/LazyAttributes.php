@@ -21,6 +21,10 @@ class LazyAttributes implements Attributes {
 	/** @var Attribute[] */
 	private $attrObjects;
 
+	/**
+	 * @param mixed $data
+	 * @param callable $interpreter
+	 */
 	public function __construct( $data, callable $interpreter ) {
 		$this->interpreter = $interpreter;
 		$this->data = $data;
