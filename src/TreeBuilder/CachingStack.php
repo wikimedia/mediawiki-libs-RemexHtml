@@ -422,7 +422,7 @@ class CachingStack extends Stack {
 			$this->scopeDump( self::SCOPE_SELECT, 'In select scope' ) . "\n";
 	}
 
-	private function scopeDump( $type, $scopeName ) {
+	private function scopeDump( int $type, string $scopeName ): string {
 		if ( count( $this->scopes[$type] ) ) {
 			return "$scopeName: " . implode( ', ', array_keys( $this->scopes[$type] ) ) . "\n";
 		} else {

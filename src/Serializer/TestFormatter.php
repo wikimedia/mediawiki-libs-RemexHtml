@@ -36,7 +36,7 @@ class TestFormatter implements Formatter, DOMFormatter {
 		return $this->formatCharacters( substr( $text, $start, $length ) );
 	}
 
-	private function formatCharacters( $text ) {
+	private function formatCharacters( string $text ): string {
 		return '"' .
 			str_replace( "\n", "<EOL>", $text ) .
 			"\"\n";
@@ -47,7 +47,7 @@ class TestFormatter implements Formatter, DOMFormatter {
 			$node->attrs->getObjects(), $contents );
 	}
 
-	private function formatElement( $namespace, $name, $attrs, $contents ) {
+	private function formatElement( ?string $namespace, string $name, array $attrs, ?string $contents ): string {
 		$name = DOMUtils::uncoerceName( $name );
 		if ( $namespace === HTMLData::NS_HTML ) {
 			$tagName = $name;
@@ -64,7 +64,6 @@ class TestFormatter implements Formatter, DOMFormatter {
 		foreach ( $sortedAttrs as $attrName => $attr ) {
 			$localName = DOMUtils::uncoerceName( $attr->localName );
 			if ( $attr->namespaceURI === null
-				// @phan-suppress-next-line PhanUndeclaredProperty
 				|| isset( $attr->reallyNoNamespace )
 			) {
 				$prefix = '';
@@ -95,7 +94,7 @@ class TestFormatter implements Formatter, DOMFormatter {
 		return $this->formatComment( $text );
 	}
 
-	private function formatComment( $text ) {
+	private function formatComment( string $text ): string {
 		return "<!-- $text -->\n";
 	}
 

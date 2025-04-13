@@ -20,7 +20,7 @@ class SerializerWithTracer extends Serializer {
 		parent::__construct( $formatter, $errorCallback );
 	}
 
-	private function handle( $funcName, $args ) {
+	private function handle( string $funcName, array $args ) {
 		$this->trace( TraceFormatter::$funcName( ...$args ) );
 		parent::$funcName( ...$args );
 		if ( $this->verbosity > 0 && $funcName !== 'endDocument' ) {
@@ -28,7 +28,7 @@ class SerializerWithTracer extends Serializer {
 		}
 	}
 
-	private function trace( $msg ) {
+	private function trace( string $msg ) {
 		( $this->traceCallback )( "[Serializer] $msg" );
 	}
 

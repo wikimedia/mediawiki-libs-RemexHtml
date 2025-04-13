@@ -51,14 +51,14 @@ class TreeMutationTracer implements TreeHandler {
 		$this->trace( TraceFormatter::$funcName( ...$args ) );
 	}
 
-	private function handleMutation( $funcName, $args ) {
+	private function handleMutation( string $funcName, array $args ) {
 		$this->traceEvent( $funcName, $args );
 		$this->before();
 		$this->handler->$funcName( ...$args );
 		$this->after();
 	}
 
-	private function handleSimple( $funcName, $args ) {
+	private function handleSimple( string $funcName, array $args ) {
 		$this->traceEvent( $funcName, $args );
 		$this->handler->$funcName( ...$args );
 	}

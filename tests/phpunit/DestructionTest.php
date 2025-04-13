@@ -10,7 +10,7 @@ class DestructTokenizer extends Tokenizer\Tokenizer {
 	/** @var bool */
 	private $flag;
 
-	public function __construct( Tokenizer\TokenHandler $listener, $text, $options, &$flag ) {
+	public function __construct( Tokenizer\TokenHandler $listener, string $text, array $options, bool &$flag ) {
 		parent::__construct( $listener, $text, $options );
 		$this->flag =& $flag;
 	}
@@ -24,7 +24,7 @@ class DestructDispatcher extends TreeBuilder\Dispatcher {
 	/** @var bool */
 	private $flag;
 
-	public function __construct( TreeBuilder\TreeBuilder $builder, &$flag ) {
+	public function __construct( TreeBuilder\TreeBuilder $builder, bool &$flag ) {
 		parent::__construct( $builder );
 		$this->flag =& $flag;
 	}
@@ -38,7 +38,7 @@ class DestructTreeBuilder extends TreeBuilder\TreeBuilder {
 	/** @var bool */
 	private $flag;
 
-	public function __construct( TreeBuilder\TreeHandler $handler, $options, &$flag ) {
+	public function __construct( TreeBuilder\TreeHandler $handler, array $options, bool &$flag ) {
 		parent::__construct( $handler, $options );
 		$this->flag =& $flag;
 	}
@@ -53,7 +53,7 @@ class DestructTreeBuilder extends TreeBuilder\TreeBuilder {
  */
 class DestructionTest extends \PHPUnit\Framework\TestCase {
 
-	public function provider() {
+	public function provider(): array {
 		return [
 			[ 'hello' ],
 			[ '<a>' ],

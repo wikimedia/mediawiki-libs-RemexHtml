@@ -195,7 +195,7 @@ EOT;
 		return $regex;
 	}
 
-	private function getCharRanges( $input, $nonterminals = [] ) {
+	private function getCharRanges( string $input, array $nonterminals = [] ): array {
 		$ranges = [];
 
 		foreach ( preg_split( '/\s*\|\s*/', $input ) as $case ) {
@@ -224,7 +224,7 @@ EOT;
 		return $ranges;
 	}
 
-	private function makeConvTable( $input, $nonterminals = [] ) {
+	private function makeConvTable( string $input, array $nonterminals = [] ): array {
 		$ranges = $this->getCharRanges( $input, $nonterminals );
 
 		// Invert the ranges, produce a set complement
@@ -260,7 +260,7 @@ EOT;
 		return $table;
 	}
 
-	private function encodeConvTable( $table ) {
+	private function encodeConvTable( array $table ): string {
 		return "[\n\t\t" . implode( ",\n\t\t", array_map(
 			static function ( $a ) {
 				return implode( ', ', $a );

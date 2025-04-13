@@ -28,13 +28,13 @@ class CharacterSalad {
 		'c',
 	];
 
-	public function __construct( $minLength, $maxLength ) {
+	public function __construct( int $minLength, int $maxLength ) {
 		$this->minLength = $minLength;
 		$this->maxLength = $maxLength;
 		$this->bigDictionary = Utils::getBigDictionary();
 	}
 
-	public function next() {
+	public function next(): string {
 		$length = mt_rand( $this->minLength, $this->maxLength );
 		$s = '';
 		for ( $i = 0; $i < $length; $i++ ) {

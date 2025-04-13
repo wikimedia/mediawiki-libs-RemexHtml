@@ -12,7 +12,7 @@ class Html5Depurate {
 	/** @var CurlHandle|false */
 	private $curl;
 
-	public function __construct( $url ) {
+	public function __construct( ?string $url ) {
 		$this->curl = curl_init( $url );
 		curl_setopt_array( $this->curl, [
 			CURLOPT_FAILONERROR => true,
@@ -21,7 +21,7 @@ class Html5Depurate {
 		] );
 	}
 
-	public function tidy( $text ) {
+	public function tidy( string $text ): string {
 		if ( isset( $text[0] ) && $text[0] === '@' ) {
 			$text = ' ' . $text;
 		}

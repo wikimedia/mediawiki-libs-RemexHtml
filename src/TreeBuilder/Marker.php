@@ -19,7 +19,7 @@ class Marker implements FormattingElement {
 	/** @var string */
 	public $type;
 
-	public function __construct( $type ) {
+	public function __construct( string $type ) {
 		$this->type = $type;
 	}
 }

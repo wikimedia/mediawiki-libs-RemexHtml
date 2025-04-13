@@ -19,24 +19,24 @@ class DispatchTracer implements TokenHandler {
 	/** @var callable */
 	private $callback;
 
-	public function __construct( $input, Dispatcher $dispatcher, callable $callback ) {
+	public function __construct( string $input, Dispatcher $dispatcher, callable $callback ) {
 		$this->input = $input;
 		$this->dispatcher = $dispatcher;
 		$this->callback = $callback;
 	}
 
-	private function trace( $msg ) {
+	private function trace( string $msg ) {
 		( $this->callback )( "[Dispatch] $msg" );
 	}
 
-	private function excerpt( $text ) {
+	private function excerpt( string $text ): string {
 		if ( strlen( $text ) > 20 ) {
 			$text = substr( $text, 0, 20 ) . '...';
 		}
 		return str_replace( "\n", "\\n", $text );
 	}
 
-	private function wrap( $funcName, $sourceStart, $sourceLength, $args ) {
+	private function wrap( string $funcName, int $sourceStart, int $sourceLength, array $args ) {
 		$prevHandler = $this->getHandlerName();
 		$excerpt = $this->excerpt( substr( $this->input, $sourceStart, $sourceLength ) );
 		$msg = "$funcName $prevHandler \"$excerpt\"";
@@ -48,7 +48,7 @@ class DispatchTracer implements TokenHandler {
 		}
 	}
 
-	private function getHandlerName() {
+	private function getHandlerName(): string {
 		$handler = $this->dispatcher->getHandler();
 		$name = $handler ? get_class( $handler ) : 'NULL';
 		$slashPos = strrpos( $name, '\\' );

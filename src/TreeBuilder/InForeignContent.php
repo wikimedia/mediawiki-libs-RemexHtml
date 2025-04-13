@@ -145,7 +145,7 @@ class InForeignContent extends InsertionMode {
 		}
 	}
 
-	private function isIntegrationPoint( Element $element ) {
+	private function isIntegrationPoint( Element $element ): bool {
 		return $element->namespace === HTMLData::NS_HTML
 			|| $element->isMathmlTextIntegration()
 			|| $element->isHtmlIntegration();

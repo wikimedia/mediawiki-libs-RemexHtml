@@ -29,7 +29,7 @@ class TokenSalad {
 
 	private const ELEMENT_NAME_BLACKLIST = '/^(menu|isindex)/i';
 
-	public function __construct( $maxLength ) {
+	public function __construct( int $maxLength ) {
 		$this->maxLength = $maxLength;
 		$this->bigDictionary = Utils::getBigDictionary();
 		$this->specialTags = array_keys(
@@ -40,7 +40,7 @@ class TokenSalad {
 		$this->characterSalad = new CharacterSalad( 0, 4 );
 	}
 
-	public function next() {
+	public function next(): string {
 		$length = mt_rand( 0, $this->maxLength );
 		$s = '';
 
@@ -113,7 +113,7 @@ class TokenSalad {
 		return $s;
 	}
 
-	private function getElementName() {
+	private function getElementName(): string {
 		do {
 			if ( Utils::coinToss( 0.5 ) ) {
 				if ( Utils::coinToss( 0.5 ) ) {
@@ -128,7 +128,7 @@ class TokenSalad {
 		return $name;
 	}
 
-	private function getAttributeName() {
+	private function getAttributeName(): string {
 		if ( Utils::coinToss( 0.5 ) ) {
 			return Utils::pickRandom( FuzzData::ATTRIBUTE_NAMES );
 		} else {
@@ -136,7 +136,7 @@ class TokenSalad {
 		}
 	}
 
-	private function getAttributeValue() {
+	private function getAttributeValue(): string {
 		if ( Utils::coinToss( 0.5 ) ) {
 			return Utils::pickRandom( FuzzData::ATTRIBUTE_VALUES );
 		} else {
@@ -144,7 +144,7 @@ class TokenSalad {
 		}
 	}
 
-	private function getQuote() {
+	private function getQuote(): string {
 		switch ( mt_rand( 0, 2 ) ) {
 			case 0:
 				return '';
@@ -155,7 +155,7 @@ class TokenSalad {
 		}
 	}
 
-	private function getDoctype() {
+	private function getDoctype(): array {
 		if ( Utils::coinToss( 0.5 ) ) {
 			$name = 'html';
 		} else {

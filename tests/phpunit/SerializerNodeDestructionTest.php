@@ -11,12 +11,12 @@ class SerializerDestructAttacher implements TreeBuilder\TreeHandler {
 	/** @var int */
 	private $count;
 
-	public function __construct( Serializer\Serializer $serializer, &$count ) {
+	public function __construct( Serializer\Serializer $serializer, int &$count ) {
 		$this->serializer = $serializer;
 		$this->count =& $count;
 	}
 
-	private function wrap( $name, $args ) {
+	private function wrap( string $name, array $args ) {
 		$this->serializer->$name( ...$args );
 	}
 
@@ -83,7 +83,7 @@ class DestructNode {
 	/** @var int */
 	private $count;
 
-	public function __construct( &$count ) {
+	public function __construct( int &$count ) {
 		$this->count =& $count;
 	}
 

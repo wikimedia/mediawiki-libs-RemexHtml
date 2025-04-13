@@ -95,7 +95,7 @@ class InCell extends InsertionMode {
 		$this->dispatcher->inBody->endDocument( $pos );
 	}
 
-	private function closeTheCell( $sourceStart ) {
+	private function closeTheCell( int $sourceStart ): InsertionMode {
 		$tdth = [ 'td' => true, 'th' => true ];
 		$builder = $this->builder;
 		$stack = $builder->stack;

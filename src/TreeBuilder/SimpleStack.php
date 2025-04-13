@@ -170,7 +170,7 @@ class SimpleStack extends Stack {
 		return false;
 	}
 
-	private function isInSpecificScope( $name, $set ) {
+	private function isInSpecificScope( string $name, array $set ): bool {
 		for ( $i = count( $this->elements ) - 1; $i >= 0; $i-- ) {
 			$node = $this->elements[$i];
 			if ( $node->namespace === HTMLData::NS_HTML && $node->name === $name ) {
