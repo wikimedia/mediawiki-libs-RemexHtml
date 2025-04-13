@@ -39,6 +39,7 @@ class LazyAttributes implements Attributes {
 		}
 	}
 
+	/** @inheritDoc */
 	public function offsetExists( $offset ): bool {
 		if ( $this->attributes === null ) {
 			$this->init();
@@ -46,6 +47,7 @@ class LazyAttributes implements Attributes {
 		return isset( $this->attributes[$offset] );
 	}
 
+	/** @inheritDoc */
 	public function &offsetGet( $offset ): string {
 		if ( $this->attributes === null ) {
 			$this->init();
@@ -53,6 +55,7 @@ class LazyAttributes implements Attributes {
 		return $this->attributes[$offset];
 	}
 
+	/** @inheritDoc */
 	public function offsetSet( $offset, $value ): void {
 		if ( $this->attributes === null ) {
 			$this->init();
@@ -63,6 +66,7 @@ class LazyAttributes implements Attributes {
 		}
 	}
 
+	/** @inheritDoc */
 	public function offsetUnset( $offset ): void {
 		if ( $this->attributes === null ) {
 			$this->init();
@@ -71,6 +75,7 @@ class LazyAttributes implements Attributes {
 		unset( $this->attrObjects[$offset] );
 	}
 
+	/** @inheritDoc */
 	public function getValues() {
 		if ( $this->attributes === null ) {
 			$this->init();
@@ -78,6 +83,7 @@ class LazyAttributes implements Attributes {
 		return $this->attributes;
 	}
 
+	/** @inheritDoc */
 	public function getObjects() {
 		if ( $this->attrObjects === null ) {
 			if ( $this->attributes === null ) {
@@ -92,6 +98,7 @@ class LazyAttributes implements Attributes {
 		return $this->attrObjects;
 	}
 
+	/** @inheritDoc */
 	public function count(): int {
 		if ( $this->attributes === null ) {
 			return count( $this->data );
@@ -106,6 +113,7 @@ class LazyAttributes implements Attributes {
 		return new \ArrayIterator( $this->attributes );
 	}
 
+	/** @inheritDoc */
 	public function merge( Attributes $other ) {
 		if ( $this->attributes === null ) {
 			$this->init();
@@ -117,6 +125,7 @@ class LazyAttributes implements Attributes {
 		}
 	}
 
+	/** @inheritDoc */
 	public function clone() {
 		return $this;
 	}

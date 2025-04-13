@@ -24,6 +24,7 @@ class Initial extends InsertionMode {
 		[ 'html', '-//W3C//DTD XHTML 1.1//EN', 'http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd' ]
 	];
 
+	/** @inheritDoc */
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		// Ignore whitespace
 		[ $part1, $part2 ] = $this->splitInitialMatch(
@@ -40,6 +41,7 @@ class Initial extends InsertionMode {
 			->characters( $text, $start, $length, $sourceStart, $sourceLength );
 	}
 
+	/** @inheritDoc */
 	public function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
 		if ( !$this->builder->isIframeSrcdoc ) {
 			$this->error( 'missing doctype', $sourceStart );
@@ -49,6 +51,7 @@ class Initial extends InsertionMode {
 			->startTag( $name, $attrs, $selfClose, $sourceStart, $sourceLength );
 	}
 
+	/** @inheritDoc */
 	public function endTag( $name, $sourceStart, $sourceLength ) {
 		if ( !$this->builder->isIframeSrcdoc ) {
 			$this->error( 'missing doctype', $sourceStart );
@@ -58,6 +61,7 @@ class Initial extends InsertionMode {
 			->endTag( $name, $sourceStart, $sourceLength );
 	}
 
+	/** @inheritDoc */
 	public function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
 		if ( ( $name !== 'html' || $public !== null
 				|| ( $system !== null && $system !== 'about:legacy-compat' )
@@ -101,6 +105,7 @@ class Initial extends InsertionMode {
 		$this->dispatcher->switchMode( Dispatcher::BEFORE_HTML );
 	}
 
+	/** @inheritDoc */
 	public function endDocument( $pos ) {
 		if ( !$this->builder->isIframeSrcdoc ) {
 			$this->error( 'missing doctype', $pos );

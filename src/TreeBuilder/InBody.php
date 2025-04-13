@@ -48,6 +48,7 @@ class InBody extends InsertionMode {
 		'html' => true,
 	];
 
+	/** @inheritDoc */
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		$handleNonNull = function ( $text, $start, $length, $sourceStart, $sourceLength ) {
 			if ( strspn( $text, "\t\n\f\r ", $start, $length ) !== $length ) {
@@ -63,6 +64,7 @@ class InBody extends InsertionMode {
 		}
 	}
 
+	/** @inheritDoc */
 	public function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
 		$mode = null;
 		$textMode = null;
@@ -466,6 +468,7 @@ class InBody extends InsertionMode {
 		}
 	}
 
+	/** @inheritDoc */
 	public function endTag( $name, $sourceStart, $sourceLength ) {
 		$builder = $this->builder;
 		$stack = $builder->stack;
@@ -656,6 +659,7 @@ class InBody extends InsertionMode {
 		}
 	}
 
+	/** @inheritDoc */
 	public function endDocument( $pos ) {
 		$allowed = [
 			'dd' => true,

@@ -14,11 +14,13 @@ class InRow extends InsertionMode {
 		'html' => true,
 	];
 
+	/** @inheritDoc */
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		$this->dispatcher->inTable->characters( $text, $start, $length,
 			$sourceStart, $sourceLength );
 	}
 
+	/** @inheritDoc */
 	public function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
 		$builder = $this->builder;
 		$stack = $builder->stack;
@@ -58,6 +60,7 @@ class InRow extends InsertionMode {
 		}
 	}
 
+	/** @inheritDoc */
 	public function endTag( $name, $sourceStart, $sourceLength ) {
 		$builder = $this->builder;
 		$stack = $builder->stack;
@@ -120,6 +123,7 @@ class InRow extends InsertionMode {
 		}
 	}
 
+	/** @inheritDoc */
 	public function endDocument( $pos ) {
 		$this->dispatcher->inTable->endDocument( $pos );
 	}

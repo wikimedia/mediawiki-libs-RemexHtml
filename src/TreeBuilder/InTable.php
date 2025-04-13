@@ -18,6 +18,7 @@ class InTable extends InsertionMode {
 		'html' => true
 	];
 
+	/** @inheritDoc */
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		$allowed = [
 			'table' => true,
@@ -39,6 +40,7 @@ class InTable extends InsertionMode {
 		}
 	}
 
+	/** @inheritDoc */
 	public function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
 		$builder = $this->builder;
 		$dispatcher = $this->dispatcher;
@@ -135,6 +137,7 @@ class InTable extends InsertionMode {
 		}
 	}
 
+	/** @inheritDoc */
 	public function endTag( $name, $sourceStart, $sourceLength ) {
 		$builder = $this->builder;
 		$stack = $builder->stack;
@@ -177,6 +180,7 @@ class InTable extends InsertionMode {
 		}
 	}
 
+	/** @inheritDoc */
 	public function endDocument( $pos ) {
 		$this->dispatcher->inBody->endDocument( $pos );
 	}

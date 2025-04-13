@@ -225,6 +225,7 @@ class CachingStack extends Stack {
 		}
 	}
 
+	/** @inheritDoc */
 	public function push( Element $elt ) {
 		// Update the stack store
 		$n = count( $this->elements );
@@ -252,6 +253,7 @@ class CachingStack extends Stack {
 		}
 	}
 
+	/** @inheritDoc */
 	public function pop() {
 		$n = count( $this->elements );
 		if ( !$n ) {
@@ -280,6 +282,7 @@ class CachingStack extends Stack {
 		return $elt;
 	}
 
+	/** @inheritDoc */
 	public function replace( Element $oldElt, Element $elt ) {
 		$idx = $oldElt->stackIndex;
 		// AAA calls this function only for elements with the same name, which
@@ -324,6 +327,7 @@ class CachingStack extends Stack {
 		$elt->stackIndex = $idx;
 	}
 
+	/** @inheritDoc */
 	public function remove( Element $elt ) {
 		$tempStack = [];
 		$eltIndex = $elt->stackIndex;
@@ -340,6 +344,7 @@ class CachingStack extends Stack {
 		}
 	}
 
+	/** @inheritDoc */
 	public function isInScope( $name ) {
 		if ( self::PREDICATE_MAP[$name] !== self::SCOPE_DEFAULT ) {
 			throw new TreeBuilderError( "Unexpected predicate: \"$name is in scope\"" );
@@ -347,6 +352,7 @@ class CachingStack extends Stack {
 		return !empty( $this->scopes[self::SCOPE_DEFAULT][$name] );
 	}
 
+	/** @inheritDoc */
 	public function isElementInScope( Element $elt ) {
 		$name = $elt->name;
 		if ( self::PREDICATE_MAP[$name] !== self::SCOPE_DEFAULT ) {
@@ -364,6 +370,7 @@ class CachingStack extends Stack {
 		return false;
 	}
 
+	/** @inheritDoc */
 	public function isOneOfSetInScope( $names ) {
 		foreach ( $names as $name => $unused ) {
 			if ( $this->isInScope( $name ) ) {
@@ -373,6 +380,7 @@ class CachingStack extends Stack {
 		return false;
 	}
 
+	/** @inheritDoc */
 	public function isInListScope( $name ) {
 		if ( self::PREDICATE_MAP[$name] !== self::SCOPE_LIST ) {
 			throw new TreeBuilderError( "Unexpected predicate: \"$name is in list scope\"" );
@@ -380,6 +388,7 @@ class CachingStack extends Stack {
 		return !empty( $this->scopes[self::SCOPE_LIST][$name] );
 	}
 
+	/** @inheritDoc */
 	public function isInButtonScope( $name ) {
 		if ( self::PREDICATE_MAP[$name] !== self::SCOPE_BUTTON ) {
 			throw new TreeBuilderError( "Unexpected predicate: \"$name is in button scope\"" );
@@ -387,6 +396,7 @@ class CachingStack extends Stack {
 		return !empty( $this->scopes[self::SCOPE_BUTTON][$name] );
 	}
 
+	/** @inheritDoc */
 	public function isInTableScope( $name ) {
 		if ( self::PREDICATE_MAP[$name] !== self::SCOPE_TABLE ) {
 			throw new TreeBuilderError( "Unexpected predicate: \"$name is in table scope\"" );
@@ -394,6 +404,7 @@ class CachingStack extends Stack {
 		return !empty( $this->scopes[self::SCOPE_TABLE][$name] );
 	}
 
+	/** @inheritDoc */
 	public function isInSelectScope( $name ) {
 		if ( self::PREDICATE_MAP[$name] !== self::SCOPE_SELECT ) {
 			throw new TreeBuilderError( "Unexpected predicate: \"$name is in select scope\"" );
@@ -401,18 +412,22 @@ class CachingStack extends Stack {
 		return !empty( $this->scopes[self::SCOPE_SELECT][$name] );
 	}
 
+	/** @inheritDoc */
 	public function item( $idx ) {
 		return $this->elements[$idx];
 	}
 
+	/** @inheritDoc */
 	public function length() {
 		return count( $this->elements );
 	}
 
+	/** @inheritDoc */
 	public function hasTemplate() {
 		return (bool)$this->templateCount;
 	}
 
+	/** @inheritDoc */
 	public function dump() {
 		return parent::dump() .
 			$this->scopeDump( self::SCOPE_DEFAULT, 'In scope' ) .

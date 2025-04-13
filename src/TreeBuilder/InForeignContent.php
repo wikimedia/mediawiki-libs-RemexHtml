@@ -107,6 +107,7 @@ class InForeignContent extends InsertionMode {
 		'textpath' => 'textPath',
 	];
 
+	/** @inheritDoc */
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		$builder = $this->builder;
 
@@ -151,6 +152,7 @@ class InForeignContent extends InsertionMode {
 			|| $element->isHtmlIntegration();
 	}
 
+	/** @inheritDoc */
 	public function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
 		$builder = $this->builder;
 		$stack = $builder->stack;
@@ -191,6 +193,7 @@ class InForeignContent extends InsertionMode {
 		$builder->insertForeign( $acnNs, $name, $attrs, $selfClose, $sourceStart, $sourceLength );
 	}
 
+	/** @inheritDoc */
 	public function endTag( $name, $sourceStart, $sourceLength ) {
 		$builder = $this->builder;
 		$stack = $builder->stack;
@@ -213,6 +216,7 @@ class InForeignContent extends InsertionMode {
 		}
 	}
 
+	/** @inheritDoc */
 	public function endDocument( $pos ) {
 		// @phan-suppress-previous-line PhanPluginNeverReturnMethod
 		throw new TreeBuilderError( "unspecified, presumed unreachable" );
