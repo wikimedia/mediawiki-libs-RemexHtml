@@ -1,6 +1,12 @@
 # Release History
 
 ## RemexHtml x.x.x (not yet released)
+* Turn off "lazy attribute" creation in Tokenizer by default in order
+  to eliminate a memory hotspot.  Add 'lazyAttributes' option to
+  Tokenizer which is false by default.  In use cases where most
+  attributes are not queried, performance can be improved at the cost
+  of additional memory usage by passing `"lazyAttributes"=>true` in
+  the options provided to the Tokenizer.
 * build: Update phpunit/phpunit to 9.6.21 (libraryupgrader)
 * build: Updating mediawiki/mediawiki-phan-config to 0.15.1 (libraryupgrader)
 * build: Updating mediawiki/mediawiki-codesniffer to 46.0.0 (libraryupgrader)

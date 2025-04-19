@@ -87,16 +87,12 @@ class Tokenizer {
 		'&nbsp;' => "\u{00A0}",
 	];
 
-	/** @var bool */
-	protected $ignoreErrors;
-	/** @var bool */
-	protected $ignoreCharRefs;
-	/** @var bool */
-	protected $ignoreNulls;
-	/** @var bool */
-	protected $skipPreprocess;
-	/** @var bool */
-	protected $scriptingFlag;
+	protected bool $ignoreErrors;
+	protected bool $ignoreCharRefs;
+	protected bool $ignoreNulls;
+	protected bool $skipPreprocess;
+	protected bool $lazyAttributes;
+	protected bool $scriptingFlag;
 	/** @var string|null */
 	protected $appropriateEndTag;
 	protected TokenHandler $listener;
@@ -137,6 +133,9 @@ class Tokenizer {
 	 *     stage, which normalizes line endings and raises errors on certain
 	 *     control characters. Advisable if the input stream is already
 	 *     appropriately normalized.
+	 *   - lazyAttributes: True to construct attributes lazily, saving
+	 *     processing time (at the expense of memory usage) if most attributes
+	 *     are not going to be accessed. Default false.
 	 *   - scriptingFlag: True if the scripting flag is enabled. Default true.
 	 *     Setting this to false cause the contents of <noscript> elements to be
 	 *     processed as normal content. The scriptingFlag option in the
@@ -152,6 +151,7 @@ class Tokenizer {
 		$this->ignoreCharRefs = !empty( $options['ignoreCharRefs'] );
 		$this->ignoreNulls = !empty( $options['ignoreNulls'] );
 		$this->skipPreprocess = !empty( $options['skipPreprocess'] );
+		$this->lazyAttributes = $options['lazyAttributes'] ?? false;
 		$this->scriptingFlag = $options['scriptingFlag'] ?? true;
 	}
 
@@ -1318,9 +1318,11 @@ class Tokenizer {
 			$attribs = new PlainAttributes();
 		} elseif ( $count ) {
 			$this->pos = $m[$count - 1][0][1] + strlen( $m[$count - 1][0][0] );
-			$attribs = new LazyAttributes( $m, function ( $m ) {
-				return $this->interpretAttribMatches( $m );
-			} );
+			$attribs = $this->lazyAttributes
+				? new LazyAttributes( $m, function ( $m ) {
+					return $this->interpretAttribMatches( $m );
+				} )
+				: new PlainAttributes( $this->interpretAttribMatches( $m ) );
 		} else {
 			$attribs = new PlainAttributes();
 		}
