@@ -1,10 +1,16 @@
 # Release History
 
 ## RemexHtml x.x.x (not yet released)
+* build: Update phpunit/phpunit to 9.6.21 (libraryupgrader)
+* build: Updating mediawiki/mediawiki-phan-config to 0.15.1 (libraryupgrader)
+* build: Updating mediawiki/mediawiki-codesniffer to 46.0.0 (libraryupgrader)
+* Misc code style improvements (replace call_user_func, add missing
+  @covers annotations, use const, use instanceof, add type
+  declarations for class properties and some functions, add missing
+  documentation)
 
 ## RemexHtml 4.1.1 (2024-11-05)
 * build: Updating composer dependencies (libraryupgrader)
-* build: Updating mediawiki/mediawiki-codesniffer to 44.0.0 (libraryupgrader)
 * build: Updating mediawiki/mediawiki-codesniffer to 45.0.0 (libraryupgrader)
 * build: Updating mediawiki/mediawiki-phan-config to 0.14.0 (libraryupgrader)
 * Bump version after release (C. Scott Ananian)
@@ -24,7 +30,6 @@
 * build: Switch phan to special library mode (James D. Forrester)
 * build: Cleanup of PHPUnit 8.x compatibility (Umherirrender)
 * build: Updating mediawiki/mediawiki-codesniffer to 41.0.0 (libraryupgrader)
-* Bump version after release (C. Scott Ananian)
 
 ## RemexHtml 4.0.0 (2023-02-24)
 * Drop PHP 7.2 and PHP 7.3 support.
