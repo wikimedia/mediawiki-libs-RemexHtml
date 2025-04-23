@@ -66,7 +66,6 @@ class Initial extends InsertionMode {
 		if ( ( $name !== 'html' || $public !== null
 				|| ( $system !== null && $system !== 'about:legacy-compat' )
 			)
-			// @phan-suppress-next-line PhanImpossibleTypeComparison False positive
 			&& !in_array( [ $name, $public, $system ], self::ALLOWED_DOCTYPES, true )
 		) {
 			$this->error( 'invalid doctype', $sourceStart );

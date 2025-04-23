@@ -12,6 +12,12 @@ class SerializerWithTracer extends Serializer {
 	/** @var int */
 	private $verbosity;
 
+	/**
+	 * @param Formatter $formatter
+	 * @param callable|null $errorCallback
+	 * @param callable|null $traceCallback
+	 * @param int $verbosity
+	 */
 	public function __construct( Formatter $formatter, $errorCallback = null, $traceCallback = null,
 		$verbosity = 0
 	) {

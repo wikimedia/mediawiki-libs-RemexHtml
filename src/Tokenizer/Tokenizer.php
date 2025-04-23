@@ -155,6 +155,9 @@ class Tokenizer {
 		$this->scriptingFlag = $options['scriptingFlag'] ?? true;
 	}
 
+	/**
+	 * @param callable|null $cb
+	 */
 	public function setEnableCdataCallback( $cb ) {
 		$this->enableCdataCallback = $cb;
 	}

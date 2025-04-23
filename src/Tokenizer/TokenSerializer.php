@@ -16,10 +16,16 @@ class TokenSerializer implements TokenHandler {
 	/** @var array[] */
 	private $errors = [];
 
+	/**
+	 * @return string
+	 */
 	public function getOutput() {
 		return $this->output;
 	}
 
+	/**
+	 * @return array[]
+	 */
 	public function getErrors() {
 		return $this->errors;
 	}

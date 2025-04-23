@@ -21,6 +21,13 @@ class Attribute {
 	/** @var mixed */
 	public $value;
 
+	/**
+	 * @param string $qualifiedName
+	 * @param string|null $namespaceURI
+	 * @param string|null $prefix
+	 * @param string $localName
+	 * @param mixed $value
+	 */
 	public function __construct( $qualifiedName, $namespaceURI, $prefix, $localName, $value ) {
 		$this->qualifiedName = $qualifiedName;
 		$this->namespaceURI = $namespaceURI;

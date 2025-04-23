@@ -12,6 +12,9 @@ class DestructTracer implements TreeHandler {
 	/** @var callable */
 	private $callback;
 
+	/**
+	 * @param callable $callback
+	 */
 	public function __construct( $callback ) {
 		$this->callback = $callback;
 	}
