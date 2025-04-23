@@ -1,5 +1,7 @@
 # Release History
 
+## RemexHtml x.x.x (not yet released)
+
 ## RemexHtml 4.1.2 (2025-04-23)
 * Turn off "lazy attribute" creation in Tokenizer by default in order
   to eliminate a memory hotspot.  Add 'lazyAttributes' option to
