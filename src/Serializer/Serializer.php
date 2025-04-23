@@ -111,6 +111,7 @@ class Serializer implements AbstractSerializer {
 		return $lastChild;
 	}
 
+	/** @inheritDoc */
 	public function startDocument( $fragmentNamespace, $fragmentName ) {
 		$this->root = new SerializerNode( 0, 0, '', '', new PlainAttributes, false );
 		$this->nodes = [ $this->root ];
@@ -118,6 +119,7 @@ class Serializer implements AbstractSerializer {
 		$this->result = $this->formatter->startDocument( $fragmentNamespace, $fragmentName );
 	}
 
+	/** @inheritDoc */
 	public function endDocument( $pos ) {
 		if ( $this->isFragment ) {
 			$root = $this->root->children[0];
@@ -154,6 +156,7 @@ class Serializer implements AbstractSerializer {
 		}
 	}
 
+	/** @inheritDoc */
 	public function characters( $preposition, $refElement, $text, $start, $length,
 		$sourceStart, $sourceLength
 	) {
@@ -236,6 +239,7 @@ class Serializer implements AbstractSerializer {
 		}
 	}
 
+	/** @inheritDoc */
 	public function endTag( Element $element, $sourceStart, $sourceLength ) {
 		if ( $element->htmlName === 'head' || $element->isVirtual ) {
 			// <head> elements are immortal
@@ -280,10 +284,12 @@ class Serializer implements AbstractSerializer {
 		return $this->formatter->element( $parent, $node, $contents );
 	}
 
+	/** @inheritDoc */
 	public function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
 		$this->result .= $this->formatter->doctype( $name, $public, $system );
 	}
 
+	/** @inheritDoc */
 	public function comment( $preposition, $refElement, $text, $sourceStart, $sourceLength ) {
 		[ $parent, $refNode ] = $this->interpretPlacement( $preposition, $refElement );
 		$encoded = $this->formatter->comment( $parent, $text );
@@ -308,12 +314,14 @@ class Serializer implements AbstractSerializer {
 		}
 	}
 
+	/** @inheritDoc */
 	public function error( $text, $pos ) {
 		if ( $this->errorCallback ) {
 			( $this->errorCallback )( $text, $pos );
 		}
 	}
 
+	/** @inheritDoc */
 	public function mergeAttributes( Element $element, Attributes $attrs, $sourceStart ) {
 		$element->attrs->merge( $attrs );
 		if ( $element->userData instanceof SerializerNode ) {
@@ -321,6 +329,7 @@ class Serializer implements AbstractSerializer {
 		}
 	}
 
+	/** @inheritDoc */
 	public function removeNode( Element $element, $sourceStart ) {
 		$self = $element->userData;
 		$parent = $this->nodes[$self->parentId];
@@ -334,6 +343,7 @@ class Serializer implements AbstractSerializer {
 		throw new SerializerError( "cannot find element to remove" );
 	}
 
+	/** @inheritDoc */
 	public function reparentChildren( Element $element, Element $newParent, $sourceStart ) {
 		$self = $element->userData;
 		'@phan-var SerializerNode $self';

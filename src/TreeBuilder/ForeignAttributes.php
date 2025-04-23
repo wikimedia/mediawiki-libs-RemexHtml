@@ -115,27 +115,32 @@ class ForeignAttributes implements Attributes {
 		$this->table = self::ADJUSTMENT_TABLES[$type];
 	}
 
+	/** @inheritDoc */
 	public function offsetExists( $offset ): bool {
 		$offset = $this->table[$offset] ?? $offset;
 		return $this->unadjusted->offsetExists( $offset );
 	}
 
+	/** @inheritDoc */
 	public function &offsetGet( $offset ): string {
 		$offset = $this->table[$offset] ?? $offset;
 		$value = &$this->unadjusted->offsetGet( $offset );
 		return $value;
 	}
 
+	/** @inheritDoc */
 	public function offsetSet( $offset, $value ): void {
 		// @phan-suppress-previous-line PhanPluginNeverReturnMethod
 		throw new TreeBuilderError( "Setting foreign attributes is not supported" );
 	}
 
+	/** @inheritDoc */
 	public function offsetUnset( $offset ): void {
 		// @phan-suppress-previous-line PhanPluginNeverReturnMethod
 		throw new TreeBuilderError( "Setting foreign attributes is not supported" );
 	}
 
+	/** @inheritDoc */
 	public function getValues() {
 		$result = [];
 		foreach ( $this->unadjusted->getValues() as $name => $value ) {
@@ -145,6 +150,7 @@ class ForeignAttributes implements Attributes {
 		return $result;
 	}
 
+	/** @inheritDoc */
 	public function count(): int {
 		return $this->unadjusted->count();
 	}
@@ -153,6 +159,7 @@ class ForeignAttributes implements Attributes {
 		return new \ArrayIterator( $this->getValues() );
 	}
 
+	/** @inheritDoc */
 	public function getObjects() {
 		if ( $this->attrObjects === null ) {
 			$result = [];
@@ -179,11 +186,13 @@ class ForeignAttributes implements Attributes {
 		return $this->attrObjects;
 	}
 
+	/** @inheritDoc */
 	public function merge( Attributes $other ) {
 		// @phan-suppress-previous-line PhanPluginNeverReturnMethod
 		throw new TreeBuilderError( __METHOD__ . ': unimplemented' );
 	}
 
+	/** @inheritDoc */
 	public function clone() {
 		return $this;
 	}

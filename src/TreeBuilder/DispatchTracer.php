@@ -59,6 +59,7 @@ class DispatchTracer implements TokenHandler {
 		}
 	}
 
+	/** @inheritDoc */
 	public function startDocument( Tokenizer $tokenizer, $ns, $name ) {
 		$prevHandler = $this->getHandlerName();
 		$nsMsg = $ns === null ? 'NULL' : $ns;
@@ -71,32 +72,39 @@ class DispatchTracer implements TokenHandler {
 		}
 	}
 
+	/** @inheritDoc */
 	public function endDocument( $pos ) {
 		$this->wrap( __FUNCTION__, $pos, 0, func_get_args() );
 	}
 
+	/** @inheritDoc */
 	public function error( $text, $pos ) {
 		$handler = $this->getHandlerName();
 		$this->trace( "error $handler \"$text\"" );
 		$this->dispatcher->error( $text, $pos );
 	}
 
+	/** @inheritDoc */
 	public function characters( $text, $start, $length, $sourceStart, $sourceLength ) {
 		$this->wrap( __FUNCTION__, $sourceStart, $sourceLength, func_get_args() );
 	}
 
+	/** @inheritDoc */
 	public function startTag( $name, Attributes $attrs, $selfClose, $sourceStart, $sourceLength ) {
 		$this->wrap( __FUNCTION__, $sourceStart, $sourceLength, func_get_args() );
 	}
 
+	/** @inheritDoc */
 	public function endTag( $name, $sourceStart, $sourceLength ) {
 		$this->wrap( __FUNCTION__, $sourceStart, $sourceLength, func_get_args() );
 	}
 
+	/** @inheritDoc */
 	public function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
 		$this->wrap( __FUNCTION__, $sourceStart, $sourceLength, func_get_args() );
 	}
 
+	/** @inheritDoc */
 	public function comment( $text, $sourceStart, $sourceLength ) {
 		$this->wrap( __FUNCTION__, $sourceStart, $sourceLength, func_get_args() );
 	}

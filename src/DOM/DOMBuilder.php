@@ -138,6 +138,7 @@ class DOMBuilder implements TreeHandler {
 		return $this->coerced;
 	}
 
+	/** @inheritDoc */
 	public function startDocument( $fragmentNamespace, $fragmentName ) {
 		$this->isFragment = $fragmentNamespace !== null;
 		$this->doc = $this->createDocument();
@@ -170,6 +171,7 @@ class DOMBuilder implements TreeHandler {
 		return $doc;
 	}
 
+	/** @inheritDoc */
 	public function endDocument( $pos ) {
 	}
 
@@ -275,6 +277,7 @@ class DOMBuilder implements TreeHandler {
 		return $node;
 	}
 
+	/** @inheritDoc */
 	public function characters( $preposition, $refElement, $text, $start, $length,
 		$sourceStart, $sourceLength
 	) {
@@ -313,6 +316,7 @@ class DOMBuilder implements TreeHandler {
 		}
 	}
 
+	/** @inheritDoc */
 	public function insertElement( $preposition, $refElement, Element $element, $void,
 		$sourceStart, $sourceLength
 	) {
@@ -324,9 +328,11 @@ class DOMBuilder implements TreeHandler {
 		$this->insertNode( $preposition, $refElement, $node );
 	}
 
+	/** @inheritDoc */
 	public function endTag( Element $element, $sourceStart, $sourceLength ) {
 	}
 
+	/** @inheritDoc */
 	public function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
 		if ( !$this->doc->firstChild ) {
 			$this->doc = $this->createDocument( $name, $public, $system );
@@ -337,17 +343,20 @@ class DOMBuilder implements TreeHandler {
 		$this->quirks = $quirks;
 	}
 
+	/** @inheritDoc */
 	public function comment( $preposition, $refElement, $text, $sourceStart, $sourceLength ) {
 		$node = $this->doc->createComment( $text );
 		$this->insertNode( $preposition, $refElement, $node );
 	}
 
+	/** @inheritDoc */
 	public function error( $text, $pos ) {
 		if ( $this->errorCallback ) {
 			( $this->errorCallback )( $text, $pos );
 		}
 	}
 
+	/** @inheritDoc */
 	public function mergeAttributes( Element $element, Attributes $attrs, $sourceStart ) {
 		$node = $element->userData;
 		'@phan-var \DOMElement $node'; /** @var \DOMElement $node */
@@ -405,11 +414,13 @@ class DOMBuilder implements TreeHandler {
 		}
 	}
 
+	/** @inheritDoc */
 	public function removeNode( Element $element, $sourceStart ) {
 		$node = $element->userData;
 		$node->parentNode->removeChild( $node );
 	}
 
+	/** @inheritDoc */
 	public function reparentChildren( Element $element, Element $newParent, $sourceStart ) {
 		$this->insertElement( TreeBuilder::UNDER, $element, $newParent, false, $sourceStart, 0 );
 		$node = $element->userData;

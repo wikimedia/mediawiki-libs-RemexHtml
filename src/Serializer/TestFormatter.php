@@ -19,10 +19,12 @@ class TestFormatter implements Formatter, DOMFormatter {
 		HTMLData::NS_XMLNS => 'xmlns',
 	];
 
+	/** @inheritDoc */
 	public function startDocument( $fragmentNamespace, $fragmentName ) {
 		return '';
 	}
 
+	/** @inheritDoc */
 	public function doctype( $name, $public, $system ) {
 		$ret = "<!DOCTYPE $name";
 		if ( $public !== '' || $system !== '' ) {
@@ -32,6 +34,7 @@ class TestFormatter implements Formatter, DOMFormatter {
 		return $ret;
 	}
 
+	/** @inheritDoc */
 	public function characters( SerializerNode $parent, $text, $start, $length ) {
 		return $this->formatCharacters( substr( $text, $start, $length ) );
 	}
@@ -42,6 +45,7 @@ class TestFormatter implements Formatter, DOMFormatter {
 			"\"\n";
 	}
 
+	/** @inheritDoc */
 	public function element( SerializerNode $parent, SerializerNode $node, $contents ) {
 		return $this->formatElement( $node->namespace, $node->name,
 			$node->attrs->getObjects(), $contents );
@@ -90,6 +94,7 @@ class TestFormatter implements Formatter, DOMFormatter {
 		return $ret;
 	}
 
+	/** @inheritDoc */
 	public function comment( SerializerNode $parent, $text ) {
 		return $this->formatComment( $text );
 	}
@@ -98,6 +103,7 @@ class TestFormatter implements Formatter, DOMFormatter {
 		return "<!-- $text -->\n";
 	}
 
+	/** @inheritDoc */
 	public function formatDOMNode( \DOMNode $node ) {
 		$contents = '';
 		if ( $node->firstChild ) {
@@ -134,6 +140,7 @@ class TestFormatter implements Formatter, DOMFormatter {
 		}
 	}
 
+	/** @inheritDoc */
 	public function formatDOMElement( \DOMElement $node, $content ) {
 		$attrs = [];
 		foreach ( $node->attributes as $attr ) {

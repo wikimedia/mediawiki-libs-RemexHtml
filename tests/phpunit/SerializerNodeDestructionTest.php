@@ -20,20 +20,24 @@ class SerializerDestructAttacher implements TreeBuilder\TreeHandler {
 		$this->serializer->$name( ...$args );
 	}
 
+	/** @inheritDoc */
 	public function startDocument( $fragmentNamespace, $fragmentName ) {
 		$this->wrap( __FUNCTION__, func_get_args() );
 	}
 
+	/** @inheritDoc */
 	public function endDocument( $pos ) {
 		$this->wrap( __FUNCTION__, func_get_args() );
 	}
 
+	/** @inheritDoc */
 	public function characters( $preposition, $ref, $text, $start, $length,
 		$sourceStart, $sourceLength
 	) {
 		$this->wrap( __FUNCTION__, func_get_args() );
 	}
 
+	/** @inheritDoc */
 	public function insertElement( $preposition, $ref, TreeBuilder\Element $element, $void,
 		$sourceStart, $sourceLength
 	) {
@@ -43,32 +47,39 @@ class SerializerDestructAttacher implements TreeBuilder\TreeHandler {
 		}
 	}
 
+	/** @inheritDoc */
 	public function endTag( TreeBuilder\Element $element, $sourceStart, $sourceLength ) {
 		$this->wrap( __FUNCTION__, func_get_args() );
 	}
 
+	/** @inheritDoc */
 	public function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength ) {
 		$this->wrap( __FUNCTION__, func_get_args() );
 	}
 
+	/** @inheritDoc */
 	public function comment( $preposition, $ref, $text, $sourceStart, $sourceLength ) {
 		$this->wrap( __FUNCTION__, func_get_args() );
 	}
 
+	/** @inheritDoc */
 	public function error( $text, $pos ) {
 		$this->wrap( __FUNCTION__, func_get_args() );
 	}
 
+	/** @inheritDoc */
 	public function mergeAttributes( TreeBuilder\Element $element, Tokenizer\Attributes $attrs,
 		$sourceStart
 	) {
 		$this->wrap( __FUNCTION__, func_get_args() );
 	}
 
+	/** @inheritDoc */
 	public function removeNode( TreeBuilder\Element $element, $sourceStart ) {
 		$this->wrap( __FUNCTION__, func_get_args() );
 	}
 
+	/** @inheritDoc */
 	public function reparentChildren( TreeBuilder\Element $element, TreeBuilder\Element $newParent,
 		$sourceStart
 	) {

@@ -15,6 +15,7 @@ class PlainAttributes implements Attributes {
 		$this->data = $data;
 	}
 
+	/** @inheritDoc */
 	public function merge( Attributes $other ) {
 		foreach ( $other as $name => $value ) {
 			if ( !isset( $this[$name] ) ) {
@@ -23,14 +24,17 @@ class PlainAttributes implements Attributes {
 		}
 	}
 
+	/** @inheritDoc */
 	public function offsetExists( $key ): bool {
 		return isset( $this->data[$key] );
 	}
 
+	/** @inheritDoc */
 	public function &offsetGet( $key ): string {
 		return $this->data[$key];
 	}
 
+	/** @inheritDoc */
 	public function offsetSet( $key, $value ): void {
 		$this->data[$key] = $value;
 		if ( $this->attrObjects !== null ) {
@@ -38,6 +42,7 @@ class PlainAttributes implements Attributes {
 		}
 	}
 
+	/** @inheritDoc */
 	public function offsetUnset( $key ): void {
 		unset( $this->data[$key] );
 		unset( $this->attrObjects[$key] );
@@ -47,10 +52,12 @@ class PlainAttributes implements Attributes {
 		return new \ArrayIterator( $this->data );
 	}
 
+	/** @inheritDoc */
 	public function getValues() {
 		return $this->data;
 	}
 
+	/** @inheritDoc */
 	public function getObjects() {
 		if ( $this->attrObjects === null ) {
 			$result = [];
@@ -62,10 +69,12 @@ class PlainAttributes implements Attributes {
 		return $this->attrObjects;
 	}
 
+	/** @inheritDoc */
 	public function count() {
 		return count( $this->data );
 	}
 
+	/** @inheritDoc */
 	public function clone() {
 		return $this;
 	}
