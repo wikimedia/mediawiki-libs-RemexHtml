@@ -26,7 +26,7 @@ class TokenizerTest extends \PHPUnit\Framework\TestCase {
 		'html5lib/tokenizer'
 	];
 
-	public function provider() {
+	public static function provider() {
 		$tests = [];
 		$testFiles = [];
 		foreach ( self::TEST_DIRS as $testDir ) {
@@ -47,8 +47,8 @@ class TokenizerTest extends \PHPUnit\Framework\TestCase {
 				$output = $test['output'];
 				$appropriateEndTag = $test['lastStartTag'] ?? null;
 				if ( !empty( $test['doubleEscaped'] ) ) {
-					$input = $this->unescape( $input );
-					$output = $this->unescape( $output );
+					$input = self::unescape( $input );
+					$output = self::unescape( $output );
 				}
 				foreach ( $states as $state ) {
 					$description = "$lastPart: " . ( $test['description'] ?? '<no description>' );
@@ -76,9 +76,9 @@ class TokenizerTest extends \PHPUnit\Framework\TestCase {
 	 * @param string|array $value
 	 * @return string|array
 	 */
-	private function unescape( $value ) {
+	private static function unescape( $value ) {
 		if ( is_array( $value ) ) {
-			return array_map( [ $this, 'unescape' ], $value );
+			return array_map( [ self::class, 'unescape' ], $value );
 		} elseif ( is_string( $value ) ) {
 			return preg_replace_callback( '/\\\\u([0-9a-fA-F]{4})/',
 				static function ( $m ) {
@@ -162,7 +162,7 @@ class TokenizerTest extends \PHPUnit\Framework\TestCase {
 			json_encode( $output, $jsonOptions ) );
 	}
 
-	public function provideIgnoreErrors() {
+	public static function provideIgnoreErrors() {
 		return [
 			'ignoreErrors=false' => [ false ],
 			'ignoreErrors=true' => [ true ],

@@ -39,15 +39,15 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 	/** @var string[] */
 	private $errors;
 
-	public function serializerProvider() {
-		return $this->provider( 'serializer' );
+	public static function serializerProvider() {
+		return self::provider( 'serializer' );
 	}
 
-	public function domProvider() {
-		return $this->provider( 'dom' );
+	public static function domProvider() {
+		return self::provider( 'dom' );
 	}
 
-	private function provider( $type ) {
+	private static function provider( $type ) {
 		$testFiles = [];
 		foreach ( self::TEST_DIRS as $testDir ) {
 			$testFiles = array_merge( $testFiles, glob( __DIR__ . "/../../$testDir/*.dat" ) );
@@ -57,7 +57,7 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 			if ( in_array( 'tree-construction/' . basename( $fileName ), self::FILE_BLACKLIST ) ) {
 				continue;
 			}
-			$tests = $this->readFile( $fileName, $type );
+			$tests = self::readFile( $fileName, $type );
 
 			foreach ( $tests as $test ) {
 				if ( isset( $test['scripting'] ) ) {
@@ -73,7 +73,7 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 		return $args;
 	}
 
-	private function readFile( $fileName, $type ) {
+	private static function readFile( $fileName, $type ) {
 		$text = file_get_contents( $fileName );
 		if ( $text === false ) {
 			throw new InvalidArgumentException( "Cannot read test file: $fileName" );
@@ -84,7 +84,7 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 		$tests = [];
 		while ( true ) {
 			$startLine = $lineNum;
-			$section = $this->readSection( $text, $pos, $lineNum );
+			$section = self::readSection( $text, $pos, $lineNum );
 			if ( !$section ) {
 				break;
 			}
@@ -99,7 +99,7 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 			];
 
 			do {
-				$section = $this->readSection( $text, $pos, $lineNum );
+				$section = self::readSection( $text, $pos, $lineNum );
 				if ( !$section ) {
 					break;
 				}
@@ -145,7 +145,7 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 		return $tests;
 	}
 
-	private function readSection( $text, &$pos, &$lineNum ) {
+	private static function readSection( $text, &$pos, &$lineNum ) {
 		if ( !preg_match( '/#([a-z-]*)\n/A', $text, $m, 0, $pos ) ) {
 			return false;
 		}
