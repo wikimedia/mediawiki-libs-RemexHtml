@@ -1,6 +1,8 @@
 # Release History
 
 ## RemexHtml x.x.x (not yet released)
+* Bug fixes for PHP 8.4 Dom\Document compatibility.
+* The method signature for the DOMFormatter class has changed.
 
 ## RemexHtml 4.1.2 (2025-04-23)
 * Turn off "lazy attribute" creation in Tokenizer by default in order

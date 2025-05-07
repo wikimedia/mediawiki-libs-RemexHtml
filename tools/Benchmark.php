@@ -85,6 +85,16 @@ class Benchmark {
 		yield "DOMDocument without namespace" => [
 			'suppressHtmlNamespace' => true,
 		];
+		if ( class_exists( '\Dom\Document' ) ) {
+			yield "\Dom\Document with namespace" => [
+				'suppressHtmlNamespace' => false,
+				'domImplementationClass' => \Dom\Implementation::class,
+			];
+			yield "\Dom\Document without namespace" => [
+				'suppressHtmlNamespace' => true,
+				'domImplementationClass' => \Dom\Implementation::class,
+			];
+		}
 	}
 
 	/** Run the benchmarks. */

@@ -3,6 +3,7 @@
 namespace Wikimedia\RemexHtml\DOM;
 
 use Wikimedia\RemexHtml\HTMLData;
+use Wikimedia\RemexHtml\Tokenizer\Attribute;
 use Wikimedia\RemexHtml\Tokenizer\Attributes;
 use Wikimedia\RemexHtml\TreeBuilder\Element;
 use Wikimedia\RemexHtml\TreeBuilder\TreeBuilder;
@@ -48,6 +49,9 @@ class DOMBuilder implements TreeHandler {
 	/** @var bool */
 	private $suppressIdAttribute;
 
+	/** @var bool */
+	private $attrValueWorkaround;
+
 	/** @var \DOMImplementation */
 	private $domImplementation;
 
@@ -88,7 +92,6 @@ class DOMBuilder implements TreeHandler {
 	public function __construct( $options = [] ) {
 		$options += [
 			'suppressHtmlNamespace' => false,
-			'suppressIdAttribute' => false,
 			'errorCallback' => null,
 			'domImplementation' => null,
 			'domImplementationClass' => \DOMImplementation::class,
@@ -96,10 +99,14 @@ class DOMBuilder implements TreeHandler {
 		];
 		$this->errorCallback = $options['errorCallback'];
 		$this->suppressHtmlNamespace = $options['suppressHtmlNamespace'];
-		$this->suppressIdAttribute = $options['suppressIdAttribute'];
 		$this->domImplementation = $options['domImplementation'] ??
 			new $options['domImplementationClass'];
 		$this->domExceptionClass = $options['domExceptionClass'];
+		$this->attrValueWorkaround = $options['attrValueWorkaround'] ??
+			$this->domImplementation instanceof \DOMImplementation;
+		$this->suppressIdAttribute = $options['suppressIdAttribute'] ??
+			!( is_a( $this->domImplementation, \DOMImplementation::class ) ||
+			  is_a( $this->domImplementation, '\Dom\Implementation' ) );
 	}
 
 	private function rethrowIfNotDomException( \Throwable $t ) {
@@ -163,9 +170,34 @@ class DOMBuilder implements TreeHandler {
 			$doc = $impl->createDocument( null, '' );
 		} elseif ( $doctypeName === null ) {
 			$doc = $impl->createDocument( null, '' );
+		} elseif (
+			$doctypeName === 'html' && ( !$public ) && ( !$system ) &&
+			method_exists( $impl, 'createHtmlDocument' )
+		) {
+			// @phan-suppress-next-line PhanUndeclaredMethod
+			$doc = $impl->createHtmlDocument();
+			// Remove all nodes but the doctype node (the first)
+			while ( $doc->lastChild && $doc->lastChild->nodeType !== 10 ) {
+				$doc->removeChild( $doc->lastChild );
+			}
 		} else {
-			$doctype = $impl->createDocumentType( $doctypeName, $public, $system );
-			$doc = $impl->createDocument( null, '', $doctype );
+			try {
+				$doctype = $impl->createDocumentType( $doctypeName, $public, $system );
+				$doc = $impl->createDocument( null, '', $doctype );
+			} catch ( \Throwable $e ) {
+				$this->rethrowIfNotDomException( $e );
+				'@phan-var \DOMException $e'; /** @var \DOMException $e */
+				// If $doctypeName doesn't match the Name production or QName
+				// production a DOMException is thrown from
+				// ::createDocumentType() according to the spec:
+				// https://dom.spec.whatwg.org/#interface-domimplementation
+				// "Real" implementations add a DocumentType element anyway
+				// when parsing, but there is no standard DOM method which
+				// would allow us the create the invalid DocumentType which
+				// is typically used in this case.
+				$doctype = $impl->createDocumentType( 'bogus', $public, $system );
+				$doc = $impl->createDocument( null, '', $doctype );
+			}
 		}
 		$doc->encoding = 'UTF-8';
 		return $doc;
@@ -209,71 +241,115 @@ class DOMBuilder implements TreeHandler {
 	}
 
 	/**
+	 * Helper function to set an attribute from an attribute node object.
+	 * @param \DOMElement $node
+	 * @param \DOMAttr $attrNode
+	 * @param string $value The desired attribute value
+	 * @return ?string The old value of the attribute
+	 */
+	private function setAttributeNode( $node, $attrNode, string $value ): ?string {
+		// FIXME: this apparently works to create a prefixed localName
+		// in the null namespace, but this is probably taking advantage
+		// of a bug in PHP's DOM library, and screws up in various
+		// interesting ways. For example, some attributes created in this
+		// way can't be discovered via hasAttribute() or hasAttributeNS().
+		if ( $this->attrValueWorkaround ) {
+			// This ::appendChild trick only works in broken DOM
+			// implementations! DOM standard says it should throw.
+			$attrNode->appendChild(
+				$this->doc->createTextNode( $value )
+			);
+		} else {
+			$attrNode->value = $value;
+		}
+		$old = $node->setAttributeNode( $attrNode );
+		return $old !== null ? $old->value : null;
+	}
+
+	/**
+	 * Helper function to try to execute a function, coercing the given
+	 * name and trying again if it throws a DOMException.
+	 * @phan-template T
+	 * @param string $name The name to possibly coerce
+	 * @param callable(string):T $func
+	 * @return T returns the value returned by $func
+	 */
+	private function maybeCoerce( string $name, callable $func ) {
+		try {
+			return $func( $name );
+		} catch ( \Throwable $e ) {
+			$this->rethrowIfNotDomException( $e );
+			return $func( $this->coerceName( $name ) );
+		}
+	}
+
+	/**
+	 * Helper function to set the value of an attribute on the node,
+	 * working around various PHP bugs in the process.
+	 * @param \DOMElement $node
+	 * @param Attribute $attr
+	 * @param bool $needRetval Whether we need the previous value returned
+	 * @return ?string The old value of the attribute
+	 */
+	private function setAttribute( $node, Attribute $attr, bool $needRetval = false ): ?string {
+		if ( $attr->namespaceURI === null && strpos( $attr->localName, ':' ) !== false ) {
+			return $this->maybeCoerce( $attr->localName, fn ( $name ) =>
+				$this->setAttributeNode(
+					$node,
+					$this->doc->createAttribute( $name ),
+					$attr->value
+				)
+			);
+		} elseif ( $attr->qualifiedName === 'xmlns' ) {
+			# T235295: PHP's DOM implementations treat 'xmlns' as special
+			$oldValue = $needRetval && $node->hasAttribute( $attr->qualifiedName ) ?
+				$node->getAttribute( $attr->qualifiedName ) : null;
+			$node->setAttributeNS(
+				$attr->namespaceURI, $attr->qualifiedName, $attr->value
+			);
+			return $oldValue;
+		} elseif ( $this->doc->documentElement === null ) {
+			// Another weird bug!  Throws "missing root element" exception
+			// when ::createAttributeNS() is called.
+			$html = $this->doc->createElement( 'html' );
+			$this->doc->appendChild( $html );
+			$ret = $this->setAttribute( $node, $attr, $needRetval );
+			$html->parentNode->removeChild( $html );
+			return $ret;
+		} else {
+			return $this->maybeCoerce( $attr->qualifiedName, fn ( $name ) =>
+				$this->setAttributeNode(
+					$node,
+					$this->doc->createAttributeNS( $attr->namespaceURI, $name ),
+					$attr->value
+				)
+			);
+		}
+	}
+
+	/**
 	 * @return \DOMNode
 	 */
 	protected function createNode( Element $element ) {
 		$noNS = $this->suppressHtmlNamespace && $element->namespace === HTMLData::NS_HTML;
-		try {
-			if ( $noNS ) {
-				$node = $this->doc->createElement( $element->name );
-			} else {
-				$node = $this->doc->createElementNS(
-					$element->namespace,
-					$element->name );
-			}
-		} catch ( \Throwable $e ) {
-			$this->rethrowIfNotDomException( $e );
-			'@phan-var \DOMException $e'; /** @var \DOMException $e */
-			// Attempt to escape the name so that it is more acceptable
-			if ( $noNS ) {
-				$node = $this->doc->createElement(
-					$this->coerceName( $element->name )
-				);
-			} else {
-				$node = $this->doc->createElementNS(
-					$element->namespace,
-					$this->coerceName( $element->name ) );
-			}
+		if ( $noNS ) {
+			$node = $this->maybeCoerce( $element->name, fn ( $name ) =>
+				$this->doc->createElement( $name )
+			);
+		} else {
+			$node = $this->maybeCoerce( $element->name, fn ( $name ) =>
+				$this->doc->createElementNS( $element->namespace, $name )
+			);
 		}
 
 		foreach ( $element->attrs->getObjects() as $attr ) {
-			if ( $attr->namespaceURI === null
-				&& strpos( $attr->localName, ':' ) !== false
+			if ( $attr->namespaceURI === null &&
+				!preg_match( '/(^xmlns$)|[^-A-Za-z]/SD', $attr->localName )
 			) {
-				// Create a DOMText explicitly instead of setting $attrNode->value,
-				// to work around the DOMAttr entity expansion bug (T324408)
-				$textNode = new \DOMText( $attr->value );
-				try {
-					// FIXME: this apparently works to create a prefixed localName
-					// in the null namespace, but this is probably taking advantage
-					// of a bug in PHP's DOM library, and screws up in various
-					// interesting ways. For example, attributes created in this
-					// way can't be discovered via hasAttribute() or hasAttributeNS().
-					$attrNode = $this->doc->createAttribute( $attr->localName );
-					$attrNode->appendChild( $textNode );
-					$node->setAttributeNodeNS( $attrNode );
-				} catch ( \Throwable $e ) {
-					$this->rethrowIfNotDomException( $e );
-					'@phan-var \DOMException $e'; /** @var \DOMException $e */
-					$attrNode = $this->doc->createAttribute(
-						$this->coerceName( $attr->localName ) );
-					$attrNode->appendChild( $textNode );
-					$node->setAttributeNodeNS( $attrNode );
-				}
+				// Fast path.
+				$node->setAttribute( $attr->localName, $attr->value );
 			} else {
-				try {
-					$node->setAttributeNS(
-						$attr->namespaceURI,
-						$attr->qualifiedName,
-						$attr->value );
-				} catch ( \Throwable $e ) {
-					$this->rethrowIfNotDomException( $e );
-					'@phan-var \DOMException $e'; /** @var \DOMException $e */
-					$node->setAttributeNS(
-						$attr->namespaceURI,
-						$this->coerceName( $attr->qualifiedName ),
-						$attr->value );
-				}
+				$this->setAttribute( $node, $attr );
 			}
 		}
 		if ( ( !$this->suppressIdAttribute ) && $node->hasAttribute( 'id' ) ) {
@@ -369,55 +445,15 @@ class DOMBuilder implements TreeHandler {
 		$node = $element->userData;
 		'@phan-var \DOMElement $node'; /** @var \DOMElement $node */
 		foreach ( $attrs->getObjects() as $name => $attr ) {
-			if ( $attr->namespaceURI === null
-				&& strpos( $attr->localName, ':' ) !== false
-			) {
-				try {
-					// As noted in createNode(), we can't use hasAttribute() here.
-					// However, we can use the return value of setAttributeNodeNS()
-					// instead.
-					$attrNode = $this->doc->createAttribute( $attr->localName );
-					$attrNode->value = $attr->value;
-					$replaced = $node->setAttributeNodeNS( $attrNode );
-				} catch ( \Throwable $e ) {
-					$this->rethrowIfNotDomException( $e );
-					'@phan-var \DOMException $e'; /** @var \DOMException $e */
-					$attrNode = $this->doc->createAttribute(
-						$this->coerceName( $attr->localName ) );
-					$attrNode->value = $attr->value;
-					$replaced = $node->setAttributeNodeNS( $attrNode );
-				}
-				if ( $replaced ) {
-					// Put it back how it was
-					$node->setAttributeNodeNS( $replaced );
-				}
-			} elseif ( $attr->namespaceURI === null ) {
-				try {
-					if ( !$node->hasAttribute( $attr->localName ) ) {
-						$node->setAttribute( $attr->localName, $attr->value );
-					}
-				} catch ( \Throwable $e ) {
-					$this->rethrowIfNotDomException( $e );
-					'@phan-var \DOMException $e'; /** @var \DOMException $e */
-					$name = $this->coerceName( $attr->localName );
-					if ( !$node->hasAttribute( $name ) ) {
-						$node->setAttribute( $name, $attr->value );
-					}
-				}
-			} else {
-				try {
-					if ( !$node->hasAttributeNS( $attr->namespaceURI, $attr->localName ) ) {
-						$node->setAttributeNS( $attr->namespaceURI,
-							$attr->localName, $attr->value );
-					}
-				} catch ( \Throwable $e ) {
-					$this->rethrowIfNotDomException( $e );
-					'@phan-var \DOMException $e'; /** @var \DOMException $e */
-					$name = $this->coerceName( $attr->localName );
-					if ( !$node->hasAttributeNS( $attr->namespaceURI, $name ) ) {
-						$node->setAttributeNS( $attr->namespaceURI, $name, $attr->value );
-					}
-				}
+			// As noted in createNode(), we can't use hasAttribute() reliably.
+			// However, we can use the return value of setAttributeNode()
+			// instead.
+			$oldValue = $this->setAttribute( $node, $attr, true );
+			if ( $oldValue !== null ) {
+				// Put it back how it was
+				$a = clone $attr;
+				$a->value = $oldValue;
+				$this->setAttribute( $node, $a );
 			}
 		}
 	}
