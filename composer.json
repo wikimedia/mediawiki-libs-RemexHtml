@@ -53,6 +53,7 @@
 			"phpcbf"
 		],
 		"generate-htmldata": "php bin/generate-htmldata",
+		"benchmark": "php bin/benchmark",
 		"update-history": "update-history patch",
 		"phpcs": "phpcs -sp"
 	},
