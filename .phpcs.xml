@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ruleset>
-	<rule ref="./vendor/mediawiki/mediawiki-codesniffer/MediaWiki">
-		<exclude name="MediaWiki.Commenting.PropertyDocumentation.WrongStyle" />
-	</rule>
+	<rule ref="./vendor/mediawiki/mediawiki-codesniffer/MediaWiki" />
 	<rule ref="Generic.Files.OneObjectStructurePerFile.MultipleFound">
 		<exclude-pattern>tests/phpunit/DestructionTest\.php</exclude-pattern>
 		<exclude-pattern>tests/phpunit/SerializerNodeDestructionTest\.php</exclude-pattern>
