@@ -33,6 +33,8 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 		// Invalid doctype
 		'tree-construction/doctype01.dat:32',
 		'tree-construction/doctype01.dat:45',
+		'tree-construction/doctype01.dat:313:dom84',
+		'tree-construction/tests2.dat:756:dom84',
 		'tree-construction/tests6.dat:48',
 	];
 
@@ -45,6 +47,10 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 
 	public static function domProvider() {
 		return self::provider( 'dom' );
+	}
+
+	public static function dom84Provider() {
+		return self::provider( 'dom84' );
 	}
 
 	private static function provider( $type ) {
@@ -134,9 +140,11 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 			if ( in_array( "$baseName:$startLine", self::TEST_BLACKLIST ) ) {
 				continue;
 			}
-			if ( $type === 'dom'
-				&& in_array( "$baseName:$startLine", self::DOM_TEST_BLACKLIST )
-			) {
+			if ( str_starts_with( $type, 'dom' ) && (
+				 in_array( "$baseName:$startLine", self::DOM_TEST_BLACKLIST )
+				 ||
+				 in_array( "$baseName:$startLine:$type", self::DOM_TEST_BLACKLIST )
+			) ) {
 				continue;
 			}
 
@@ -212,7 +220,23 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 	/** @dataProvider domProvider */
 	public function testDOMSerializer( $params ) {
 		$formatter = new Serializer\TestFormatter;
-		$builder = new DOM\DOMBuilder( [ 'errorCallback' => [ $this, 'errorCallback' ] ] );
+		$builder = new DOM\DOMBuilder( [
+			'errorCallback' => [ $this, 'errorCallback' ]
+		] );
+		$serializer = new DOM\DOMSerializer( $builder, $formatter );
+		$this->runWithSerializer( $serializer, $params );
+	}
+
+	/** @dataProvider dom84Provider */
+	public function testDOMSerializer84( $params ) {
+		if ( !class_exists( '\Dom\Document' ) ) {
+			$this->markTestSkipped( 'requires PHP >= 8.4' );
+		}
+		$formatter = new Serializer\TestFormatter;
+		$builder = new DOM\DOMBuilder( [
+			'domImplementationClass' => '\Dom\Implementation',
+			'errorCallback' => [ $this, 'errorCallback' ]
+		] );
 		$serializer = new DOM\DOMSerializer( $builder, $formatter );
 		$this->runWithSerializer( $serializer, $params );
 	}
