@@ -2,6 +2,16 @@
 
 ## RemexHtml x.x.x (not yet released)
 * Bug fixes for PHP 8.4 Dom\Document compatibility.
+* New options and defaults for DOMBuilder:
+  - 'domImplementationClass' defaults to \Dom\Implementation on PHP 8.4.
+    This is a change from prior versions, which always defaulted to
+    \DOMImplementation.
+  - 'coercionWorkaround' selects the workaround for
+    element/attribute/doctype character set mismatches between the
+    HTML parser spec and the DOM spec.  Defaults to 'coerce' on PHP < 8.4,
+    which matches the previous default.  When using
+    \Dom\Implementation on PHP 8.4, defaults to using the PHP 8.4 HTML
+    parser to avoid coercion.
 * The method signature for the DOMFormatter class has changed.
 
 ## RemexHtml 4.1.2 (2025-04-23)
