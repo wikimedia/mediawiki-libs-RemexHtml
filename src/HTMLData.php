@@ -113,6 +113,49 @@ class HTMLData {
 		],
 	];
 
+	/**
+	 * Properties of HTML tags.  Note that these sets are a union of
+	 * the W3C and WHATWG definitions, which differ slightly.
+	 */
+	public const TAGS = [
+		'void' => [
+			'area' => true,
+			'base' => true,
+			'basefont' => true,
+			'bgsound' => true,
+			'br' => true,
+			'col' => true,
+			'embed' => true,
+			'frame' => true,
+			'hr' => true,
+			'img' => true,
+			'input' => true,
+			'keygen' => true,
+			'link' => true,
+			'menuitem' => true,
+			'meta' => true,
+			'param' => true,
+			'source' => true,
+			'spacer' => true,
+			'track' => true,
+			'wbr' => true,
+		],
+		'prefixLF' => [
+			'pre' => true,
+			'textarea' => true,
+			'listing' => true,
+		],
+		'rawText' => [
+			'style' => true,
+			'script' => true,
+			'xmp' => true,
+			'iframe' => true,
+			'noembed' => true,
+			'noframes' => true,
+			'plaintext' => true,
+		],
+	];
+
 	public const NAMED_ENTITY_REGEX = '
 		CounterClockwiseContourIntegral;|
 		ClockwiseContourIntegral;|

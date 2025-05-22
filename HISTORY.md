@@ -15,6 +15,8 @@
 * The method signature for the DOMFormatter class has changed.
 * HTMLData properties were converted to constants in the previous
   release; the compatibility properties have now been dropped.
+* HTMLData::TAGS has been added to make HTML tag properties (the set
+  of void, raw text, and "line feed inserting" tags) generally available.
 
 ## RemexHtml 4.1.2 (2025-04-23)
 * Turn off "lazy attribute" creation in Tokenizer by default in order

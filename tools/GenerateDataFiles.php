@@ -146,6 +146,28 @@ EOT;
 		self::NS_SVG => 'foreignObject, desc, title',
 	];
 
+	// There are some differences between the WHATWG and W3C lists.
+	// https://www.w3.org/TR/2008/WD-html5-20080610/serializing.html#html-fragment
+	private const TAGS = [
+		// The elements for which a closing tag is omitted.
+		// https://html.spec.whatwg.org/#void-elements
+		'void' => 'area, base, basefont, bgsound, br, col, embed, frame,
+			hr, img, input, keygen, link, menuitem, meta, param, source,
+			spacer, track, wbr',
+		// The elements which need a leading newline in their contents to be
+		// duplicated, since the parser strips a leading newline.
+		// (Missing in WHATWG spec, present in W3C spec.)
+		'prefixLF' => 'pre, textarea, listing',
+		// The elements which have unescaped contents.
+		// https://html.spec.whatwg.org/#raw-text-elements
+		// NOTE that out of an abundance of caution <noscript> is omitted,
+		// as it is in the WHATWG spec, despite <noscript> being included in
+		// the W3C spec (and this list generally following the W3C spec, which
+		// is a superset of the WHATWG spec).
+		'rawText' => 'style, script, xmp, iframe, noembed, noframes,
+			plaintext',
+	];
+
 	// phpcs:disable Generic.Files.LineLength
 	/**
 	 * The NameStartChar production from XML 1.0, but with colon excluded since
@@ -357,6 +379,14 @@ EOT;
 		}
 		$encSpecial = self::phpExport( $special, 1 );
 
+		$tags = [];
+		foreach ( self::TAGS as $ns => $str ) {
+			foreach ( explode( ',', $str ) as $name ) {
+				$tags[$ns][trim( $name )] = true;
+			}
+		}
+		$encTags = self::phpExport( $tags, 1 );
+
 		$nsHtml = self::phpExport( self::NS_HTML, 1 );
 		$nsMathML = self::phpExport( self::NS_MATHML, 1 );
 		$nsSvg = self::phpExport( self::NS_SVG, 1 );
@@ -382,6 +412,12 @@ class HTMLData {
 	public const NS_XMLNS = $nsXmlNs;
 
 	public const SPECIAL = $encSpecial;
+
+	/**
+	 * Properties of HTML tags.  Note that these sets are a union of
+	 * the W3C and WHATWG definitions, which differ slightly.
+	 */
+	public const TAGS = $encTags;
 
 	public const NAMED_ENTITY_REGEX = $encEntityRegex;
 
