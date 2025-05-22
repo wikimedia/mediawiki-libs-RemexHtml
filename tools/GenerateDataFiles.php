@@ -381,36 +381,20 @@ class HTMLData {
 	public const NS_XML = $nsXml;
 	public const NS_XMLNS = $nsXmlNs;
 
-	/** @deprecated Use HTMLData::SPECIAL instead */
-	public static \$special = self::SPECIAL;
 	public const SPECIAL = $encSpecial;
 
-	/** @deprecated Use HTMLData::NAMED_ENTITY_REGEX instead */
-	public static \$namedEntityRegex = self::NAMED_ENTITY_REGEX;
 	public const NAMED_ENTITY_REGEX = $encEntityRegex;
 
-	/** @deprecated Use HTMLData::CHAR_REF_REGEX instead */
-	public static \$charRefRegex = self::CHAR_REF_REGEX;
 	public const CHAR_REF_REGEX = $encCharRefRegex;
 
-	/** @deprecated Use HTMLData::NAMED_ENTITY_TRANSLATION instead */
-	public static \$namedEntityTranslations = self::NAMED_ENTITY_TRANSLATION;
 	public const NAMED_ENTITY_TRANSLATION = $encTranslations;
 
-	/** @deprecated Use HTMLData::LEGACY_NUMERIC_ENTITIES instead */
-	public static \$legacyNumericEntities = self::LEGACY_NUMERIC_ENTITIES;
 	public const LEGACY_NUMERIC_ENTITIES = $encLegacy;
 
-	/** @deprecated Use HTMLData::QUIRKY_PREFIX_REGEX instead */
-	public static \$quirkyPrefixRegex = self::QUIRKY_PREFIX_REGEX;
 	public const QUIRKY_PREFIX_REGEX = $encQuirkyRegex;
 
-	/** @deprecated Use self::NAME_START_CHAR_CONV_TABLE instead */
-	public static \$nameStartCharConvTable = self::NAME_START_CHAR_CONV_TABLE;
 	public const NAME_START_CHAR_CONV_TABLE = $encNameStartCharConvTable;
 
-	/** @deprecated Use HTMLData::NAME_CHAR_CONV_TABLE instead */
-	public static \$nameCharConvTable = self::NAME_CHAR_CONV_TABLE;
 	public const NAME_CHAR_CONV_TABLE = $encNameCharConvTable;
 }
 
