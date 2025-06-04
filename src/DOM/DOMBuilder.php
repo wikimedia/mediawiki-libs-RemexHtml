@@ -43,14 +43,17 @@ class DOMBuilder implements TreeHandler {
 	/** @var callable|null */
 	private $errorCallback;
 
-	/** @var bool */
-	private $suppressHtmlNamespace;
+	private bool $suppressHtmlNamespace;
 
-	/** @var bool */
-	private $suppressIdAttribute;
+	private bool $suppressIdAttribute;
 
-	/** @var bool */
-	private $attrValueWorkaround;
+	private bool $setAttributeWorkarounds;
+
+	/** @var string 'none', 'coerce', or 'parser' */
+	private string $coercionWorkaround;
+
+	/** @var callable(string):\DOMDocument */
+	private $htmlParser;
 
 	/** @var \DOMImplementation */
 	private $domImplementation;
@@ -68,26 +71,42 @@ class DOMBuilder implements TreeHandler {
 	 * @param array $options An associative array of options:
 	 *   - errorCallback : A function which is called on parse errors
 	 *   - suppressHtmlNamespace : omit the namespace when creating HTML
-	 *     elements. False by default.
-	 *   - suppressIdAttribute : don't call the nonstandard
-	 *     DOMElement::setIdAttribute() method while constructing elements.
-	 *     False by default (this method is needed for efficient
-	 *     DOMDocument::getElementById() calls).  Set to true if you are
-	 *     using a W3C spec-compliant DOMImplementation and wish to avoid
-	 *     nonstandard calls.
-	 *   - domImplementation: The DOMImplementation object to use.  If this
+	 *     elements. False by default.  This corresponds to the PHP 8.4
+	 *     `Dom\HTML_NO_DEFAULT_NS` option to
+	 *     `Dom\HTMLDocument::createFromString()`.  Some versions of PHP
+	 *     are notably faster when namespaces are omitted.
+	 *   - domImplementationClass : The string name of the DOMImplementation
+	 *     class to use.  Defaults to `\DOMImplementation::class`; you can
+	 *     pass `\Dom\Implementation::class` on PHP 8.4, or use a third-party
+	 *     DOM implementation by passing an alternative class name here.
+	 *   - domImplementation : The DOMImplementation object to use.  If this
 	 *     parameter is missing or null, a new DOMImplementation object will
 	 *     be constructed using the `domImplementationClass` option value.
-	 *     You can use a third-party DOM implementation by passing in an
-	 *     appropriately duck-typed object here.
-	 *   - domImplementationClass: The string name of the DOMImplementation
-	 *     class to use.  Defaults to `\DOMImplementation::class` but
-	 *     you can use a third-party DOM implementation by passing
-	 *     an alternative class name here.
-	 *   - domExceptionClass: The string name of the DOMException
-	 *     class to use.  Defaults to `\DOMException::class` but
-	 *     you can use a third-party DOM implementation by passing
-	 *     an alternative class name here.
+	 *   - domExceptionClass : The string name of the DOMException
+	 *     class to use.  Defaults to `\DOMException::class`; you can pass
+	 *     `\Dom\Exception::class` on PHP 8.4, or use a third-party
+	 *     DOM implementation by passing an alternative class name here.
+	 *   - suppressIdAttribute : don't call the nonstandard
+	 *     `DOMElement::setIdAttribute()`/`Dom\Element::setIdAttribute()`
+	 *     method while constructing elements.  False by default when using
+	 *     `\DOMImplementation` or `\Dom\Implementation`, since this method
+	 *     is needed for efficient `::getElementById()` calls in PHP.
+	 *     Set to true if you are using a W3C spec-compliant DOM Implementation
+	 *     and wish to avoid the use of nonstandard calls.
+	 *   - coercionWorkaround : As discussed in T393922#10837089, the upstream
+	 *     DOM spec allows fewer name characters for element, attribute, and
+	 *     doctype names than permitted by the HTML parsing spec.  This option
+	 *     can have the string value `'none'` which (re)throws a
+	 *     DOMException when these characters are encountered during parsing,
+	 *     or `'coerce'` to remap the names and set a flag; see
+	 *     `::isCoerced()`.  A third option is to `'parser'` which will use
+	 *     "another" HTML parser to create elements/attributes/doctypes with
+	 *     the "illegal" names.  The default is to use `'parser'` in PHP 8.4+
+	 *     and `'coerce'` otherwise.
+	 *   - htmlParser: An optional callable with the signature
+	 *     `string => Document`, used to implement the `'parser'` option to
+	 *     `coercionWorkaround`.  The default is `null`, which uses
+	 *     `Dom\HTMLDocument::loadFromString` when available.
 	 */
 	public function __construct( $options = [] ) {
 		$options += [
@@ -102,11 +121,21 @@ class DOMBuilder implements TreeHandler {
 		$this->domImplementation = $options['domImplementation'] ??
 			new $options['domImplementationClass'];
 		$this->domExceptionClass = $options['domExceptionClass'];
-		$this->attrValueWorkaround = $options['attrValueWorkaround'] ??
-			$this->domImplementation instanceof \DOMImplementation;
+
+		$isOldNative = $this->domImplementation instanceof \DOMImplementation;
+		$isNewNative = is_a( $this->domImplementation, '\Dom\Implementation' );
+
 		$this->suppressIdAttribute = $options['suppressIdAttribute'] ??
-			!( is_a( $this->domImplementation, \DOMImplementation::class ) ||
-			  is_a( $this->domImplementation, '\Dom\Implementation' ) );
+			!( $isOldNative || $isNewNative );
+		$this->setAttributeWorkarounds = $isOldNative;
+		if ( isset( $options['coercionWorkaround'] ) ) {
+			$this->coercionWorkaround = $options['coercionWorkaround'];
+		} elseif ( $isNewNative ) {
+			$this->coercionWorkaround = 'parser';
+		} else {
+			$this->coercionWorkaround = 'coerce';
+		}
+		$this->htmlParser = $options['htmlParser'] ?? null;
 	}
 
 	private function rethrowIfNotDomException( \Throwable $t ) {
@@ -165,7 +194,7 @@ class DOMBuilder implements TreeHandler {
 		?string $system = null
 	) {
 		$impl = $this->domImplementation;
-		if ( $doctypeName === '' ) {
+		if ( $doctypeName === '' && $this->coercionWorkaround === 'coerce' ) {
 			$this->coerced = true;
 			$doc = $impl->createDocument( null, '' );
 		} elseif ( $doctypeName === null ) {
@@ -181,23 +210,12 @@ class DOMBuilder implements TreeHandler {
 				$doc->removeChild( $doc->lastChild );
 			}
 		} else {
-			try {
-				$doctype = $impl->createDocumentType( $doctypeName, $public, $system );
-				$doc = $impl->createDocument( null, '', $doctype );
-			} catch ( \Throwable $e ) {
-				$this->rethrowIfNotDomException( $e );
-				'@phan-var \DOMException $e'; /** @var \DOMException $e */
-				// If $doctypeName doesn't match the Name production or QName
-				// production a DOMException is thrown from
-				// ::createDocumentType() according to the spec:
-				// https://dom.spec.whatwg.org/#interface-domimplementation
-				// "Real" implementations add a DocumentType element anyway
-				// when parsing, but there is no standard DOM method which
-				// would allow us the create the invalid DocumentType which
-				// is typically used in this case.
-				$doctype = $impl->createDocumentType( 'bogus', $public, $system );
-				$doc = $impl->createDocument( null, '', $doctype );
-			}
+			$doctype = $this->maybeCoerce(
+				$doctypeName,
+				static fn ( $name ) => $impl->createDocumentType( $doctypeName, $public ?? '', $system ?? '' ),
+				fn () => $this->parserDoctypeWorkaround( $doctypeName, $public ?? '', $system ?? '' )
+			);
+			$doc = $impl->createDocument( null, '', $doctype );
 		}
 		$doc->encoding = 'UTF-8';
 		return $doc;
@@ -227,60 +245,29 @@ class DOMBuilder implements TreeHandler {
 	}
 
 	/**
-	 * Replace unsupported characters with a code of the form U123456.
-	 *
-	 * @param string $name
-	 * @return string
-	 */
-	private function coerceName( $name ) {
-		$coercedName = DOMUtils::coerceName( $name );
-		if ( $name !== $coercedName ) {
-			$this->coerced = true;
-		}
-		return $coercedName;
-	}
-
-	/**
-	 * Helper function to set an attribute from an attribute node object.
-	 * @param \DOMElement $node
-	 * @param \DOMAttr $attrNode
-	 * @param string $value The desired attribute value
-	 * @return ?string The old value of the attribute
-	 */
-	private function setAttributeNode( $node, $attrNode, string $value ): ?string {
-		// FIXME: this apparently works to create a prefixed localName
-		// in the null namespace, but this is probably taking advantage
-		// of a bug in PHP's DOM library, and screws up in various
-		// interesting ways. For example, some attributes created in this
-		// way can't be discovered via hasAttribute() or hasAttributeNS().
-		if ( $this->attrValueWorkaround ) {
-			// This ::appendChild trick only works in broken DOM
-			// implementations! DOM standard says it should throw.
-			$attrNode->appendChild(
-				$this->doc->createTextNode( $value )
-			);
-		} else {
-			$attrNode->value = $value;
-		}
-		$old = $node->setAttributeNode( $attrNode );
-		return $old !== null ? $old->value : null;
-	}
-
-	/**
 	 * Helper function to try to execute a function, coercing the given
 	 * name and trying again if it throws a DOMException.
 	 * @phan-template T
 	 * @param string $name The name to possibly coerce
-	 * @param callable(string):T $func
+	 * @param callable(string):T $func The operation we wish to perform
+	 * @param ?callable():T $parserWorkaround An alternative method to
+	 *  perform this operation using an HTML parser.
 	 * @return T returns the value returned by $func
 	 */
-	private function maybeCoerce( string $name, callable $func ) {
+	private function maybeCoerce( string $name, callable $func, ?callable $parserWorkaround ) {
+		if ( $this->coercionWorkaround === 'none' ) {
+			return $func( $name );
+		}
 		try {
 			return $func( $name );
 		} catch ( \Throwable $e ) {
 			$this->rethrowIfNotDomException( $e );
+		}
+		if ( $this->coercionWorkaround === 'coerce' || $parserWorkaround === null ) {
 			return $func( $this->coerceName( $name ) );
 		}
+		// Alternative implementation using an HTML parser.
+		return $parserWorkaround();
 	}
 
 	/**
@@ -292,39 +279,22 @@ class DOMBuilder implements TreeHandler {
 	 * @return ?string The old value of the attribute
 	 */
 	private function setAttribute( $node, Attribute $attr, bool $needRetval = false ): ?string {
-		if ( $attr->namespaceURI === null && strpos( $attr->localName, ':' ) !== false ) {
-			return $this->maybeCoerce( $attr->localName, fn ( $name ) =>
-				$this->setAttributeNode(
-					$node,
-					$this->doc->createAttribute( $name ),
-					$attr->value
-				)
-			);
-		} elseif ( $attr->qualifiedName === 'xmlns' ) {
-			# T235295: PHP's DOM implementations treat 'xmlns' as special
-			$oldValue = $needRetval && $node->hasAttribute( $attr->qualifiedName ) ?
-				$node->getAttribute( $attr->qualifiedName ) : null;
-			$node->setAttributeNS(
-				$attr->namespaceURI, $attr->qualifiedName, $attr->value
-			);
-			return $oldValue;
-		} elseif ( $this->doc->documentElement === null ) {
-			// Another weird bug!  Throws "missing root element" exception
-			// when ::createAttributeNS() is called.
-			$html = $this->doc->createElement( 'html' );
-			$this->doc->appendChild( $html );
-			$ret = $this->setAttribute( $node, $attr, $needRetval );
-			$html->parentNode->removeChild( $html );
-			return $ret;
-		} else {
-			return $this->maybeCoerce( $attr->qualifiedName, fn ( $name ) =>
-				$this->setAttributeNode(
-					$node,
-					$this->doc->createAttributeNS( $attr->namespaceURI, $name ),
-					$attr->value
-				)
-			);
+		if ( $this->setAttributeWorkarounds ) {
+			return $this->setAttributeWorkaround( $node, $attr, $needRetval );
 		}
+		return $this->maybeCoerce(
+			$attr->qualifiedName,
+			static function ( $name ) use ( $node, $attr, $needRetval ) {
+				$oldValue = $needRetval ? $node->getAttribute( $name ) : null;
+				if ( $attr->namespaceURI === null ) {
+					$node->setAttribute( $name, $attr->value );
+				} else {
+					$node->setAttributeNS( $attr->namespaceURI, $name, $attr->value );
+				}
+				return $oldValue;
+			},
+			fn () => $this->parserAttrWorkaround( $node, $attr )
+		);
 	}
 
 	/**
@@ -333,21 +303,24 @@ class DOMBuilder implements TreeHandler {
 	protected function createNode( Element $element ) {
 		$noNS = $this->suppressHtmlNamespace && $element->namespace === HTMLData::NS_HTML;
 		if ( $noNS ) {
-			$node = $this->maybeCoerce( $element->name, fn ( $name ) =>
-				$this->doc->createElement( $name )
+			$node = $this->maybeCoerce(
+				$element->name,
+				fn ( $name ) => $this->doc->createElement( $name ),
+				fn () => $this->parserElementWorkaround( $element->name )
 			);
 		} else {
 			$node = $this->maybeCoerce( $element->name, fn ( $name ) =>
-				$this->doc->createElementNS( $element->namespace, $name )
+				$this->doc->createElementNS( $element->namespace, $name ),
+				null
 			);
 		}
 
 		foreach ( $element->attrs->getObjects() as $attr ) {
 			if ( $attr->namespaceURI === null &&
-				!preg_match( '/(^xmlns$)|[^-A-Za-z]/SD', $attr->localName )
+				!preg_match( '/[^-A-Za-z]/S', $attr->qualifiedName )
 			) {
-				// Fast path.
-				$node->setAttribute( $attr->localName, $attr->value );
+				// Fast path: no coercion or namespaces necessary
+				$node->setAttribute( $attr->qualifiedName, $attr->value );
 			} else {
 				$this->setAttribute( $node, $attr );
 			}
@@ -445,9 +418,11 @@ class DOMBuilder implements TreeHandler {
 		$node = $element->userData;
 		'@phan-var \DOMElement $node'; /** @var \DOMElement $node */
 		foreach ( $attrs->getObjects() as $name => $attr ) {
-			// As noted in createNode(), we can't use hasAttribute() reliably.
-			// However, we can use the return value of setAttributeNode()
-			// instead.
+			// As noted in createNode(), we can't use hasAttribute() reliably
+			// on some DOM implementations. However, we can use the return
+			// value (eg, of setAttributeNode()) to reliably tell us the
+			// *previous* value, and so we can use that to fix up the corner
+			// cases.
 			$oldValue = $this->setAttribute( $node, $attr, true );
 			if ( $oldValue !== null ) {
 				// Put it back how it was
@@ -477,4 +452,168 @@ class DOMBuilder implements TreeHandler {
 			$newParentNode->appendChild( $firstChild );
 		}
 	}
+
+	// SetAttribute workarounds, for \DOMDocument
+
+	/**
+	 * Implement various workarounds for ::setAttribute needed for
+	 * \DOMDocument.
+	 * @param \DOMElement $node
+	 * @param Attribute $attr
+	 * @param bool $needRetval
+	 * @return ?string The previous value of the attribute, or null if none
+	 */
+	private function setAttributeWorkaround( $node, Attribute $attr, bool $needRetval ): ?string {
+		if ( $attr->namespaceURI === null ) {
+			return $this->maybeCoerce(
+				$attr->localName,
+				fn ( $name ) => $this->setAttributeNode(
+					$node,
+					$this->doc->createAttribute( $name ),
+					$attr->value
+				),
+				fn () => $this->parserAttrWorkaround( $node, $attr )
+			);
+		} elseif ( $attr->qualifiedName === 'xmlns' ) {
+			# T235295: \DOMDocument treats 'xmlns' as special
+			$oldValue = $needRetval && $node->hasAttribute( $attr->qualifiedName ) ?
+				$node->getAttribute( $attr->qualifiedName ) : null;
+			$node->setAttributeNS(
+				$attr->namespaceURI, $attr->qualifiedName, $attr->value
+			);
+			return $oldValue;
+		} else {
+			return $this->maybeCoerce( $attr->qualifiedName, fn ( $name ) =>
+				$this->setAttributeNode(
+					$node,
+					$this->doc->createAttributeNS( $attr->namespaceURI, $name ),
+					$attr->value
+				),
+				fn () => $this->parserAttrWorkaround( $node, $attr )
+			);
+		}
+	}
+
+	/**
+	 * Helper function to set an attribute from an attribute node object.
+	 * @param \DOMElement $node
+	 * @param \DOMAttr $attrNode
+	 * @param string $value The desired attribute value
+	 * @return ?string The old value of the attribute
+	 */
+	private function setAttributeNode( $node, $attrNode, string $value ): ?string {
+		// FIXME: this apparently works to create a prefixed localName
+		// in the null namespace, but this is probably taking advantage
+		// of a bug in PHP's DOM library, and screws up in various
+		// interesting ways. For example, some attributes created in this
+		// way can't be discovered via hasAttribute() or hasAttributeNS().
+		if ( $this->domImplementation instanceof \DOMImplementation ) {
+			// This ::appendChild trick only works in broken DOM
+			// implementations! DOM standard says it should throw.
+			$attrNode->appendChild(
+				$this->doc->createTextNode( $value )
+			);
+		} else {
+			$attrNode->value = $value;
+		}
+		$old = $node->setAttributeNode( $attrNode );
+		return $old !== null ? $old->value : null;
+	}
+
+	// Name coercion workaround: remap name and set a flag
+
+	/**
+	 * Replace unsupported characters with a code of the form U123456.
+	 *
+	 * @param string $name
+	 * @return string
+	 */
+	private function coerceName( $name ) {
+		$coercedName = DOMUtils::coerceName( $name );
+		if ( $name !== $coercedName ) {
+			$this->coerced = true;
+		}
+		return $coercedName;
+	}
+
+	// Name coercion workaround using an HTML parser
+
+	/**
+	 * Use the PHP \Dom\HTMLDocument parser to create a doctype node which
+	 * is impossible to create with DOM methods.
+	 * @see https://github.com/whatwg/dom/issues/849#issuecomment-2877929861
+	 * @param string $doctypeName
+	 * @param string $public
+	 * @param string $system
+	 * @return \DOMDocumentType (or an implementation-defined type)
+	 */
+	private function parserDoctypeWorkaround(
+		string $doctypeName, string $public, string $system
+	) {
+		// If $doctypeName doesn't match the Name production or QName
+		// production a DOMException is thrown from
+		// ::createDocumentType() according to the spec:
+		// https://dom.spec.whatwg.org/#interface-domimplementation
+		// "Real" implementations add a DocumentType element anyway
+		// when parsing, but there is no standard DOM method which
+		// would allow us the create the invalid DocumentType which
+		// is typically used in this case.
+		$html = "<!DOCTYPE {$doctypeName} {$public} {$system}>";
+		$doc = $this->parseHtml( $html );
+		return $doc->doctype;
+	}
+
+	/**
+	 * Use HTML parser to create an Attribute which is impossible to
+	 * create using normal DOM methods.
+	 * @see https://github.com/whatwg/dom/issues/769
+	 * @param \DOMElement $node (or an implementation-defined type)
+	 * @param Attribute $attr
+	 * @return ?string The previous value of the given attribute
+	 */
+	private function parserAttrWorkaround(
+		$node, Attribute $attr
+	): ?string {
+		$html = "<div id=target><div {$attr->qualifiedName}=''></div></div>";
+		$doc = $this->parseHtml( $html );
+		// @phan-suppress-next-line PhanTypeArraySuspicious (works for \Dom\Element)
+		$a = $doc->getElementById( 'target' )->firstChild
+		   ->attributes[0]->cloneNode( true );
+		$a = $this->doc->adoptNode( $a );
+		$a->value = $attr->value;
+		$oldNode = $node->setAttributeNode( $a );
+		return $oldNode !== null ? $oldNode->value : null;
+	}
+
+	/**
+	 * Use HTML parser to create an Element which is impossible to
+	 * create using normal DOM methods.
+	 * @see https://github.com/whatwg/dom/issues/849
+	 * @param string $name The tag name to create
+	 * @return \DOMElement (or an implementation-defined type)
+	 */
+	private function parserElementWorkaround( string $name ) {
+		$html = "<div id=target><{$name}>";
+		$doc = $this->parseHtml( $html );
+		$el = $doc->getElementById( 'target' )->firstChild;
+		'@phan-var \DOMElement $el';
+		return $this->doc->adoptNode( $el );
+	}
+
+	/**
+	 * @param string $html
+	 * @return \DOMDocument (or an implementation-defined type)
+	 */
+	private function parseHtml( string $html ) {
+		if ( $this->htmlParser ) {
+			return ( $this->htmlParser )( $html );
+		} else {
+			$options = LIBXML_NOERROR |
+				( $this->suppressHtmlNamespace ? constant( '\Dom\HTML_NO_DEFAULT_NS' ) : 0 );
+			$doc = \Dom\HTMLDocument::createFromString( $html, $options );
+			'@phan-var \DOMDocument $doc';
+			return $doc;
+		}
+	}
+
 }

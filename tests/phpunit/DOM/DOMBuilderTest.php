@@ -15,6 +15,7 @@ class DOMBuilderTest extends \PHPUnit\Framework\TestCase {
 
 	private static function createDoc( $domBuilder ) {
 		$domBuilder->startDocument( null, null );
+		$domBuilder->doctype( 'html', '', '', TreeBuilder\TreeBuilder::NO_QUIRKS, 0, 0 );
 		$noAttributes = new Tokenizer\PlainAttributes( [] );
 		$html = new TreeBuilder\Element( HTMLData::NS_HTML, 'html', $noAttributes );
 		$domBuilder->insertElement( TreeBuilder\TreeBuilder::ROOT, null, $html, false, 0, 6 );
@@ -23,16 +24,35 @@ class DOMBuilderTest extends \PHPUnit\Framework\TestCase {
 		return [ $domBuilder->getFragment(), $body ];
 	}
 
-	private function verifyAttribute( $doc, string $name, string $value, ?string $type, ?string $altName ) {
+	private function verifyAttribute(
+		$doc, string $name, string $value, ?string $type,
+		?string $altName, bool $coerced
+	) {
 		// gently lie to phan about the type of $doc and $domElement
 		'@phan-var \DOMDocument $doc';
 		$domElement = $doc->documentElement->firstChild->firstChild;
 		'@phan-var \DOMElement $domElement';
 		$this->assertNotNull( $domElement );
-		$altName ??= $name;
-		if ( $altName !== $name ) {
-			$this->assertFalse( $domElement->hasAttribute( $name ) );
-			$name = $altName;
+		if ( $altName !== null ) {
+			if ( $coerced ) {
+				// For coerced attributes, *either* the original name *or*
+				// the alternative name (but not both) should be present.
+				if ( $domElement->hasAttribute( $altName ) ) {
+					$this->assertFalse( $domElement->hasAttribute( $name ) );
+					$name = $altName;
+				}
+			} else {
+				if ( !$doc instanceof \DOMDocument ) {
+					// For non-coerced attributes with an alternative name, both
+					// the original and the alternative name should return the
+					// given value.
+					$this->assertTrue( $domElement->hasAttribute( $altName ), $altName );
+					$this->assertSame( $value, $domElement->getAttribute( $altName ) );
+				} else {
+					// (this is broken in \DOMDocument, only the altname is set)
+					$name = $altName;
+				}
+			}
 		}
 		$this->assertTrue( $domElement->hasAttribute( $name ), $name );
 		$this->assertSame( $value, $domElement->getAttribute( $name ) );
@@ -41,7 +61,7 @@ class DOMBuilderTest extends \PHPUnit\Framework\TestCase {
 	/** @dataProvider attributeProvider */
 	public function testAttributesCreateNode(
 		DOMBuilder $domBuilder, string $name, string $value,
-		?string $type = null, ?string $altName = null
+		?string $type = null, ?string $altName = null, bool $coerced = false
 	) {
 		[ $doc, $body ] = self::createDoc( $domBuilder );
 		$attributes = new TreeBuilder\ForeignAttributes(
@@ -55,14 +75,14 @@ class DOMBuilderTest extends \PHPUnit\Framework\TestCase {
 		);
 		// verify using the dom
 		$this->verifyAttribute(
-			$doc, $name, $value, $type, $altName
+			$doc, $name, $value, $type, $altName, $coerced
 		);
 	}
 
 	/** @dataProvider attributeProvider */
 	public function testAttributesMergeAttributes(
 		DOMBuilder $domBuilder, string $name, string $value,
-		?string $type = null, ?string $altName = null
+		?string $type = null, ?string $altName = null, bool $coerced = false
 	) {
 		[ $doc, $body ] = self::createDoc( $domBuilder );
 		$attributes = new TreeBuilder\ForeignAttributes(
@@ -79,14 +99,14 @@ class DOMBuilderTest extends \PHPUnit\Framework\TestCase {
 		$domBuilder->mergeAttributes( $element, $attributes, 0 );
 		// verify using the dom
 		$this->verifyAttribute(
-			$doc, $name, $value, $type, $altName
+			$doc, $name, $value, $type, $altName, $coerced
 		);
 	}
 
 	/** @dataProvider attributeProvider */
 	public function testAttributesMergeAttributesNoReplace(
 		DOMBuilder $domBuilder, string $name, string $value,
-		?string $type = null, ?string $altName = null
+		?string $type = null, ?string $altName = null, bool $coerced = false
 	) {
 		[ $doc, $body ] = self::createDoc( $domBuilder );
 		$attributes = new TreeBuilder\ForeignAttributes(
@@ -108,7 +128,7 @@ class DOMBuilderTest extends \PHPUnit\Framework\TestCase {
 		$domBuilder->mergeAttributes( $element, $attributes2, 0 );
 		// verify using the dom
 		$this->verifyAttribute(
-			$doc, $name, $value, $type, $altName
+			$doc, $name, $value, $type, $altName, $coerced
 		);
 	}
 
@@ -147,7 +167,7 @@ class DOMBuilderTest extends \PHPUnit\Framework\TestCase {
 			] as $name ) {
 				$altName = DOMUtils::coerceName( $name );
 				yield "$impl $name" => [
-					$domBuilder, $name, $value, null, $altName
+					$domBuilder, $name, $value, null, $altName, true
 				];
 			}
 		}
@@ -155,9 +175,11 @@ class DOMBuilderTest extends \PHPUnit\Framework\TestCase {
 
 	public static function provideDOMBuilder() {
 		yield "DOMDocument(html ns)" => new DOMBuilder( [
+			'domImplementationClass' => \DOMImplementation::class,
 			'suppressHtmlNamespace' => false,
 		] );
 		yield "DOMDocument(no ns)" => new DOMBuilder( [
+			'domImplementationClass' => \DOMImplementation::class,
 			'suppressHtmlNamespace' => true,
 		] );
 		if ( class_exists( '\Dom\Document' ) ) {

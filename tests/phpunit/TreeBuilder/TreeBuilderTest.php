@@ -31,11 +31,9 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 
 	private const DOM_TEST_BLACKLIST = [
 		// Invalid doctype
-		'tree-construction/doctype01.dat:32',
-		'tree-construction/doctype01.dat:45',
-		'tree-construction/doctype01.dat:313:dom84',
-		'tree-construction/tests2.dat:756:dom84',
-		'tree-construction/tests6.dat:48',
+		'tree-construction/doctype01.dat:32:dom',
+		'tree-construction/doctype01.dat:45:dom',
+		'tree-construction/tests6.dat:48:dom',
 	];
 
 	/** @var string[] */
@@ -221,6 +219,7 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 	public function testDOMSerializer( $params ) {
 		$formatter = new Serializer\TestFormatter;
 		$builder = new DOM\DOMBuilder( [
+			'domImplementationClass' => \DOMImplementation::class,
 			'errorCallback' => [ $this, 'errorCallback' ]
 		] );
 		$serializer = new DOM\DOMSerializer( $builder, $formatter );
