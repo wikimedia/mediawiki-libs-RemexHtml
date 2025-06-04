@@ -1,5 +1,7 @@
 # Release History
 
+## RemexHtml x.x.x (not yet released)
+
 ## RemexHtml 5.0.0 (2025-06-04)
 * Bug fixes for PHP 8.4 Dom\Document compatibility.
 * New options and defaults for DOMBuilder:
