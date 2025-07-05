@@ -25,7 +25,7 @@ class DOMBuilderTest extends \PHPUnit\Framework\TestCase {
 	}
 
 	private function verifyAttribute(
-		$doc, string $name, string $value, ?string $type,
+		$doc, string $name, string $value,
 		?string $altName, bool $coerced
 	) {
 		// gently lie to phan about the type of $doc and $domElement
@@ -75,7 +75,7 @@ class DOMBuilderTest extends \PHPUnit\Framework\TestCase {
 		);
 		// verify using the dom
 		$this->verifyAttribute(
-			$doc, $name, $value, $type, $altName, $coerced
+			$doc, $name, $value, $altName, $coerced
 		);
 	}
 
@@ -99,7 +99,7 @@ class DOMBuilderTest extends \PHPUnit\Framework\TestCase {
 		$domBuilder->mergeAttributes( $element, $attributes, 0 );
 		// verify using the dom
 		$this->verifyAttribute(
-			$doc, $name, $value, $type, $altName, $coerced
+			$doc, $name, $value, $altName, $coerced
 		);
 	}
 
@@ -128,7 +128,7 @@ class DOMBuilderTest extends \PHPUnit\Framework\TestCase {
 		$domBuilder->mergeAttributes( $element, $attributes2, 0 );
 		// verify using the dom
 		$this->verifyAttribute(
-			$doc, $name, $value, $type, $altName, $coerced
+			$doc, $name, $value, $altName, $coerced
 		);
 	}
 
