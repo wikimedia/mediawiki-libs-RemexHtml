@@ -142,6 +142,7 @@ class DOMBuilder implements TreeHandler {
 		if ( is_a( $t, $this->domExceptionClass, false ) ) {
 			return;
 		}
+		// @phan-suppress-next-line PhanThrowTypeAbsent
 		throw $t;
 	}
 
