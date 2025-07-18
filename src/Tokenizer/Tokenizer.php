@@ -1023,7 +1023,7 @@ class Tokenizer {
 
 			$haveSemicolon =
 				( isset( $m[self::MC_SEMICOLON] ) && strlen( $m[self::MC_SEMICOLON] ) )
-				|| ( strlen( $knownNamed ) && $knownNamed[ strlen( $knownNamed ) - 1 ] === ';' )
+				|| str_ends_with( $knownNamed, ';' )
 				|| ( isset( $m[self::MC_INVALID] ) && strlen( $m[self::MC_INVALID] ) );
 
 			if ( $inAttr && !$haveSemicolon ) {
