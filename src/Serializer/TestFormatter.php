@@ -83,7 +83,12 @@ class TestFormatter implements Formatter, DOMFormatter {
 		} else {
 			$contents = '';
 		}
-		if ( $namespace === HTMLData::NS_HTML && $name === 'template' ) {
+		if (
+			// PHP < 8.4 defaults to "suppressHtmlNamespace", in which case
+			// NS_HTML will be represented as `null`
+			( $namespace === HTMLData::NS_HTML || $namespace === null ) &&
+			$name === 'template'
+		) {
 			if ( $contents === '' ) {
 				$contents = "  content\n";
 			} else {

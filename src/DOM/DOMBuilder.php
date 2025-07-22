@@ -45,6 +45,8 @@ class DOMBuilder implements TreeHandler {
 
 	private bool $suppressHtmlNamespace;
 
+	private bool $createElementSetsNullNS;
+
 	private bool $suppressIdAttribute;
 
 	private bool $setAttributeWorkarounds;
@@ -70,11 +72,6 @@ class DOMBuilder implements TreeHandler {
 	/**
 	 * @param array $options An associative array of options:
 	 *   - errorCallback : A function which is called on parse errors
-	 *   - suppressHtmlNamespace : omit the namespace when creating HTML
-	 *     elements. False by default.  This corresponds to the PHP 8.4
-	 *     `Dom\HTML_NO_DEFAULT_NS` option to
-	 *     `Dom\HTMLDocument::createFromString()`.  Some versions of PHP
-	 *     are notably faster when namespaces are omitted.
 	 *   - domImplementationClass : The string name of the DOMImplementation
 	 *     class to use.  Defaults to `\DOMImplementation::class`; you can
 	 *     pass `\Dom\Implementation::class` on PHP 8.4, or use a third-party
@@ -86,6 +83,17 @@ class DOMBuilder implements TreeHandler {
 	 *     class to use.  Defaults to `\DOMException::class`; you can pass
 	 *     `\Dom\Exception::class` on PHP 8.4, or use a third-party
 	 *     DOM implementation by passing an alternative class name here.
+	 *   - suppressHtmlNamespace : omit the namespace when creating HTML
+	 *     elements. This corresponds to the PHP 8.4 `Dom\HTML_NO_DEFAULT_NS`
+	 *     option to `Dom\HTMLDocument::createFromString()`.  This
+	 *     defaults to `false` currently, but will default to `true`
+	 *     when using `\DOMImplementation::class` in the next release.
+	 *     Note that tag names with colons (like `<mw:section>`) won't
+	 *     be properly parsed with `\DOMImplementation::class` unless
+	 *     `suppressHtmlNamespace` is true, while the newer PHP 8.4
+	 *     `\Dom\Implementation::class` will be forced to use a slow
+	 *     workaround for tags containing colons if
+	 *     `suppressHtmlNamespace` is `true`.
 	 *   - suppressIdAttribute : don't call the nonstandard
 	 *     `DOMElement::setIdAttribute()`/`Dom\Element::setIdAttribute()`
 	 *     method while constructing elements.  False by default when using
@@ -105,19 +113,19 @@ class DOMBuilder implements TreeHandler {
 	 *     and `'coerce'` otherwise.
 	 *   - htmlParser: An optional callable with the signature
 	 *     `string => Document`, used to implement the `'parser'` option to
-	 *     `coercionWorkaround`.  The default is `null`, which uses
-	 *     `Dom\HTMLDocument::loadFromString` when available.
+	 *     `coercionWorkaround`, and also to create tags with names
+	 *     containing colons when `suppressHtmlNamespace` is true and
+	 *     `\Dom\Implementation::class` is used.  The default is `null`,
+	 *     which uses `Dom\HTMLDocument::loadFromString` when available.
 	 */
 	public function __construct( $options = [] ) {
 		$options += [
-			'suppressHtmlNamespace' => false,
 			'errorCallback' => null,
 			'domImplementation' => null,
 			'domImplementationClass' => \DOMImplementation::class,
 			'domExceptionClass' => \DOMException::class,
 		];
 		$this->errorCallback = $options['errorCallback'];
-		$this->suppressHtmlNamespace = $options['suppressHtmlNamespace'];
 		$this->domImplementation = $options['domImplementation'] ??
 			new $options['domImplementationClass'];
 		$this->domExceptionClass = $options['domExceptionClass'];
@@ -125,6 +133,9 @@ class DOMBuilder implements TreeHandler {
 		$isOldNative = $this->domImplementation instanceof \DOMImplementation;
 		$isNewNative = is_a( $this->domImplementation, '\Dom\Implementation' );
 
+		$this->suppressHtmlNamespace = $options['suppressHtmlNamespace'] ??
+			$isOldNative;
+		$this->createElementSetsNullNS = $isOldNative;
 		$this->suppressIdAttribute = $options['suppressIdAttribute'] ??
 			!( $isOldNative || $isNewNative );
 		$this->setAttributeWorkarounds = $isOldNative;
@@ -302,18 +313,37 @@ class DOMBuilder implements TreeHandler {
 	 * @return \DOMNode
 	 */
 	protected function createNode( Element $element ) {
-		$noNS = $this->suppressHtmlNamespace && $element->namespace === HTMLData::NS_HTML;
-		if ( $noNS ) {
+		$isHtmlNS = ( $element->namespace === HTMLData::NS_HTML );
+		if ( $this->createElementSetsNullNS ) {
+			$useCreateElement = $this->suppressHtmlNamespace && $isHtmlNS;
+			if ( str_contains( $element->name, ':' ) ) {
+				// With \DOMImplementation, we have to use createElement
+				// for elements with colons in their names, even though
+				// this will leave them with a null namespace.
+				$useCreateElement = true;
+			}
+		} elseif ( $this->suppressHtmlNamespace && $isHtmlNS ) {
+			$useCreateElement = false;
+		} else {
+			// Use createElement for HTML namespace elements, because otherwise
+			// the localName will get split on a ':' in $element->name.
+			$useCreateElement = $isHtmlNS;
+		}
+		if ( $useCreateElement ) {
 			$node = $this->maybeCoerce(
 				$element->name,
 				fn ( $name ) => $this->doc->createElement( $name ),
 				fn () => $this->parserElementWorkaround( $element->name )
 			);
-		} else {
+		} elseif ( $this->createElementSetsNullNS || !str_contains( $element->name, ':' ) ) {
+			$namespace = ( $this->suppressHtmlNamespace && $isHtmlNS ) ? null :
+				$element->namespace;
 			$node = $this->maybeCoerce( $element->name, fn ( $name ) =>
-				$this->doc->createElementNS( $element->namespace, $name ),
+				$this->doc->createElementNS( $namespace, $name ),
 				null
 			);
+		} else {
+			$node = $this->parserElementWorkaround( $element->name );
 		}
 
 		foreach ( $element->attrs->getObjects() as $attr ) {

@@ -42,20 +42,14 @@ class DOMBuilderTest extends \PHPUnit\Framework\TestCase {
 					$name = $altName;
 				}
 			} else {
-				if ( !$doc instanceof \DOMDocument ) {
-					// For non-coerced attributes with an alternative name, both
-					// the original and the alternative name should return the
-					// given value.
-					$this->assertTrue( $domElement->hasAttribute( $altName ), $altName );
-					$this->assertSame( $value, $domElement->getAttribute( $altName ) );
-				} else {
-					// (this is broken in \DOMDocument, only the altname is set)
-					$name = $altName;
-				}
+				// For non-coerced attributes, only the alternative name should
+				// be set.
+				$this->assertFalse( $domElement->hasAttribute( $name ) );
+				$name = $altName;
 			}
 		}
-		$this->assertTrue( $domElement->hasAttribute( $name ), $name );
-		$this->assertSame( $value, $domElement->getAttribute( $name ) );
+		$this->assertTrue( $domElement->hasAttribute( $name ), "$name is not present" );
+		$this->assertSame( $value, $domElement->getAttribute( $name ), "$name has incorrect value" );
 	}
 
 	/** @dataProvider attributeProvider */
@@ -67,8 +61,13 @@ class DOMBuilderTest extends \PHPUnit\Framework\TestCase {
 		$attributes = new TreeBuilder\ForeignAttributes(
 			new Tokenizer\PlainAttributes( [ $name => $value ] ), $type ?? 'other'
 		);
+		$namespace = match ( $type ) {
+			'math' => HTMLData::NS_MATHML,
+			'svg' => HTMLData::NS_SVG,
+			default => HTMLData::NS_HTML,
+		};
 		$element = new TreeBuilder\Element(
-			HTMLData::NS_HTML, $type ?? 'div', $attributes
+			$namespace, $type ?? 'div', $attributes
 		);
 		$domBuilder->insertElement(
 			TreeBuilder\TreeBuilder::UNDER, $body, $element, false, 12, 17
@@ -89,8 +88,13 @@ class DOMBuilderTest extends \PHPUnit\Framework\TestCase {
 			new Tokenizer\PlainAttributes( [ $name => $value ] ),
 			$type ?? 'other'
 		);
+		$namespace = match ( $type ) {
+			'math' => HTMLData::NS_MATHML,
+			'svg' => HTMLData::NS_SVG,
+			default => HTMLData::NS_HTML,
+		};
 		$element = new TreeBuilder\Element(
-			HTMLData::NS_HTML, $type ?? 'div',
+			$namespace, $type ?? 'div',
 			new Tokenizer\PlainAttributes( [] )
 		);
 		$domBuilder->insertElement(
@@ -113,8 +117,13 @@ class DOMBuilderTest extends \PHPUnit\Framework\TestCase {
 			new Tokenizer\PlainAttributes( [ $name => $value ] ),
 			$type ?? 'other'
 		);
+		$namespace = match ( $type ) {
+			'math' => HTMLData::NS_MATHML,
+			'svg' => HTMLData::NS_SVG,
+			default => HTMLData::NS_HTML,
+		};
 		$element = new TreeBuilder\Element(
-			HTMLData::NS_HTML, $type ?? 'div', $attributes
+			$namespace, $type ?? 'div', $attributes
 		);
 		$domBuilder->insertElement(
 			TreeBuilder\TreeBuilder::UNDER, $body, $element, false, 12, 17
@@ -132,10 +141,62 @@ class DOMBuilderTest extends \PHPUnit\Framework\TestCase {
 		);
 	}
 
+	/** @dataProvider providePrefixedElements */
+	public function testPrefixedElements(
+		DOMBuilder $domBuilder, bool $suppressHtmlNamespace,
+		string $name, string $expectedNS
+	) {
+		[ $doc, $body ] = self::createDoc( $domBuilder );
+		$element = new TreeBuilder\Element(
+			$expectedNS, $name,
+			new TreeBuilder\ForeignAttributes(
+				new Tokenizer\PlainAttributes( [] ),
+				'other'
+			)
+		);
+		$domBuilder->insertElement(
+			TreeBuilder\TreeBuilder::UNDER, $body, $element, false, 12, 17
+		);
+		// gently lie to phan about the type of $doc and $domElement
+		'@phan-var \DOMDocument $doc';
+		$domElement = $doc->documentElement->firstChild->firstChild;
+		'@phan-var \DOMElement $domElement';
+		$this->assertNotNull( $domElement );
+		// According to HTML spec, this should have localName='mw:editsection',
+		// prefix=null, and namespaceURI either null (when
+		// 'suppressHtmlNamespace' or equals to HTMLData::NS_HTML)
+		$this->assertEquals( $name, $domElement->localName );
+		$this->assertNull( $domElement->prefix ?: null );
+		// NOTE: This is an unresolvable bug with \DOMImplementation::class
+		// and `suppressHtmlNamespace=false`: there's no way to create the
+		// element with the proper namespace.  It is recommended to always
+		// set `suppressHtmlNamespace=true` when using \DOMImplementation.
+		if ( $domElement instanceof \DOMElement && !$suppressHtmlNamespace ) {
+			return;
+		}
+		$this->assertEquals(
+			$suppressHtmlNamespace && $expectedNS === HTMLData::NS_HTML ?
+				null : $expectedNS,
+			$domElement->namespaceURI ?: null
+		);
+	}
+
+	public static function providePrefixedElements() {
+		foreach ( self::provideDOMBuilder() as $impl => [ $domBuilder, $suppressHtmlNamespace ] ) {
+			foreach ( [
+				[ 'div', HTMLData::NS_HTML ],
+				[ 'mw:section', HTMLData::NS_HTML ],
+				[ 'math', HTMLData::NS_MATHML ],
+			] as [ $elementName, $expectedNS ] ) {
+				yield "$impl <$elementName>" => [ $domBuilder, $suppressHtmlNamespace, $elementName, $expectedNS ];
+			}
+		}
+	}
+
 	public static function attributeProvider() {
 		// Use entities in the value to test for regressions in T324408
 		$value = "foo &amp;amp; bar";
-		foreach ( self::provideDOMBuilder() as $impl => $domBuilder ) {
+		foreach ( self::provideDOMBuilder() as $impl => [ $domBuilder, $ignore ] ) {
 			foreach ( [
 				'simple', 'xmlns', 'xml:lang', 'xlink:title',
 				'foo:bar', 'foo:bar:bat',
@@ -174,23 +235,18 @@ class DOMBuilderTest extends \PHPUnit\Framework\TestCase {
 	}
 
 	public static function provideDOMBuilder() {
-		yield "DOMDocument(html ns)" => new DOMBuilder( [
-			'domImplementationClass' => \DOMImplementation::class,
-			'suppressHtmlNamespace' => false,
-		] );
-		yield "DOMDocument(no ns)" => new DOMBuilder( [
-			'domImplementationClass' => \DOMImplementation::class,
-			'suppressHtmlNamespace' => true,
-		] );
-		if ( class_exists( '\Dom\Document' ) ) {
-			yield "Dom\Document(html ns)" => new DOMBuilder( [
-				'domImplementationClass' => '\Dom\Implementation',
-				'suppressHtmlNamespace' => false,
-			] );
-			yield "Dom\Document(no ns)" => new DOMBuilder( [
-				'domImplementationClass' => '\Dom\Implementation',
-				'suppressHtmlNamespace' => true,
-			] );
+		foreach ( [ false, true ] as $suppressHtmlNamespace ) {
+			$desc = $suppressHtmlNamespace ? '(no ns)' : '(html ns)';
+			yield "DOMDocument$desc" => [ new DOMBuilder( [
+				'domImplementationClass' => \DOMImplementation::class,
+				'suppressHtmlNamespace' => $suppressHtmlNamespace,
+			] ), $suppressHtmlNamespace ];
+			if ( class_exists( '\Dom\Document' ) ) {
+				yield "Dom\Document$desc" => [ new DOMBuilder( [
+					'domImplementationClass' => '\Dom\Implementation',
+					'suppressHtmlNamespace' => $suppressHtmlNamespace,
+				] ), $suppressHtmlNamespace ];
+			}
 		}
 	}
 }
