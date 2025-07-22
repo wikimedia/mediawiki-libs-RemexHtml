@@ -16,6 +16,10 @@ class HTMLDocument {
 	/** @var DocumentType */
 	public $doctype;
 
+	public static function createEmpty( string $encoding = "UTF-8" ): self {
+		return new self;
+	}
+
 	public static function createFromString(
 		string $source, int $options = 0, ?string $overrideEncoding = null
 	): self {

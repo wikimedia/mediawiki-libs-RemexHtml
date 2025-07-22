@@ -47,11 +47,19 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 		return self::provider( 'dom' );
 	}
 
+	public static function domFragmentProvider() {
+		return self::provider( 'dom', onlyFragments: true );
+	}
+
 	public static function dom84Provider() {
 		return self::provider( 'dom84' );
 	}
 
-	private static function provider( $type ) {
+	public static function dom84FragmentProvider() {
+		return self::provider( 'dom84', onlyFragments: true );
+	}
+
+	private static function provider( $type, $onlyFragments = false ) {
 		$testFiles = [];
 		foreach ( self::TEST_DIRS as $testDir ) {
 			$testFiles = array_merge( $testFiles, glob( __DIR__ . "/../../$testDir/*.dat" ) );
@@ -64,6 +72,9 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 			$tests = self::readFile( $fileName, $type );
 
 			foreach ( $tests as $test ) {
+				if ( $onlyFragments && !isset( $test['fragment'] ) ) {
+					continue;
+				}
 				if ( isset( $test['scripting'] ) ) {
 					$args[] = [ $test ];
 				} else {
@@ -226,6 +237,17 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 		$this->runWithSerializer( $serializer, $params );
 	}
 
+	/** @dataProvider domFragmentProvider */
+	public function testDOMFragmentSerializer( $params ) {
+		$ownerDocument = new \DOMDocument();
+		$formatter = new Serializer\TestFormatter;
+		$builder = new DOM\DOMFragmentBuilder( $ownerDocument, [
+			'errorCallback' => [ $this, 'errorCallback' ]
+		] );
+		$serializer = new DOM\DOMSerializer( $builder, $formatter );
+		$this->runWithSerializer( $serializer, $params );
+	}
+
 	/** @dataProvider dom84Provider */
 	public function testDOMSerializer84( $params ) {
 		if ( !class_exists( '\Dom\Document' ) ) {
@@ -234,6 +256,21 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 		$formatter = new Serializer\TestFormatter;
 		$builder = new DOM\DOMBuilder( [
 			'domImplementationClass' => '\Dom\Implementation',
+			'errorCallback' => [ $this, 'errorCallback' ]
+		] );
+		$serializer = new DOM\DOMSerializer( $builder, $formatter );
+		$this->runWithSerializer( $serializer, $params );
+	}
+
+	/** @dataProvider dom84FragmentProvider */
+	public function testDOMFragmentSerializer84( $params ) {
+		if ( !class_exists( '\Dom\Document' ) ) {
+			$this->markTestSkipped( 'requires PHP >= 8.4' );
+		}
+		$ownerDocument = \Dom\HTMLDocument::createEmpty();
+		'@phan-var \DOMDocument $ownerDocument';
+		$formatter = new Serializer\TestFormatter;
+		$builder = new DOM\DOMFragmentBuilder( $ownerDocument, [
 			'errorCallback' => [ $this, 'errorCallback' ]
 		] );
 		$serializer = new DOM\DOMSerializer( $builder, $formatter );

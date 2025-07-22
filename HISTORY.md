@@ -16,6 +16,8 @@
     name.  We've elected to preserve the correct prefix (`null`) and
     local name (`mw:section`) but omit the HTML namespace in this
     situation.
+* New class `Wikimedia\RemexHtml\DOM\DOMFragmentBuilder` to facilitate
+  building a `DocumentFragment` with a pre-existing `Document`.
 
 ## RemexHtml 5.0.0 (2025-06-04)
 * Bug fixes for PHP 8.4 Dom\Document compatibility.
