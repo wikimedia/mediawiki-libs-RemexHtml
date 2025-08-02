@@ -46,7 +46,7 @@ class Benchmark {
 		$func();
 		// Now execute a number of timed iterations
 		$times = [];
-		for ( $i = 0; $i < self::ITERATIONS;$i++ ) {
+		for ( $i = 0; $i < self::ITERATIONS; $i++ ) {
 			$start = microtime( true );
 			$func();
 			$end = microtime( true );
@@ -69,7 +69,7 @@ class Benchmark {
 		return round( $avgTime, self::ROUNDING );
 	}
 
-	public static function run() {
+	public static function run(): void {
 		$html = file_get_contents(
 			# __DIR__ . '/../tests/Australia.html'
 			__DIR__ . '/../tests/Barack_Obama.html'
@@ -78,7 +78,7 @@ class Benchmark {
 		$instance->execute();
 	}
 
-	private static function provideCases() {
+	private static function provideCases(): iterable {
 		yield "DOMDocument with namespace" => [
 			'suppressHtmlNamespace' => false,
 		];
@@ -101,7 +101,7 @@ class Benchmark {
 	private function execute(): void {
 		foreach ( self::provideCases() as $desc => $opts ) {
 			$props = self::evalOpts( $opts );
-			$time = self::benchmark( fn ()=>self::parse( $this->html, $opts ) );
+			$time = self::benchmark( fn () => self::parse( $this->html, $opts ) );
 			$propDesc = implode( ' ', array_keys( array_filter( $props, static fn ( $v ) => $v ) ) );
 			echo( "$time - $desc $propDesc\n" );
 		}
