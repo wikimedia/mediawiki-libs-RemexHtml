@@ -1,6 +1,6 @@
 # Release History
 
-## RemexHtml x.x.x (not yet released)
+## RemexHtml 5.1.0 (2025-08-14)
 * Further bug-fixes for PHP 8.4 Dom\Document.
   - It is recommended to set `suppressHtmlNamespace=true` for
     DOMBuilder if you are using the old `\DOMImplementation`, and set
@@ -18,6 +18,7 @@
     situation.
 * New class `Wikimedia\RemexHtml\DOM\DOMFragmentBuilder` to facilitate
   building a `DocumentFragment` with a pre-existing `Document`.
+* Drop support for PHP < 8.1.
 
 ## RemexHtml 5.0.0 (2025-06-04)
 * Bug fixes for PHP 8.4 Dom\Document compatibility.
