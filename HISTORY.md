@@ -1,5 +1,7 @@
 # Release History
 
+## RemexHtml x.x.x (not yet released)
+
 ## RemexHtml 5.1.0 (2025-08-14)
 * Further bug-fixes for PHP 8.4 Dom\Document.
   - It is recommended to set `suppressHtmlNamespace=true` for
