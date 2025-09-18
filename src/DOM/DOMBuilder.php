@@ -259,7 +259,8 @@ class DOMBuilder implements TreeHandler {
 	/**
 	 * Helper function to try to execute a function, coercing the given
 	 * name and trying again if it throws a DOMException.
-	 * @phan-template T
+	 *
+	 * @template T
 	 * @param string $name The name to possibly coerce
 	 * @param callable(string):T $func The operation we wish to perform
 	 * @param ?callable():T $parserWorkaround An alternative method to
