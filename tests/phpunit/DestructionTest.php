@@ -53,7 +53,7 @@ class DestructTreeBuilder extends TreeBuilder\TreeBuilder {
  */
 class DestructionTest extends \PHPUnit\Framework\TestCase {
 
-	public function provider(): array {
+	public static function provider(): array {
 		return [
 			[ 'hello' ],
 			[ '<a>' ],
