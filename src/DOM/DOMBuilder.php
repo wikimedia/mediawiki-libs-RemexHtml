@@ -333,7 +333,7 @@ class DOMBuilder implements TreeHandler {
 		if ( $useCreateElement ) {
 			$node = $this->maybeCoerce(
 				$element->name,
-				fn ( $name ) => $this->doc->createElement( $name ),
+				$this->doc->createElement( ... ),
 				fn () => $this->parserElementWorkaround( $element->name )
 			);
 		} elseif ( $this->createElementSetsNullNS || !str_contains( $element->name, ':' ) ) {
