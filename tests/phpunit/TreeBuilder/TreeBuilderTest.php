@@ -231,6 +231,7 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 		$formatter = new Serializer\TestFormatter;
 		$builder = new DOM\DOMBuilder( [
 			'domImplementationClass' => \DOMImplementation::class,
+			'domExceptionClass' => \DOMException::class,
 			'errorCallback' => [ $this, 'errorCallback' ]
 		] );
 		$serializer = new DOM\DOMSerializer( $builder, $formatter );
@@ -256,6 +257,7 @@ class TreeBuilderTest extends \PHPUnit\Framework\TestCase {
 		$formatter = new Serializer\TestFormatter;
 		$builder = new DOM\DOMBuilder( [
 			'domImplementationClass' => '\Dom\Implementation',
+			'domExceptionClass' => '\Dom\Exception',
 			'errorCallback' => [ $this, 'errorCallback' ]
 		] );
 		$serializer = new DOM\DOMSerializer( $builder, $formatter );

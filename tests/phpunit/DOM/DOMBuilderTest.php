@@ -239,11 +239,13 @@ class DOMBuilderTest extends \PHPUnit\Framework\TestCase {
 			$desc = $suppressHtmlNamespace ? '(no ns)' : '(html ns)';
 			yield "DOMDocument$desc" => [ new DOMBuilder( [
 				'domImplementationClass' => \DOMImplementation::class,
+				'domExceptionClass' => \DOMException::class,
 				'suppressHtmlNamespace' => $suppressHtmlNamespace,
 			] ), $suppressHtmlNamespace ];
 			if ( class_exists( '\Dom\Document' ) ) {
 				yield "Dom\Document$desc" => [ new DOMBuilder( [
 					'domImplementationClass' => '\Dom\Implementation',
+					'domExceptionClass' => '\Dom\Exception',
 					'suppressHtmlNamespace' => $suppressHtmlNamespace,
 				] ), $suppressHtmlNamespace ];
 			}
