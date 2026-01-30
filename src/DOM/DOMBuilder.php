@@ -229,7 +229,11 @@ class DOMBuilder implements TreeHandler {
 			);
 			$doc = $impl->createDocument( null, '', $doctype );
 		}
-		$doc->encoding = 'UTF-8';
+		if ( $doc instanceof \DOMDocument ) {
+			$doc->encoding = 'UTF-8';
+		} else {
+			$doc->characterSet = 'UTF-8';
+		}
 		return $doc;
 	}
 
