@@ -25,7 +25,9 @@ class LazyAttributesTest extends TestCase {
 
 	public function testOffsetExists() {
 		$a = $this->create( 1 );
+		// @phan-suppress-next-line PhanRedundantCondition https://github.com/phan/phan/issues/5441
 		$this->assertTrue( isset( $a['k1'] ) );
+		// @phan-suppress-next-line PhanRedundantCondition https://github.com/phan/phan/issues/5441
 		$this->assertFalse( isset( $a['k2'] ) );
 	}
 

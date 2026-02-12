@@ -399,7 +399,6 @@ class Tokenizer {
 	protected function executeInternal( $loop ) {
 		$eof = false;
 
-		// @phan-suppress-next-line PhanPossiblyInfiniteLoop
 		do {
 			switch ( $this->state ) {
 				case self::STATE_DATA:
