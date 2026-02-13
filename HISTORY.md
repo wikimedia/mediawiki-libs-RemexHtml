@@ -1,6 +1,6 @@
 # Release History
 
-## RemexHtml x.x.x (not yet released)
+## RemexHtml 6.0.0 (2026-02-13)
 * New defaults for DOMBuilder:
   - 'domImplementationClass' defaults to \Dom\Implementation on PHP 8.4.
     This is a change from prior versions, which always defaulted to
