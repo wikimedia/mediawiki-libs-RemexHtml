@@ -228,11 +228,10 @@ class CachingStack extends Stack {
 	/** @inheritDoc */
 	public function push( Element $elt ) {
 		// Update the stack store
-		$n = count( $this->elements );
-		$this->elements[$n] = $elt;
+		$this->elements[] = $elt;
 		// Update the current node and index cache
 		$this->current = $elt;
-		$elt->stackIndex = $n;
+		$elt->stackIndex = array_key_last( $this->elements );
 		// Update the scope cache
 		$ns = $elt->namespace;
 		$name = $elt->name;
@@ -255,17 +254,15 @@ class CachingStack extends Stack {
 
 	/** @inheritDoc */
 	public function pop() {
-		$n = count( $this->elements );
-		if ( !$n ) {
+		if ( !$this->elements ) {
 			throw new TreeBuilderError( __METHOD__ . ': stack empty' );
 		}
 		// Update the stack store, index cache and current node
 		$elt = array_pop( $this->elements );
-		$n--;
 		$elt->stackIndex = null;
 		$ns = $elt->namespace;
 		$name = $elt->name;
-		$this->current = $n ? $this->elements[$n - 1] : null;
+		$this->current = array_last( $this->elements );
 		// Update the scope cache
 		if ( $ns === HTMLData::NS_HTML && isset( self::PREDICATE_MAP[$name] ) ) {
 			$scope = self::PREDICATE_MAP[$name];
@@ -320,7 +317,7 @@ class CachingStack extends Stack {
 		}
 		// Replace the stack element
 		$this->elements[$idx] = $elt;
-		if ( $idx === count( $this->elements ) - 1 ) {
+		if ( $idx === array_key_last( $this->elements ) ) {
 			$this->current = $elt;
 		}
 		$oldElt->stackIndex = null;
@@ -438,7 +435,7 @@ class CachingStack extends Stack {
 	}
 
 	private function scopeDump( int $type, string $scopeName ): string {
-		if ( count( $this->scopes[$type] ) ) {
+		if ( $this->scopes[$type] ) {
 			return "$scopeName: " . implode( ', ', array_keys( $this->scopes[$type] ) ) . "\n";
 		} else {
 			return '';

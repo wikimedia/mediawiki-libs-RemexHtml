@@ -105,10 +105,7 @@ class Serializer implements AbstractSerializer {
 	 * @return SerializerNode|string|null
 	 */
 	public function getLastChild( SerializerNode $node ) {
-		$children = $node->children;
-		$lastChildIndex = count( $children ) - 1;
-		$lastChild = $lastChildIndex >= 0 ? $children[$lastChildIndex] : null;
-		return $lastChild;
+		return array_last( $node->children );
 	}
 
 	/** @inheritDoc */
@@ -169,8 +166,9 @@ class Serializer implements AbstractSerializer {
 		$encoded = (string)$this->formatter->characters( $parent, $text, $start, $length );
 
 		$children =& $parent->children;
-		$lastChildIndex = count( $children ) - 1;
-		$lastChild = $lastChildIndex >= 0 ? $children[$lastChildIndex] : null;
+		// @phan-suppress-next-line PhanCoalescingNeverNull
+		$lastChildIndex = array_key_last( $children ) ?? -1;
+		$lastChild = array_last( $children );
 
 		if ( $preposition === TreeBuilder::BEFORE ) {
 			// Insert before element
@@ -179,7 +177,7 @@ class Serializer implements AbstractSerializer {
 				throw new SerializerError( "invalid insert position $refIndex/$lastChildIndex" );
 			}
 			$children[$lastChildIndex] = $encoded;
-			$children[$lastChildIndex + 1] = $refNode;
+			$children[] = $refNode;
 		} else {
 			// Append to the list of children
 			if ( is_string( $lastChild ) ) {
@@ -205,8 +203,9 @@ class Serializer implements AbstractSerializer {
 	) {
 		[ $parent, $refNode ] = $this->interpretPlacement( $preposition, $refElement );
 		$children =& $parent->children;
-		$lastChildIndex = count( $children ) - 1;
-		$lastChild = $lastChildIndex >= 0 ? $children[$lastChildIndex] : null;
+		// @phan-suppress-next-line PhanCoalescingNeverNull
+		$lastChildIndex = array_key_last( $children ) ?? -1;
+		$lastChild = array_last( $children );
 
 		if ( $element->userData ) {
 			// This element has already been inserted, this is a reparenting operation
@@ -237,7 +236,7 @@ class Serializer implements AbstractSerializer {
 				throw new SerializerError( "invalid insert position $refIndex/$lastChildIndex" );
 			}
 			$children[$lastChildIndex] = $self;
-			$children[$lastChildIndex + 1] = $refNode;
+			$children[] = $refNode;
 		} else {
 			// Append to the list of children
 			$children[] = $self;
@@ -299,8 +298,9 @@ class Serializer implements AbstractSerializer {
 		[ $parent, $refNode ] = $this->interpretPlacement( $preposition, $refElement );
 		$encoded = $this->formatter->comment( $parent, $text );
 		$children =& $parent->children;
-		$lastChildIndex = count( $children ) - 1;
-		$lastChild = $lastChildIndex >= 0 ? $children[$lastChildIndex] : null;
+		// @phan-suppress-next-line PhanCoalescingNeverNull
+		$lastChildIndex = array_key_last( $children ) ?? -1;
+		$lastChild = array_last( $children );
 
 		if ( $preposition === TreeBuilder::BEFORE ) {
 			// Insert before element
@@ -308,7 +308,7 @@ class Serializer implements AbstractSerializer {
 				throw new SerializerError( "invalid insert position" );
 			}
 			$children[$lastChildIndex] = $encoded;
-			$children[$lastChildIndex + 1] = $refNode;
+			$children[] = $refNode;
 		} else {
 			// Append to the list of children
 			if ( is_string( $lastChild ) ) {

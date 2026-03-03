@@ -45,7 +45,7 @@ class SerializerWithTracer extends Serializer {
 
 	/** @inheritDoc */
 	public function endDocument( $pos ) {
-		if ( count( $this->nodes ) ) {
+		if ( $this->nodes ) {
 			$nodeTags = '';
 			foreach ( $this->nodes as $node ) {
 				if ( $nodeTags !== '' ) {

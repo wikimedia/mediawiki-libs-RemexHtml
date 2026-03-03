@@ -87,7 +87,7 @@ class ActiveFormattingElements {
 		// this element before we encounter a marker, then drop the last
 		// one.
 		$noahKey = $elt->getNoahKey();
-		$table =& $this->noahTableStack[ count( $this->noahTableStack ) - 1 ];
+		$table =& $this->noahTableStack[ array_key_last( $this->noahTableStack ) ];
 		if ( !isset( $table[$noahKey] ) ) {
 			$table[$noahKey] = $elt;
 		} else {
@@ -218,7 +218,7 @@ class ActiveFormattingElements {
 	 */
 	private function addToNoahList( Element $elt ) {
 		$noahKey = $elt->getNoahKey();
-		$table =& $this->noahTableStack[ count( $this->noahTableStack ) - 1 ];
+		$table =& $this->noahTableStack[ array_key_last( $this->noahTableStack ) ];
 		if ( !isset( $table[$noahKey] ) ) {
 			$table[$noahKey] = $elt;
 		} else {
@@ -236,7 +236,7 @@ class ActiveFormattingElements {
 	 * @param Element $elt
 	 */
 	private function removeFromNoahList( Element $elt ) {
-		$table =& $this->noahTableStack[ count( $this->noahTableStack ) - 1 ];
+		$table =& $this->noahTableStack[ array_key_last( $this->noahTableStack ) ];
 		$key = $elt->getNoahKey();
 		$noahElt = $table[$key];
 		if ( $noahElt === $elt ) {

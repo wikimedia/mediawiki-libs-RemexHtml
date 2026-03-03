@@ -69,18 +69,16 @@ class SimpleStack extends Stack {
 
 	/** @inheritDoc */
 	public function push( Element $elt ) {
-		$n = count( $this->elements );
-		$this->elements[$n] = $elt;
+		$this->elements[] = $elt;
 		$this->current = $elt;
-		$elt->stackIndex = $n;
+		$elt->stackIndex = array_key_last( $this->elements );
 	}
 
 	/** @inheritDoc */
 	public function pop() {
 		$elt = array_pop( $this->elements );
 		$elt->stackIndex = null;
-		$n = count( $this->elements );
-		$this->current = $n ? $this->elements[$n - 1] : null;
+		$this->current = array_last( $this->elements );
 		return $elt;
 	}
 
@@ -90,7 +88,7 @@ class SimpleStack extends Stack {
 		$this->elements[$idx] = $elt;
 		$oldElt->stackIndex = null;
 		$elt->stackIndex = $idx;
-		if ( $idx === count( $this->elements ) - 1 ) {
+		if ( $idx === array_key_last( $this->elements ) ) {
 			$this->current = $elt;
 		}
 	}
