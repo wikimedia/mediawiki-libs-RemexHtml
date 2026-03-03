@@ -206,7 +206,7 @@ class TreeBuilder {
 	 * Find the appropriate place for inserting a node.
 	 *
 	 * @param Element|null $target The override target
-	 * @return array A list with the preposition in the first element, and the
+	 * @return array{0: int, 1: Element|null} A list with the preposition in the first element, and the
 	 *   reference node in the second element.
 	 */
 	private function appropriatePlace( $target = null ) {
@@ -568,7 +568,9 @@ class TreeBuilder {
 			$lastNode = $furthestBlock;
 			$nodeIndex = $furthestBlockIndex;
 			$isAFE = false;
+			/** @var array<int,true> $stackRemovals */
 			$stackRemovals = [];
+			/** @var array{0: int, 1: Element|null, 2: Element} $insertions */
 			$insertions = [];
 
 			// Inner loop
