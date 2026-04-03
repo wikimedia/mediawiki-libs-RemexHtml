@@ -1,4 +1,5 @@
 <?php
+declare( strict_types = 1 );
 
 namespace Wikimedia\RemexHtml\Tools;
 
@@ -396,6 +397,7 @@ EOT;
 
 		$fileContents = '<' . <<<PHP
 ?php
+declare( strict_types = 1 );
 
 /**
  * This data file is machine generated, see tools/GenerateDataFiles.php

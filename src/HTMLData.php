@@ -1,4 +1,5 @@
 <?php
+declare( strict_types = 1 );
 
 /**
  * This data file is machine generated, see tools/GenerateDataFiles.php

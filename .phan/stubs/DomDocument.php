@@ -1,4 +1,6 @@
 <?php
+declare( strict_types = 1 );
+
 # Stub out PHP8.4's Dom\Document so that references to it don't trigger
 # phan errors on earlier PHP releases.
 namespace Dom;

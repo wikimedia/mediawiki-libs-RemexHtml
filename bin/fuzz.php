@@ -1,5 +1,6 @@
 #!/usr/bin/env php
 <?php
+declare( strict_types = 1 );
 
 /**
  * Generate pseudorandom input, and run it in both Remex and Html5Depurate.
