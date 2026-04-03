@@ -64,8 +64,10 @@ class PlainAttributes implements Attributes {
 	public function getObjects() {
 		if ( $this->attrObjects === null ) {
 			$result = [];
-			foreach ( $this->data as $name => $value ) {
-				$result[$name] = new Attribute( $name, null, null, $name, $value );
+			foreach ( $this->data as $key => $value ) {
+				// Undo PHP's magic conversion of numeric string keys to ints
+				$name = (string)$key;
+				$result[$key] = new Attribute( $name, null, null, $name, $value );
 			}
 			$this->attrObjects = $result;
 		}

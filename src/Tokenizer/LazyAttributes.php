@@ -94,8 +94,10 @@ class LazyAttributes implements Attributes {
 				$this->init();
 			}
 			$result = [];
-			foreach ( $this->attributes as $name => $value ) {
-				$result[$name] = new Attribute( $name, null, null, $name, $value );
+			foreach ( $this->attributes as $key => $value ) {
+				// Undo PHP's magic conversion of numeric string keys to ints
+				$name = (string)$key;
+				$result[$key] = new Attribute( $name, null, null, $name, $value );
 			}
 			$this->attrObjects = $result;
 		}
