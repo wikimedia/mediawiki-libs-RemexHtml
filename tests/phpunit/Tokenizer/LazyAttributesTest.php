@@ -3,6 +3,7 @@ declare( strict_types = 1 );
 
 namespace Wikimedia\RemexHtml\Tests\Tokenizer;
 
+use Iterator;
 use PHPUnit\Framework\TestCase;
 use Wikimedia\RemexHtml\Tokenizer\LazyAttributes;
 
@@ -55,7 +56,7 @@ class LazyAttributesTest extends TestCase {
 
 	public function testGetIterator() {
 		$a = $this->create( 1 );
-		$this->assertInstanceOf( 'Iterator', $a->getIterator() );
+		$this->assertInstanceOf( Iterator::class, $a->getIterator() );
 		$this->assertSame( [ 'k1' => 'v1' ], iterator_to_array( $a ) );
 	}
 

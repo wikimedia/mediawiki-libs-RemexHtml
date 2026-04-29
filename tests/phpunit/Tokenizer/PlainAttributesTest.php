@@ -3,6 +3,7 @@ declare( strict_types = 1 );
 
 namespace Wikimedia\RemexHtml\Tests\Tokenizer;
 
+use Iterator;
 use PHPUnit\Framework\TestCase;
 use Wikimedia\RemexHtml\Tokenizer\PlainAttributes;
 
@@ -52,7 +53,7 @@ class PlainAttributesTest extends TestCase {
 	public function testGetIterator() {
 		$a = new PlainAttributes( [] );
 		$a['a'] = '1';
-		$this->assertInstanceOf( 'Iterator', $a->getIterator() );
+		$this->assertInstanceOf( Iterator::class, $a->getIterator() );
 		$this->assertSame( [ 'a' => '1' ], iterator_to_array( $a ) );
 	}
 
