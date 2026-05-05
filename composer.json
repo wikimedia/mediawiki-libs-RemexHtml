@@ -31,7 +31,7 @@
 		"wikimedia/utfnormal": "^3.0.1 || ^4.0.0"
 	},
 	"require-dev": {
-		"mediawiki/mediawiki-codesniffer": "50.0.0",
+		"mediawiki/mediawiki-codesniffer": "51.0.0",
 		"mediawiki/mediawiki-phan-config": "0.20.0",
 		"mediawiki/minus-x": "2.0.1",
 		"ockcyp/covers-validator": "1.7.0",
