@@ -1,6 +1,8 @@
 # Release History
 
 ## RemexHtml x.x.x (not yet released)
+* Fix unexpected conversion of attributes with numeric names to ints.
+* Update code style; declare strict types.
 
 ## RemexHtml 6.0.0 (2026-02-13)
 * New defaults for DOMBuilder:
