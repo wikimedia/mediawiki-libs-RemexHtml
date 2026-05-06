@@ -1,6 +1,6 @@
 # Release History
 
-## RemexHtml x.x.x (not yet released)
+## RemexHtml 6.0.1 (2026-05-06)
 * Fix unexpected conversion of attributes with numeric names to ints.
 * Update code style; declare strict types.
 
