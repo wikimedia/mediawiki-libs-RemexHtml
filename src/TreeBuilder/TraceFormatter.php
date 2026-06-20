@@ -58,17 +58,33 @@ class TraceFormatter {
 		return self::PREPOSITION_NAME[$prep] ?? '???';
 	}
 
-	/** @inheritDoc */
+	/**
+	 * @param string|null $fns
+	 * @param string|null $fn
+	 * @return string
+	 */
 	public static function startDocument( $fns, $fn ) {
 		return "startDocument";
 	}
 
-	/** @inheritDoc */
+	/**
+	 * @param int $pos
+	 * @return string
+	 */
 	public static function endDocument( $pos ) {
 		return "endDocument pos=$pos";
 	}
 
-	/** @inheritDoc */
+	/**
+	 * @param int $preposition
+	 * @param Element|null $refNode
+	 * @param string $text
+	 * @param int $start
+	 * @param int $length
+	 * @param int $sourceStart
+	 * @param int $sourceLength
+	 * @return string
+	 */
 	public static function characters( $preposition, $refNode, $text, $start, $length,
 								$sourceStart, $sourceLength
 	) {
@@ -79,7 +95,15 @@ class TraceFormatter {
 		return "characters \"$excerpt\", $prepName $refTag, pos=$sourceStart, len=$sourceLength";
 	}
 
-	/** @inheritDoc */
+	/**
+	 * @param int $preposition
+	 * @param Element|null $refNode
+	 * @param Element $element
+	 * @param bool $void
+	 * @param int $sourceStart
+	 * @param int $sourceLength
+	 * @return string
+	 */
 	public static function insertElement( $preposition, $refNode, Element $element, $void,
 		$sourceStart, $sourceLength
 	) {
@@ -90,13 +114,26 @@ class TraceFormatter {
 		return "insert $elementTag $voidMsg, $prepName $refTag, pos=$sourceStart, len=$sourceLength";
 	}
 
-	/** @inheritDoc */
+	/**
+	 * @param Element $element
+	 * @param int $sourceStart
+	 * @param int $sourceLength
+	 * @return string
+	 */
 	public static function endTag( Element $element, $sourceStart, $sourceLength ) {
 		$elementTag = self::getDebugTag( $element );
 		return "end $elementTag, pos=$sourceStart, len=$sourceLength";
 	}
 
-	/** @inheritDoc */
+	/**
+	 * @param string $name
+	 * @param string $public
+	 * @param string $system
+	 * @param int $quirks
+	 * @param int $sourceStart
+	 * @param int $sourceLength
+	 * @return string
+	 */
 	public static function doctype( $name, $public, $system, $quirks, $sourceStart, $sourceLength
 	) {
 		$quirksMsg = self::QUIRKS_TYPES[$quirks];
@@ -104,7 +141,14 @@ class TraceFormatter {
 			"$quirksMsg, pos=$sourceStart, len=$sourceLength";
 	}
 
-	/** @inheritDoc */
+	/**
+	 * @param int $preposition
+	 * @param Element|null $refNode
+	 * @param string $text
+	 * @param int $sourceStart
+	 * @param int $sourceLength
+	 * @return string
+	 */
 	public static function comment( $preposition, $refNode, $text, $sourceStart, $sourceLength ) {
 		$prepName = self::getPrepositionName( $preposition );
 		$refTag = self::getDebugTag( $refNode );
@@ -113,24 +157,42 @@ class TraceFormatter {
 		return "comment \"$excerpt\", $prepName $refTag, pos=$sourceStart, len=$sourceLength";
 	}
 
-	/** @inheritDoc */
+	/**
+	 * @param string $text
+	 * @param int $pos
+	 * @return string
+	 */
 	public static function error( $text, $pos ) {
 		return "error \"$text\", pos=$pos";
 	}
 
-	/** @inheritDoc */
+	/**
+	 * @param Element $element
+	 * @param Attributes $attrs
+	 * @param int $sourceStart
+	 * @return string
+	 */
 	public static function mergeAttributes( Element $element, Attributes $attrs, $sourceStart ) {
 		$elementTag = self::getDebugTag( $element );
 		return "merge $elementTag, pos=$sourceStart";
 	}
 
-	/** @inheritDoc */
+	/**
+	 * @param Element $element
+	 * @param int $sourceStart
+	 * @return string
+	 */
 	public static function removeNode( Element $element, $sourceStart ) {
 		$elementTag = self::getDebugTag( $element );
 		return "remove $elementTag, pos=$sourceStart";
 	}
 
-	/** @inheritDoc */
+	/**
+	 * @param Element $element
+	 * @param Element $newParent
+	 * @param int $sourceStart
+	 * @return string
+	 */
 	public static function reparentChildren( Element $element, Element $newParent, $sourceStart ) {
 		$elementTag = self::getDebugTag( $element );
 		$newParentTag = self::getDebugTag( $newParent );
