@@ -8,10 +8,6 @@ namespace Wikimedia\RemexHtml\Serializer;
  * in the Tokenizer.
  */
 class FastFormatter implements Formatter {
-	/** @inheritDoc */
-	public function __construct( $options = [] ) {
-	}
-
 	/**
 	 * @inheritDoc
 	 */
